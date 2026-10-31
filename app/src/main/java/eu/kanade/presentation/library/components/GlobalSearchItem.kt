@@ -1,12 +1,12 @@
 package eu.kanade.presentation.library.components
 
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.components.material.PaperButton as TextButton
 
 @Composable
 internal fun GlobalSearchItem(

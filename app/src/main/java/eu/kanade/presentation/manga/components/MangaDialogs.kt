@@ -5,10 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -31,6 +29,8 @@ import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 import kotlin.time.Instant
+import tachiyomi.presentation.core.components.material.PaperAlertDialog as AlertDialog
+import tachiyomi.presentation.core.components.material.PaperButton as TextButton
 
 @Composable
 fun DeleteChaptersDialog(

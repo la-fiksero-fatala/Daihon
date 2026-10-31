@@ -1106,4 +1106,5 @@
     <string name="donationCampaign.paragraph3">Regardless, Mihon will continue to be maintained by me and the volunteers, and it will stay open source.</string>
     <string name="donationCampaign.contactPlatform">Discord</string>
     <string name="donationCampaign.dismiss">Dismiss</string>
+    <string name="daihon_display_summary">Display, language, date &amp; time format</string>
 </resources>

@@ -2,9 +2,7 @@ package eu.kanade.presentation.more.settings.widget
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +15,8 @@ import androidx.compose.ui.window.DialogProperties
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.components.material.PaperAlertDialog as AlertDialog
+import tachiyomi.presentation.core.components.material.PaperButton as TextButton
 
 @Composable
 fun <T> MultiSelectListPreferenceWidget(

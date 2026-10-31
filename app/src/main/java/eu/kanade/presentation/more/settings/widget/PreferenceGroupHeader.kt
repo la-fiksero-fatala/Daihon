@@ -8,6 +8,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -17,6 +20,7 @@ fun PreferenceGroupHeader(title: String, highlighted: Boolean = false) {
         modifier = Modifier
             .fillMaxWidth()
             .highlightBackground(highlighted)
+            .drawBehind { drawLine(Color.Black, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
             .padding(bottom = 8.dp, top = 14.dp),
     ) {
         Text(

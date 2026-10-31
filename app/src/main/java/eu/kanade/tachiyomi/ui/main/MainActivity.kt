@@ -34,7 +34,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -136,6 +135,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.time.TimeSource
 import kotlin.time.times
+import tachiyomi.presentation.core.components.material.PaperButton as Button
 
 class MainActivity : BaseActivity() {
 
@@ -559,42 +559,8 @@ class MainActivity : BaseActivity() {
      * When custom animation is used, status and navigation bar color will be set to transparent and will be restored
      * after the animation is finished.
      */
-    @Suppress("Deprecation")
     private fun setSplashScreenExitAnimation(splashScreen: SplashScreen?) {
-        val root = findViewById<View>(android.R.id.content)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && splashScreen != null) {
-            window.statusBarColor = Color.TRANSPARENT
-            window.navigationBarColor = Color.TRANSPARENT
-
-            splashScreen.setOnExitAnimationListener { splashProvider ->
-                // For some reason the SplashScreen applies (incorrect) Y translation to the iconView
-                splashProvider.iconView.translationY = 0F
-
-                val activityAnim = ValueAnimator.ofFloat(1F, 0F).apply {
-                    interpolator = LinearOutSlowInInterpolator()
-                    duration = SPLASH_EXIT_ANIM_DURATION
-                    addUpdateListener { va ->
-                        val value = va.animatedValue as Float
-                        root.translationY = value * 16.dpToPx
-                    }
-                }
-
-                val splashAnim = ValueAnimator.ofFloat(1F, 0F).apply {
-                    interpolator = FastOutSlowInInterpolator()
-                    duration = SPLASH_EXIT_ANIM_DURATION
-                    addUpdateListener { va ->
-                        val value = va.animatedValue as Float
-                        splashProvider.view.alpha = value
-                    }
-                    doOnEnd {
-                        splashProvider.remove()
-                    }
-                }
-
-                activityAnim.start()
-                splashAnim.start()
-            }
-        }
+        splashScreen?.setOnExitAnimationListener { it.remove() }
     }
 
     private fun handleIntentAction(intent: Intent, navigator: Navigator): Boolean {

@@ -15,7 +15,6 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import com.hippo.unifile.UniFile
-import eu.kanade.domain.ui.model.ThemeMode
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.base.delegate.ThemingDelegate
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
@@ -118,34 +117,7 @@ fun Context.readerBackgroundColor(readerTheme: ReaderPreferences.ReaderTheme): I
  * Context wrapping method obtained from AppCompatDelegateImpl
  * https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:appcompat/appcompat/src/main/java/androidx/appcompat/app/AppCompatDelegateImpl.java;l=348;drc=e28752c96fc3fb4d3354781469a1af3dbded4898
  */
-fun Context.createReaderThemeContext(): Context {
-    val graph = appGraph
-    val preferences = graph.uiPreferences
-    val readerPreferences = graph.readerPreferences
-    val themeMode = preferences.themeMode.get()
-    val isDarkBackground = when (ReaderPreferences.ReaderTheme.fromValue(readerPreferences.readerTheme.get())) {
-        ReaderPreferences.ReaderTheme.BLACK, ReaderPreferences.ReaderTheme.GRAY -> true
-        // Automatic bg uses activity background by default
-        ReaderPreferences.ReaderTheme.AUTOMATIC -> when (themeMode) {
-            ThemeMode.SYSTEM -> applicationContext.isNightMode()
-            else -> themeMode == ThemeMode.DARK
-        }
-        ReaderPreferences.ReaderTheme.WHITE -> false
-    }
-    val expected = if (isDarkBackground) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
-    if (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK != expected) {
-        val overrideConf = Configuration()
-        overrideConf.setTo(resources.configuration)
-        overrideConf.uiMode = (overrideConf.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or expected
-
-        val wrappedContext = ContextThemeWrapper(this, R.style.Theme_Tachiyomi)
-        wrappedContext.applyOverrideConfiguration(overrideConf)
-        ThemingDelegate.getThemeResIds(preferences.appTheme.get(), preferences.themeDarkAmoled.get())
-            .forEach { wrappedContext.theme.applyStyle(it, true) }
-        return wrappedContext
-    }
-    return this
-}
+fun Context.createReaderThemeContext(): Context = this
 
 /**
  * Gets document size of provided [Uri]

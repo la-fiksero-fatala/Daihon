@@ -34,7 +34,7 @@ fun Modifier.selectedBackground(isSelected: Boolean): Modifier {
     return this.drawBehind { drawRect(color) }
 }
 
-fun Modifier.secondaryItemAlpha(): Modifier = this.alpha(SECONDARY_ALPHA)
+fun Modifier.secondaryItemAlpha(): Modifier = this
 
 fun Modifier.clickableNoIndication(
     onLongClick: (() -> Unit)? = null,

@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -33,6 +31,8 @@ import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
+import tachiyomi.presentation.core.components.material.PaperSurface as Surface
 
 private val HistoryItemHeight = 96.dp
 

@@ -1,12 +1,9 @@
 package eu.kanade.presentation.more.settings.widget
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +21,9 @@ import mihon.icons.materialsymbols.roundedfilled.Cancel
 import mihon.icons.materialsymbols.roundedfilled.Error
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.components.material.PaperAlertDialog as AlertDialog
+import tachiyomi.presentation.core.components.material.PaperButton as TextButton
+import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
 
 @Composable
 fun EditTextPreferenceWidget(

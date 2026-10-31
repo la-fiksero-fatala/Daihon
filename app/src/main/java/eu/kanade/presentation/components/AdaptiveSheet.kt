@@ -68,22 +68,11 @@ fun AdaptiveSheet(
 ) {
     val isTabletUi = isTabletUi()
 
-    Dialog(
+    AdaptiveSheetImpl(
+        isTabletUi = isTabletUi,
+        enableImplicitDismiss = enableImplicitDismiss,
         onDismissRequest = onDismissRequest,
-        properties = dialogProperties,
-    ) {
-        AdaptiveSheetImpl(
-            isTabletUi = isTabletUi,
-            enableImplicitDismiss = enableImplicitDismiss,
-            onDismissRequest = onDismissRequest,
-            modifier = modifier,
-        ) {
-            content()
-        }
-    }
+        modifier = modifier,
+        content = content,
+    )
 }
-
-private val dialogProperties = DialogProperties(
-    usePlatformDefaultWidth = false,
-    decorFitsSystemWindows = true,
-)

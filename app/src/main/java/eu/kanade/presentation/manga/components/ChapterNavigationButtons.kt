@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -24,6 +22,8 @@ import mihon.icons.materialsymbols.rounded.KeyboardArrowUp
 import mihon.icons.materialsymbols.rounded.KeyboardDoubleArrowUp
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
+import tachiyomi.presentation.core.components.material.PaperSurface as Surface
 
 @Composable
 internal fun ChapterNavigationButtons(

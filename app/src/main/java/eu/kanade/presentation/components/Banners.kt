@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +32,7 @@ import androidx.compose.ui.util.fastMaxBy
 import dev.icerock.moko.resources.StringResource
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.components.StaticCircularProgressIndicator as CircularProgressIndicator
 
 val DownloadedOnlyBannerBackgroundColor
     @Composable get() = MaterialTheme.colorScheme.tertiary

@@ -1,5 +1,6 @@
 package tachiyomi.presentation.core.components.material
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -44,9 +45,9 @@ fun Scaffold(
     val density = LocalDensity.current
 
     androidx.compose.material3.Scaffold(
-        modifier = modifier.nestedScroll(topBarScrollBehavior.nestedScrollConnection),
-        topBar = { topBar(topBarScrollBehavior) },
-        bottomBar = bottomBar,
+        modifier = modifier.border(1.dp, Color.Black),
+        topBar = { Box(Modifier.border(1.dp, Color.Black)) { topBar(topBarScrollBehavior) } },
+        bottomBar = { Box(Modifier.border(1.dp, Color.Black)) { bottomBar() } },
         snackbarHost = snackbarHost,
         floatingActionButton = {
             Box(Modifier.onSizeChanged { fabHeight = it.height }) {

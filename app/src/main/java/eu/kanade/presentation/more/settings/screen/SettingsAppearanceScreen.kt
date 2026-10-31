@@ -13,13 +13,9 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.domain.ui.model.TabletUiMode
-import eu.kanade.domain.ui.model.ThemeMode
 import eu.kanade.domain.ui.model.TimeFormat
-import eu.kanade.domain.ui.model.setAppCompatDelegateThemeMode
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.appearance.AppLanguageScreen
-import eu.kanade.presentation.more.settings.widget.AppThemeModePreferenceWidget
-import eu.kanade.presentation.more.settings.widget.AppThemePreferenceWidget
 import eu.kanade.presentation.util.rememberIs24HourSystem
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.datetime.TimeZone
@@ -43,58 +39,7 @@ object SettingsAppearanceScreen : SearchableSettings {
         val uiPreferences = remember { context.appGraph.uiPreferences }
 
         return listOf(
-            getThemeGroup(uiPreferences = uiPreferences),
             getDisplayGroup(uiPreferences = uiPreferences),
-        )
-    }
-
-    @Composable
-    private fun getThemeGroup(
-        uiPreferences: UiPreferences,
-    ): Preference.PreferenceGroup {
-        val context = LocalContext.current
-
-        val themeModePref = uiPreferences.themeMode
-        val themeMode by themeModePref.collectAsState()
-
-        val appThemePref = uiPreferences.appTheme
-        val appTheme by appThemePref.collectAsState()
-
-        val amoledPref = uiPreferences.themeDarkAmoled
-        val amoled by amoledPref.collectAsState()
-
-        return Preference.PreferenceGroup(
-            title = stringResource(MR.strings.pref_category_theme),
-            preferenceItems = listOf(
-                Preference.PreferenceItem.CustomPreference(
-                    title = stringResource(MR.strings.pref_app_theme),
-                ) {
-                    Column {
-                        AppThemeModePreferenceWidget(
-                            value = themeMode,
-                            onItemClick = {
-                                themeModePref.set(it)
-                                setAppCompatDelegateThemeMode(it)
-                            },
-                        )
-
-                        AppThemePreferenceWidget(
-                            value = appTheme,
-                            amoled = amoled,
-                            onItemClick = { appThemePref.set(it) },
-                        )
-                    }
-                },
-                Preference.PreferenceItem.SwitchPreference(
-                    preference = amoledPref,
-                    title = stringResource(MR.strings.pref_dark_theme_pure_black),
-                    visible = themeMode != ThemeMode.LIGHT,
-                    onValueChanged = {
-                        (context as? Activity)?.let { ActivityCompat.recreate(it) }
-                        true
-                    },
-                ),
-            ),
         )
     }
 

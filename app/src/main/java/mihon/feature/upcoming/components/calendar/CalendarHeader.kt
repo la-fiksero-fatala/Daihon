@@ -13,7 +13,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +33,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.time.Clock
+import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
 
 @Composable
 fun CalenderHeader(

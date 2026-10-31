@@ -2,7 +2,6 @@ package eu.kanade.presentation.more.settings.screen.debug
 
 import android.os.Build
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
@@ -30,6 +29,7 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Autorenew
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.util.collectAsState
+import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
 
 class DebugInfoScreen : Screen() {
 

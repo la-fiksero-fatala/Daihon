@@ -14,15 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,6 +68,11 @@ import tachiyomi.presentation.core.screens.EmptyScreenAction
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.presentation.core.theme.header
 import tachiyomi.presentation.core.util.plus
+import tachiyomi.presentation.core.components.StaticCircularProgressIndicator as CircularProgressIndicator
+import tachiyomi.presentation.core.components.material.PaperAlertDialog as AlertDialog
+import tachiyomi.presentation.core.components.material.PaperButton as Button
+import tachiyomi.presentation.core.components.material.PaperButton as TextButton
+import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
 
 @Composable
 fun ExtensionScreen(

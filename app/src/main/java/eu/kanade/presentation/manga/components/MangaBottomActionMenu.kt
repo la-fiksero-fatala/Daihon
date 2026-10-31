@@ -25,7 +25,6 @@ import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -65,6 +64,7 @@ import mihon.icons.materialsymbols.rounded.SwapCalls
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.time.Duration.Companion.seconds
+import tachiyomi.presentation.core.components.material.PaperSurface as Surface
 
 @Composable
 fun MangaBottomActionMenu(

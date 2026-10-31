@@ -7,6 +7,7 @@ import androidx.compose.animation.core.StartOffsetType
 import androidx.compose.animation.core.repeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,6 +54,7 @@ internal fun BasePreferenceWidget(
     Row(
         modifier = modifier
             .highlightBackground(highlighted)
+            .drawBehind { drawLine(Color.Black, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
             .sizeIn(minHeight = minHeight)
             .clickable(enabled = enabled && onClick != null, onClick = { onClick?.invoke() })
             .fillMaxWidth(),
@@ -92,38 +96,8 @@ internal fun BasePreferenceWidget(
 }
 
 @Composable
-internal fun Modifier.highlightBackground(highlighted: Boolean): Modifier {
-    var highlightFlag by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        if (highlighted) {
-            highlightFlag = true
-            delay(3.seconds)
-            highlightFlag = false
-        }
-    }
-    val highlight by animateColorAsState(
-        targetValue = if (highlightFlag) {
-            MaterialTheme.colorScheme.surfaceTint.copy(alpha = .12f)
-        } else {
-            Color.Transparent
-        },
-        animationSpec = if (highlightFlag) {
-            repeatable(
-                iterations = 5,
-                animation = tween(durationMillis = 200),
-                repeatMode = RepeatMode.Reverse,
-                initialStartOffset = StartOffset(
-                    offsetMillis = 600,
-                    offsetType = StartOffsetType.Delay,
-                ),
-            )
-        } else {
-            tween(200)
-        },
-        label = "highlight",
-    )
-    return this.background(color = highlight)
-}
+internal fun Modifier.highlightBackground(highlighted: Boolean): Modifier =
+    if (highlighted) border(2.dp, Color.Black) else this
 
 internal val TrailingWidgetBuffer = 16.dp
 internal val PrefsHorizontalPadding = 16.dp

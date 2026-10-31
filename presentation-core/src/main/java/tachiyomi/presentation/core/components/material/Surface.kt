@@ -12,7 +12,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.NonRestartableComposable
@@ -28,6 +27,7 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import tachiyomi.presentation.core.components.PaperIndication
 import kotlin.math.ln
 
 /**
@@ -47,7 +47,7 @@ fun Surface(
     contentColor: Color = contentColorFor(color),
     tonalElevation: Dp = 0.dp,
     shadowElevation: Dp = 0.dp,
-    border: BorderStroke? = null,
+    border: BorderStroke? = BorderStroke(1.dp, Color.Black),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable () -> Unit,
 ) {
@@ -65,12 +65,12 @@ fun Surface(
                         color = color,
                         elevation = absoluteElevation,
                     ),
-                    border = border,
-                    shadowElevation = shadowElevation,
+                    border = border ?: BorderStroke(1.dp, Color.Black),
+                    shadowElevation = 0.dp,
                 )
                 .combinedClickable(
                     interactionSource = interactionSource,
-                    indication = ripple(),
+                    indication = PaperIndication,
                     enabled = enabled,
                     role = Role.Button,
                     onLongClick = onLongClick,

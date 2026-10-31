@@ -1,105 +1,87 @@
 package eu.kanade.presentation.theme
 
-import android.content.Context
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ColorScheme
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.snap
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import eu.kanade.domain.ui.model.AppTheme
-import eu.kanade.presentation.theme.colorscheme.BaseColorScheme
-import eu.kanade.presentation.theme.colorscheme.CatppuccinColorScheme
-import eu.kanade.presentation.theme.colorscheme.GreenAppleColorScheme
-import eu.kanade.presentation.theme.colorscheme.LavenderColorScheme
-import eu.kanade.presentation.theme.colorscheme.MidnightDuskColorScheme
-import eu.kanade.presentation.theme.colorscheme.MonetColorScheme
-import eu.kanade.presentation.theme.colorscheme.MonochromeColorScheme
-import eu.kanade.presentation.theme.colorscheme.NordColorScheme
-import eu.kanade.presentation.theme.colorscheme.StrawberryColorScheme
-import eu.kanade.presentation.theme.colorscheme.TachiyomiColorScheme
-import eu.kanade.presentation.theme.colorscheme.TakoColorScheme
-import eu.kanade.presentation.theme.colorscheme.TealTurqoiseColorScheme
-import eu.kanade.presentation.theme.colorscheme.TidalWaveColorScheme
-import eu.kanade.presentation.theme.colorscheme.TokyoNightColorScheme
-import eu.kanade.presentation.theme.colorscheme.YinYangColorScheme
-import eu.kanade.presentation.theme.colorscheme.YotsubaColorScheme
-import mihon.app.di.appGraph
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
+import tachiyomi.presentation.core.components.PaperIndication
 
-@Composable
-fun TachiyomiTheme(
-    appTheme: AppTheme? = null,
-    amoled: Boolean? = null,
-    content: @Composable () -> Unit,
-) {
-    val context = LocalContext.current
-    val uiPreferences = remember { context.appGraph.uiPreferences }
-    BaseTachiyomiTheme(
-        appTheme = appTheme ?: uiPreferences.appTheme.get(),
-        isAmoled = amoled ?: uiPreferences.themeDarkAmoled.get(),
-        content = content,
-    )
-}
-
-@Composable
-fun TachiyomiPreviewTheme(
-    appTheme: AppTheme = AppTheme.DEFAULT,
-    isAmoled: Boolean = false,
-    content: @Composable () -> Unit,
-) = BaseTachiyomiTheme(appTheme, isAmoled, content)
-
-@Composable
-private fun BaseTachiyomiTheme(
-    appTheme: AppTheme,
-    isAmoled: Boolean,
-    content: @Composable () -> Unit,
-) {
-    val context = LocalContext.current
-    val isDark = isSystemInDarkTheme()
-    MaterialExpressiveTheme(
-        colorScheme = remember(appTheme, isDark, isAmoled) {
-            getThemeColorScheme(
-                context = context,
-                appTheme = appTheme,
-                isDark = isDark,
-                isAmoled = isAmoled,
-            )
-        },
-        content = content,
-    )
-}
-
-private fun getThemeColorScheme(
-    context: Context,
-    appTheme: AppTheme,
-    isDark: Boolean,
-    isAmoled: Boolean,
-): ColorScheme {
-    val colorScheme = if (appTheme == AppTheme.MONET) {
-        MonetColorScheme(context)
-    } else {
-        colorSchemes.getOrDefault(appTheme, TachiyomiColorScheme)
-    }
-    return colorScheme.getColorScheme(
-        isDark = isDark,
-        isAmoled = isAmoled,
-        overrideDarkSurfaceContainers = appTheme != AppTheme.MONET,
-    )
-}
-
-private val colorSchemes: Map<AppTheme, BaseColorScheme> = mapOf(
-    AppTheme.DEFAULT to TachiyomiColorScheme,
-    AppTheme.CATPPUCCIN to CatppuccinColorScheme,
-    AppTheme.TOKYONIGHT to TokyoNightColorScheme,
-    AppTheme.GREEN_APPLE to GreenAppleColorScheme,
-    AppTheme.LAVENDER to LavenderColorScheme,
-    AppTheme.MIDNIGHT_DUSK to MidnightDuskColorScheme,
-    AppTheme.MONOCHROME to MonochromeColorScheme,
-    AppTheme.NORD to NordColorScheme,
-    AppTheme.STRAWBERRY_DAIQUIRI to StrawberryColorScheme,
-    AppTheme.TAKO to TakoColorScheme,
-    AppTheme.TEALTURQUOISE to TealTurqoiseColorScheme,
-    AppTheme.TIDAL_WAVE to TidalWaveColorScheme,
-    AppTheme.YINYANG to YinYangColorScheme,
-    AppTheme.YOTSUBA to YotsubaColorScheme,
+private val PaperColors = lightColorScheme(
+    primary = Color.Black,
+    onPrimary = Color.White,
+    primaryContainer = Color.White,
+    onPrimaryContainer = Color.Black,
+    inversePrimary = Color.Black,
+    secondary = Color.Black,
+    onSecondary = Color.White,
+    secondaryContainer = Color.White,
+    onSecondaryContainer = Color.Black,
+    tertiary = Color.Black,
+    onTertiary = Color.White,
+    tertiaryContainer = Color.White,
+    onTertiaryContainer = Color.Black,
+    background = Color.White,
+    onBackground = Color.Black,
+    surface = Color.White,
+    onSurface = Color.Black,
+    surfaceVariant = Color.White,
+    onSurfaceVariant = Color.Black,
+    surfaceTint = Color.Transparent,
+    inverseSurface = Color.White,
+    inverseOnSurface = Color.Black,
+    error = Color.Black,
+    onError = Color.White,
+    errorContainer = Color.White,
+    onErrorContainer = Color.Black,
+    outline = Color.Black,
+    outlineVariant = Color.Black,
+    scrim = Color.Transparent,
+    primaryFixed = Color.White,
+    primaryFixedDim = Color.White,
+    onPrimaryFixed = Color.Black,
+    onPrimaryFixedVariant = Color.Black,
+    secondaryFixed = Color.White,
+    secondaryFixedDim = Color.White,
+    onSecondaryFixed = Color.Black,
+    onSecondaryFixedVariant = Color.Black,
+    tertiaryFixed = Color.White,
+    tertiaryFixedDim = Color.White,
+    onTertiaryFixed = Color.Black,
+    onTertiaryFixedVariant = Color.Black,
+    surfaceBright = Color.White,
+    surfaceDim = Color.White,
+    surfaceContainer = Color.White,
+    surfaceContainerHigh = Color.White,
+    surfaceContainerHighest = Color.White,
+    surfaceContainerLow = Color.White,
+    surfaceContainerLowest = Color.White,
 )
+
+private object PaperMotion : MotionScheme {
+    override fun <T> defaultSpatialSpec(): FiniteAnimationSpec<T> = snap()
+    override fun <T> fastSpatialSpec(): FiniteAnimationSpec<T> = snap()
+    override fun <T> slowSpatialSpec(): FiniteAnimationSpec<T> = snap()
+    override fun <T> defaultEffectsSpec(): FiniteAnimationSpec<T> = snap()
+    override fun <T> fastEffectsSpec(): FiniteAnimationSpec<T> = snap()
+    override fun <T> slowEffectsSpec(): FiniteAnimationSpec<T> = snap()
+}
+
+@Composable
+fun TachiyomiTheme(content: @Composable () -> Unit) {
+    MaterialExpressiveTheme(colorScheme = PaperColors, motionScheme = PaperMotion) {
+        CompositionLocalProvider(
+            LocalRippleConfiguration provides null,
+            LocalIndication provides PaperIndication,
+            content = content,
+        )
+    }
+}
+
+@Composable
+fun TachiyomiPreviewTheme(content: @Composable () -> Unit) = TachiyomiTheme(content)

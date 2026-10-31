@@ -15,13 +15,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -40,6 +39,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import tachiyomi.presentation.core.util.animateElevation
 import androidx.compose.material3.ButtonDefaults as M3ButtonDefaults
+import tachiyomi.presentation.core.components.material.PaperButton as Button
+import tachiyomi.presentation.core.components.material.PaperButton as TextButton
 
 /**
  * TextButton with additional onLongClick functionality.
@@ -54,8 +55,8 @@ fun TextButton(
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     elevation: ButtonElevation? = null,
-    shape: Shape = M3ButtonDefaults.textShape,
-    border: BorderStroke? = null,
+    shape: Shape = RoundedCornerShape(4.dp),
+    border: BorderStroke? = BorderStroke(1.dp, Color.Black),
     colors: ButtonColors = ButtonColors(
         containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.primary,
@@ -91,15 +92,15 @@ fun Button(
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
-    shape: Shape = M3ButtonDefaults.textShape,
-    border: BorderStroke? = null,
+    shape: Shape = RoundedCornerShape(4.dp),
+    border: BorderStroke? = BorderStroke(1.dp, Color.Black),
     colors: ButtonColors = ButtonDefaults.buttonColors(),
     contentPadding: PaddingValues = M3ButtonDefaults.ContentPadding,
     content: @Composable RowScope.() -> Unit,
 ) {
     val containerColor = colors.containerColor(enabled).value
     val contentColor = colors.contentColor(enabled).value
-    val shadowElevation = elevation?.shadowElevation(enabled, interactionSource)?.value ?: 0.dp
+    val shadowElevation = 0.dp
 
     Surface(
         onClick = onClick,
@@ -142,9 +143,9 @@ object ButtonDefaults {
      */
     @Composable
     fun buttonColors(
-        containerColor: Color = MaterialTheme.colorScheme.primary,
-        contentColor: Color = MaterialTheme.colorScheme.onPrimary,
-        disabledContainerColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+        containerColor: Color = Color.White,
+        contentColor: Color = Color.Black,
+        disabledContainerColor: Color = Color.White,
         disabledContentColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
     ): ButtonColors = ButtonColors(
         containerColor = containerColor,

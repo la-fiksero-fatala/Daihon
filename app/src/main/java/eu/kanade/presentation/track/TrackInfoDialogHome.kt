@@ -27,11 +27,8 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -63,6 +60,9 @@ import mihon.icons.materialsymbols.roundedfilled.VisibilityOff
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 import java.time.format.DateTimeFormatter
+import tachiyomi.presentation.core.components.material.PaperButton as TextButton
+import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
+import tachiyomi.presentation.core.components.material.PaperSurface as Surface
 
 @Composable
 fun TrackInfoDialogHome(

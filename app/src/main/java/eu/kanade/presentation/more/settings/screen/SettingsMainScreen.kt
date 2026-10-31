@@ -173,7 +173,7 @@ object SettingsMainScreen : Screen() {
     private val items = listOf(
         Item(
             titleRes = MR.strings.pref_category_appearance,
-            subtitleRes = MR.strings.pref_appearance_summary,
+            subtitleRes = MR.strings.daihon_display_summary,
             icon = MaterialSymbols.Rounded.Palette,
             screen = SettingsAppearanceScreen,
         ),

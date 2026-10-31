@@ -1,6 +1,7 @@
 package eu.kanade.presentation.components
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.sizeIn
@@ -14,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
@@ -42,7 +44,7 @@ fun DropdownMenu(
     ComposeDropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
-        modifier = modifier.sizeIn(minWidth = 196.dp, maxWidth = 196.dp),
+        modifier = modifier.border(2.dp, Color.Black).sizeIn(minWidth = 196.dp, maxWidth = 196.dp),
         offset = offset,
         scrollState = scrollState,
         properties = properties,
