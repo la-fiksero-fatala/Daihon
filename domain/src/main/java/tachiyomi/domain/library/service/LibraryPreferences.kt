@@ -43,15 +43,10 @@ class LibraryPreferences(
 
     val scrollWithVolumeKeys: Preference<Boolean> = FixedPreference("scrollWithVolumeKeys", true)
 
-    val scrollChaptersWithVolumeKeys: Preference<Boolean> = preferenceStore.getBoolean(
-        "chapter_list_volume_keys",
-        false,
-    )
+    val scrollChaptersWithVolumeKeys: Preference<Boolean> = FixedPreference("scrollChaptersWithVolumeKeys", true)
 
-    val chapterNavigationControls: Preference<ChapterNavigationControls> = preferenceStore.getEnum(
-        "chapter_list_navigation_controls",
-        ChapterNavigationControls.Disabled,
-    )
+    val chapterNavigationControls: Preference<ChapterNavigationControls> =
+        FixedPreference("chapterNavigationControls", ChapterNavigationControls.Both)
 
     val paginated: Preference<Boolean> = FixedPreference("paginated", true)
 

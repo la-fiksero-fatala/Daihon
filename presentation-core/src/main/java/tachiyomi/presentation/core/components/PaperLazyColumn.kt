@@ -55,6 +55,8 @@ fun PaperLazyColumn(
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     flingBehavior: FlingBehavior = ScrollableDefaults.flingBehavior(),
     userScrollEnabled: Boolean = true,
+    alwaysShowControls: Boolean = false,
+    beforeControls: @Composable (() -> Unit)? = null,
     content: LazyListScope.() -> Unit,
 ) {
     // The library already supplies a fixed subset and its own page controls.
@@ -137,7 +139,8 @@ fun PaperLazyColumn(
                     )
                 }
             }
-            if (paged) {
+            beforeControls?.invoke()
+            if (paged || alwaysShowControls) {
                 val shownLast = visible.lastOrNull { it.offset + it.size <= end }?.index ?: first.index
                 PaperPageControls(
                     "${first.index + 1}–${shownLast + 1} / $total",

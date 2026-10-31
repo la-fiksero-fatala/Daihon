@@ -92,8 +92,6 @@ class MangaScreen(
         }
 
         val successState = state as MangaViewModel.State.Success
-        val chapterVolumeKeys by viewModel.chapterVolumeKeys.collectAsState()
-        val chapterNavigationControls by viewModel.chapterNavigationControls.collectAsState()
         val isHttpSource = remember { successState.source is HttpSource }
 
         LaunchedEffect(successState.manga, viewModel.source) {
@@ -113,9 +111,6 @@ class MangaScreen(
             snackbarHostState = viewModel.snackbarHostState,
             nextUpdate = successState.manga.expectedNextUpdate,
             isTabletUi = isTabletUi(),
-            chapterVolumeKeys = chapterVolumeKeys,
-            showChapterNavigationButtons = chapterNavigationControls.showArrows,
-            showChapterJumpToTopButton = chapterNavigationControls.showJumpToTop,
             chapterSwipeStartAction = viewModel.chapterSwipeStartAction,
             chapterSwipeEndAction = viewModel.chapterSwipeEndAction,
             navigateUp = navigator::pop,

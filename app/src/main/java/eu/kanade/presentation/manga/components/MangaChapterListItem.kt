@@ -1,7 +1,9 @@
 package eu.kanade.presentation.manga.components
 
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -17,12 +19,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,6 +48,7 @@ import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.SECONDARY_ALPHA
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.selectedBackground
+import kotlin.math.abs
 
 @Composable
 fun MangaChapterListItem(
@@ -65,29 +70,29 @@ fun MangaChapterListItem(
     onChapterSwipe: (LibraryPreferences.ChapterSwipeAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val start = getSwipeAction(
-        action = chapterSwipeStartAction,
-        read = read,
-        bookmark = bookmark,
-        downloadState = downloadStateProvider(),
-        background = MaterialTheme.colorScheme.primaryContainer,
-        onSwipe = { onChapterSwipe(chapterSwipeStartAction) },
-    )
-    val end = getSwipeAction(
-        action = chapterSwipeEndAction,
-        read = read,
-        bookmark = bookmark,
-        downloadState = downloadStateProvider(),
-        background = MaterialTheme.colorScheme.primaryContainer,
-        onSwipe = { onChapterSwipe(chapterSwipeEndAction) },
-    )
-
-    SwipeableActionsBox(
-        modifier = Modifier.clipToBounds(),
-        startActions = listOfNotNull(start),
-        endActions = listOfNotNull(end),
-        swipeThreshold = swipeActionThreshold,
-        backgroundUntilSwipeThreshold = MaterialTheme.colorScheme.surfaceContainerLowest,
+    val threshold = with(LocalDensity.current) { 56.dp.toPx() }
+    val currentStart by rememberUpdatedState(chapterSwipeStartAction)
+    val currentEnd by rememberUpdatedState(chapterSwipeEndAction)
+    val currentSwipe by rememberUpdatedState(onChapterSwipe)
+    Box(
+        Modifier.pointerInput(threshold) {
+            var distance = 0f
+            detectHorizontalDragGestures(
+                onDragStart = { distance = 0f },
+                onHorizontalDrag = { change, amount ->
+                    change.consume()
+                    distance += amount
+                },
+                onDragEnd = {
+                    val action = if (distance > 0) currentStart else currentEnd
+                    if (abs(distance) >= threshold &&
+                        action != LibraryPreferences.ChapterSwipeAction.Disabled
+                    ) {
+                        currentSwipe(action)
+                    }
+                },
+            )
+        },
     ) {
         Row(
             modifier = modifier
@@ -132,7 +137,7 @@ fun MangaChapterListItem(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         onTextLayout = { textHeight = it.size.height },
-                        color = LocalContentColor.current.copy(alpha = if (read) DISABLED_ALPHA else 1f),
+                        color = LocalContentColor.current,
                     )
                 }
 
@@ -140,7 +145,7 @@ fun MangaChapterListItem(
                     val subtitleStyle = MaterialTheme.typography.bodySmall
                         .merge(
                             color = LocalContentColor.current
-                                .copy(alpha = if (read) DISABLED_ALPHA else SECONDARY_ALPHA),
+                                .copy(alpha = 1f),
                         )
                     ProvideTextStyle(value = subtitleStyle) {
                         if (date != null) {
@@ -156,7 +161,7 @@ fun MangaChapterListItem(
                                 text = readProgress,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                color = LocalContentColor.current.copy(alpha = DISABLED_ALPHA),
+                                color = LocalContentColor.current,
                             )
                             if (scanlator != null) DotSeparatorText()
                         }
@@ -181,60 +186,3 @@ fun MangaChapterListItem(
         }
     }
 }
-
-private fun getSwipeAction(
-    action: LibraryPreferences.ChapterSwipeAction,
-    read: Boolean,
-    bookmark: Boolean,
-    downloadState: Download.State,
-    background: Color,
-    onSwipe: () -> Unit,
-): me.saket.swipe.SwipeAction? {
-    return when (action) {
-        LibraryPreferences.ChapterSwipeAction.ToggleRead -> swipeAction(
-            icon = if (!read) MaterialSymbols.Rounded.Check else MaterialSymbols.Rounded.RemoveDone,
-            background = background,
-            isUndo = read,
-            onSwipe = onSwipe,
-        )
-        LibraryPreferences.ChapterSwipeAction.ToggleBookmark -> swipeAction(
-            icon = if (!bookmark) MaterialSymbols.Rounded.BookmarkAdd else MaterialSymbols.Rounded.BookmarkRemove,
-            background = background,
-            isUndo = bookmark,
-            onSwipe = onSwipe,
-        )
-        LibraryPreferences.ChapterSwipeAction.Download -> swipeAction(
-            icon = when (downloadState) {
-                Download.State.NOT_DOWNLOADED, Download.State.ERROR -> MaterialSymbols.Rounded.Download
-                Download.State.QUEUE, Download.State.DOWNLOADING -> MaterialSymbols.Rounded.FileDownloadOff
-                Download.State.DOWNLOADED -> MaterialSymbols.Rounded.Delete
-            },
-            background = background,
-            onSwipe = onSwipe,
-        )
-        LibraryPreferences.ChapterSwipeAction.Disabled -> null
-    }
-}
-
-private fun swipeAction(
-    onSwipe: () -> Unit,
-    icon: ImageVector,
-    background: Color,
-    isUndo: Boolean = false,
-): me.saket.swipe.SwipeAction {
-    return me.saket.swipe.SwipeAction(
-        icon = {
-            Icon(
-                modifier = Modifier.padding(16.dp),
-                imageVector = icon,
-                tint = contentColorFor(background),
-                contentDescription = null,
-            )
-        },
-        background = background,
-        onSwipe = onSwipe,
-        isUndo = isUndo,
-    )
-}
-
-private val swipeActionThreshold = 56.dp

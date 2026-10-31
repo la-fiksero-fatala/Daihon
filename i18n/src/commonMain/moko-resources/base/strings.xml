@@ -1110,4 +1110,5 @@
     <string name="daihon_item_number">Entry number:</string>
     <string name="daihon_categories">Categories</string>
     <string name="daihon_page_layout">Page layout</string>
+    <string name="daihon_details">Details</string>
 </resources>

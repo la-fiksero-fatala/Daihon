@@ -218,16 +218,6 @@ object SettingsLibraryScreen : SearchableSettings {
             title = stringResource(MR.strings.pref_behavior),
             preferenceItems = listOf(
                 Preference.PreferenceItem.ListPreference(
-                    preference = libraryPreferences.chapterNavigationControls,
-                    entries = mapOf(
-                        ChapterNavigationControls.Disabled to stringResource(MR.strings.disabled),
-                        ChapterNavigationControls.Arrows to stringResource(MR.strings.pref_chapter_controls_arrows),
-                        ChapterNavigationControls.JumpToTop to stringResource(MR.strings.library_jump_to_top),
-                        ChapterNavigationControls.Both to stringResource(MR.strings.pref_chapter_controls_both),
-                    ),
-                    title = stringResource(MR.strings.pref_chapter_navigation_controls),
-                ),
-                Preference.PreferenceItem.ListPreference(
                     preference = libraryPreferences.swipeToStartAction,
                     entries = mapOf(
                         LibraryPreferences.ChapterSwipeAction.Disabled to
