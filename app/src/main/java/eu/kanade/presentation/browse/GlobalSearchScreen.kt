@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -91,6 +93,7 @@ internal fun GlobalSearchContent(
     var selectedId by rememberSaveable { mutableStateOf(fromSourceId) }
     var chooseSource by remember { mutableStateOf(false) }
     val source = items.keys.find { it.id == selectedId } ?: items.keys.firstOrNull()
+    SideEffect { if (source != null && selectedId != source.id) selectedId = source.id }
     Column(Modifier.fillMaxSize().padding(contentPadding).consumeWindowInsets(contentPadding)) {
         if (source != null) {
             PaperButton(onClick = { chooseSource = true }, modifier = Modifier.fillMaxWidth().padding(8.dp)) {
@@ -102,16 +105,18 @@ internal fun GlobalSearchContent(
                 Text(stringResource(MR.strings.daihon_browse_source))
             }
             Box(Modifier.weight(1f).fillMaxWidth()) {
-                when (val result = items[source]) {
-                    SearchItemResult.Loading -> GlobalSearchLoadingResultItem()
-                    is SearchItemResult.Success -> GlobalSearchCardRow(
-                        result.result,
-                        getManga,
-                        onClickItem,
-                        onLongClickItem,
-                    )
-                    is SearchItemResult.Error -> GlobalSearchErrorResultItem(message = result.throwable.message)
-                    null -> Unit
+                key(source.id) {
+                    when (val result = items[source]) {
+                        SearchItemResult.Loading -> GlobalSearchLoadingResultItem()
+                        is SearchItemResult.Success -> GlobalSearchCardRow(
+                            result.result,
+                            getManga,
+                            onClickItem,
+                            onLongClickItem,
+                        )
+                        is SearchItemResult.Error -> GlobalSearchErrorResultItem(message = result.throwable.message)
+                        null -> Unit
+                    }
                 }
             }
         }
