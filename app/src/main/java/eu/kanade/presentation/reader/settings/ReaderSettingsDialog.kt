@@ -50,7 +50,7 @@ fun ReaderSettingsDialog(
                     window?.setDimAmount(0f)
                     onHideMenus()
                 } else {
-                    window?.setDimAmount(0.5f)
+                    window?.setDimAmount(0f)
                     onShowMenus()
                 }
             }

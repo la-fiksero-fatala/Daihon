@@ -382,10 +382,10 @@ private fun ContinueReadingButton(
             onClick = onClick,
             shape = MaterialTheme.shapes.small,
             colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.primaryContainer),
             ),
-            modifier = Modifier.size(size),
+            modifier = Modifier.size(size).border(1.dp, Color.Black, MaterialTheme.shapes.small),
         ) {
             Icon(
                 imageVector = MaterialSymbols.RoundedFilled.PlayArrow,

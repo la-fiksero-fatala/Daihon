@@ -9,6 +9,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -87,6 +88,7 @@ fun ReaderAppBars(
             ReaderTopBar(
                 modifier = Modifier
                     .background(backgroundColor)
+                    .border(1.dp, androidx.compose.ui.graphics.Color.Black)
                     .clickable(onClick = onClickTopAppBar),
                 mangaTitle = mangaTitle,
                 chapterTitle = chapterTitle,
@@ -163,6 +165,7 @@ fun ReaderAppBars(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(backgroundColor)
+                        .border(1.dp, androidx.compose.ui.graphics.Color.Black)
                         .padding(horizontal = MaterialTheme.padding.small)
                         .windowInsetsPadding(WindowInsets.navigationBars),
                     readingMode = readingMode,
