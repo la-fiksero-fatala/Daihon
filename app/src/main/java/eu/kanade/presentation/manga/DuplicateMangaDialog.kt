@@ -194,7 +194,7 @@ private fun DuplicateMangaListItem(
             MangaCover.Book(
                 data = ImageRequest.Builder(LocalContext.current)
                     .data(manga)
-                    .crossfade(true)
+                    .crossfade(false)
                     .build(),
                 modifier = Modifier.fillMaxWidth(),
             )
