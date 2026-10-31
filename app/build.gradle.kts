@@ -35,7 +35,7 @@ android {
     namespace = "eu.kanade.tachiyomi"
 
     defaultConfig {
-        applicationId = "app.mihon"
+        applicationId = "app.daihon"
 
         versionCode = 39
         versionName = "0.21.3"
@@ -360,7 +360,7 @@ apollo {
             // Kitsu doesn't like requests without a UA
             headers.put(
                 "User-Agent",
-                "Mihon v${android.defaultConfig.versionName} (${android.defaultConfig.applicationId})",
+                "Daihon v${android.defaultConfig.versionName} (${android.defaultConfig.applicationId})",
             )
             endpointUrl.set("https://kitsu.app/api/graphql")
             schemaFile.set(file("$srcDir/kitsu.graphqls"))
