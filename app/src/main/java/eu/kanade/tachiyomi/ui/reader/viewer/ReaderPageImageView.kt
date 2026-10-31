@@ -153,7 +153,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
             sWidth > sHeight &&
             scale == minScale
         ) {
-            handler?.postDelayed(500) {
+            run {
                 val point = when (config!!.zoomStartPosition) {
                     ZoomStartPosition.LEFT -> if (forward) PointF(0F, 0F) else PointF(sWidth.toFloat(), 0F)
                     ZoomStartPosition.RIGHT -> if (forward) PointF(sWidth.toFloat(), 0F) else PointF(0F, 0F)
@@ -161,11 +161,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 }
 
                 val targetScale = height.toFloat() / sHeight.toFloat()
-                animateScaleAndCenter(targetScale, point)!!
-                    .withDuration(500)
-                    .withEasing(EASE_IN_OUT_QUAD)
-                    .withInterruptible(true)
-                    .start()
+                setScaleAndCenter(targetScale, point)
             }
         }
     }
@@ -193,6 +189,34 @@ open class ReaderPageImageView @JvmOverloads constructor(
             prepareNonAnimatedImageView()
             setNonAnimatedImage(source, config)
         }
+    }
+
+    /** Commit a pinch or pan once, after the finger has been lifted. */
+    fun applyPaperGesture(dx: Float, dy: Float, factor: Float): Boolean {
+        when (val view = pageView) {
+            is SubsamplingScaleImageView -> {
+                val center = view.center ?: return false
+                if (factor != 1f || view.scale > view.minScale * 1.01f) {
+                    val targetScale = (view.scale * factor).coerceIn(view.minScale, view.maxScale)
+                    view.setScaleAndCenter(targetScale, PointF(center.x - dx / view.scale, center.y - dy / view.scale))
+                    return true
+                }
+            }
+            is PhotoView -> {
+                if (factor != 1f) {
+                    view.setScale((view.scale * factor).coerceIn(view.minimumScale, view.maximumScale), false)
+                    return true
+                }
+                if (view.scale > view.minimumScale * 1.01f) {
+                    val matrix = android.graphics.Matrix()
+                    view.getDisplayMatrix(matrix)
+                    matrix.postTranslate(dx, dy)
+                    view.setDisplayMatrix(matrix)
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     fun recycle() {
@@ -254,11 +278,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
         (pageView as? SubsamplingScaleImageView)?.let { view ->
 
             val target = fn(view.center ?: return, view)
-            view.animateCenter(target)!!
-                .withEasing(EASE_OUT_QUAD)
-                .withDuration(250)
-                .withInterruptible(true)
-                .start()
+            view.setScaleAndCenter(view.scale, target)
         }
     }
 
@@ -267,7 +287,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
         removeView(pageView)
 
         pageView = SubsamplingScaleImageView(context).apply {
-            setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
+            setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER_IMMEDIATE)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
             setMinimumTileDpi(180)
             setOnStateChangedListener(
@@ -401,9 +421,9 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     object : GestureDetector.SimpleOnGestureListener() {
                         override fun onDoubleTap(e: MotionEvent): Boolean {
                             if (scale > 1F) {
-                                setScale(1F, e.x, e.y, true)
+                                setScale(1F, e.x, e.y, false)
                             } else {
-                                setScale(2F, e.x, e.y, true)
+                                setScale(2F, e.x, e.y, false)
                             }
                             return true
                         }
@@ -439,7 +459,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 onSuccess = { result ->
                     val drawable = result.asDrawable(context.resources)
                     setImageDrawable(drawable)
-                    (drawable as? Animatable)?.start()
+                    (drawable as? Animatable)?.stop()
                     isVisible = true
                     this@ReaderPageImageView.onImageLoaded()
                 },

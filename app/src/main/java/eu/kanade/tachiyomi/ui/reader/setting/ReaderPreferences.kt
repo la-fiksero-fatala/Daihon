@@ -8,6 +8,7 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuShader
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuShaders
+import tachiyomi.core.common.preference.FixedPreference
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
@@ -22,14 +23,14 @@ class ReaderPreferences(
 
     // region General
 
-    val pageTransitions: Preference<Boolean> = preferenceStore.getBoolean("pref_enable_transitions_key", true)
+    val pageTransitions: Preference<Boolean> = FixedPreference("pageTransitions", false)
 
     val loadAheadOnlyOverWifi: Preference<Boolean> = preferenceStore.getBoolean(
         "pref_reader_load_ahead_only_over_wifi",
         true,
     )
 
-    val flashOnPageChange: Preference<Boolean> = preferenceStore.getBoolean("pref_reader_flash", false)
+    val flashOnPageChange: Preference<Boolean> = FixedPreference("flashOnPageChange", false)
 
     val flashDurationMillis: Preference<Int> = preferenceStore.getInt("pref_reader_flash_duration", MILLI_CONVERSION)
 
@@ -37,7 +38,7 @@ class ReaderPreferences(
 
     val flashColor: Preference<FlashColor> = preferenceStore.getEnum("pref_reader_flash_mode", FlashColor.BLACK)
 
-    val doubleTapAnimSpeed: Preference<Int> = preferenceStore.getInt("pref_double_tap_anim_speed", 500)
+    val doubleTapAnimSpeed: Preference<Int> = FixedPreference("doubleTapAnimSpeed", 0)
 
     val showPageNumber: Preference<Boolean> = preferenceStore.getBoolean("pref_show_page_number_key", true)
 
@@ -83,7 +84,7 @@ class ReaderPreferences(
 
     val zoomStart: Preference<Int> = preferenceStore.getInt("pref_zoom_start_key", 1)
 
-    val readerTheme: Preference<Int> = preferenceStore.getInt("pref_reader_theme_key", 1)
+    val readerTheme: Preference<Int> = FixedPreference("readerTheme", 0)
 
     val alwaysShowChapterTransition: Preference<Boolean> = preferenceStore.getBoolean(
         "always_show_chapter_transition",
@@ -173,7 +174,7 @@ class ReaderPreferences(
 
     val readWithLongTap: Preference<Boolean> = preferenceStore.getBoolean("reader_long_tap", true)
 
-    val readWithVolumeKeys: Preference<Boolean> = preferenceStore.getBoolean("reader_volume_keys", false)
+    val readWithVolumeKeys: Preference<Boolean> = FixedPreference("readWithVolumeKeys", true)
 
     val readWithVolumeKeysInverted: Preference<Boolean> = preferenceStore.getBoolean(
         "reader_volume_keys_inverted",

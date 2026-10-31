@@ -19,44 +19,8 @@ import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 
-private val themes = listOf(
-    MR.strings.black_background to 1,
-    MR.strings.gray_background to 2,
-    MR.strings.white_background to 0,
-    MR.strings.automatic_background to 3,
-)
-
-private val flashColors = listOf(
-    MR.strings.pref_flash_style_black to ReaderPreferences.FlashColor.BLACK,
-    MR.strings.pref_flash_style_white to ReaderPreferences.FlashColor.WHITE,
-    MR.strings.pref_flash_style_white_black to ReaderPreferences.FlashColor.WHITE_BLACK,
-)
-
 @Composable
 internal fun ColumnScope.GeneralPage(viewModel: ReaderSettingsViewModel) {
-    val readerTheme by viewModel.preferences.readerTheme.collectAsState()
-
-    val flashPageState by viewModel.preferences.flashOnPageChange.collectAsState()
-
-    val flashMillisPref = viewModel.preferences.flashDurationMillis
-    val flashMillis by flashMillisPref.collectAsState()
-
-    val flashIntervalPref = viewModel.preferences.flashPageInterval
-    val flashInterval by flashIntervalPref.collectAsState()
-
-    val flashColorPref = viewModel.preferences.flashColor
-    val flashColor by flashColorPref.collectAsState()
-
-    SettingsChipRow(MR.strings.pref_reader_theme) {
-        themes.map { (labelRes, value) ->
-            FilterChip(
-                selected = readerTheme == value,
-                onClick = { viewModel.preferences.readerTheme.set(value) },
-                label = { Text(stringResource(labelRes)) },
-            )
-        }
-    }
-
     CheckboxItem(
         label = stringResource(MR.strings.pref_show_page_number),
         pref = viewModel.preferences.showPageNumber,
@@ -126,43 +90,4 @@ internal fun ColumnScope.GeneralPage(viewModel: ReaderSettingsViewModel) {
         label = stringResource(MR.strings.pref_always_show_chapter_transition),
         pref = viewModel.preferences.alwaysShowChapterTransition,
     )
-
-    CheckboxItem(
-        label = stringResource(MR.strings.pref_page_transitions),
-        pref = viewModel.preferences.pageTransitions,
-    )
-
-    CheckboxItem(
-        label = stringResource(MR.strings.pref_flash_page),
-        pref = viewModel.preferences.flashOnPageChange,
-    )
-    if (flashPageState) {
-        SliderItem(
-            value = flashMillis / ReaderPreferences.MILLI_CONVERSION,
-            valueRange = 1..15,
-            label = stringResource(MR.strings.pref_flash_duration),
-            valueString = stringResource(MR.strings.pref_flash_duration_summary, flashMillis),
-            onChange = { flashMillisPref.set(it * ReaderPreferences.MILLI_CONVERSION) },
-            pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-        )
-        SliderItem(
-            value = flashInterval,
-            valueRange = 1..10,
-            label = stringResource(MR.strings.pref_flash_page_interval),
-            valueString = pluralStringResource(MR.plurals.pref_pages, flashInterval, flashInterval),
-            onChange = {
-                flashIntervalPref.set(it)
-            },
-            pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-        )
-        SettingsChipRow(MR.strings.pref_flash_with) {
-            flashColors.map { (labelRes, value) ->
-                FilterChip(
-                    selected = flashColor == value,
-                    onClick = { flashColorPref.set(value) },
-                    label = { Text(stringResource(labelRes)) },
-                )
-            }
-        }
-    }
 }

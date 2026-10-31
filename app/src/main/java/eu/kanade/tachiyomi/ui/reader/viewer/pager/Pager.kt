@@ -4,8 +4,10 @@ import android.content.Context
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.ViewConfiguration
 import androidx.viewpager.widget.DirectionalViewPager
 import eu.kanade.tachiyomi.ui.reader.viewer.GestureDetectorWithLongTap
+import eu.kanade.tachiyomi.ui.reader.viewer.PaperReaderGesture
 
 /**
  * Pager implementation that listens for tap and long tap and allows temporarily disabling touch
@@ -14,8 +16,12 @@ import eu.kanade.tachiyomi.ui.reader.viewer.GestureDetectorWithLongTap
  */
 open class Pager(
     context: Context,
-    isHorizontal: Boolean = true,
+    private val isHorizontal: Boolean = true,
 ) : DirectionalViewPager(context, isHorizontal) {
+
+    private val paperGesture = PaperReaderGesture(ViewConfiguration.get(context).scaledTouchSlop.toFloat())
+    private var childCancelled = false
+    var onPaperGesture: ((Float, Float, Float) -> Boolean)? = null
 
     /**
      * Tap listener function to execute when a tap is detected.
@@ -58,10 +64,27 @@ open class Pager(
      * Dispatches a touch event.
      */
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        val handled = super.dispatchTouchEvent(ev)
-        if (isGestureDetectorEnabled) {
-            gestureDetector.onTouchEvent(ev)
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN) childCancelled = false
+        val result = paperGesture.update(ev)
+        if (paperGesture.moving) {
+            if (!childCancelled) {
+                val cancel = MotionEvent.obtain(ev).apply { action = MotionEvent.ACTION_CANCEL }
+                super.dispatchTouchEvent(cancel)
+                gestureDetector.onTouchEvent(cancel)
+                cancel.recycle()
+                childCancelled = true
+            }
+            if (result != null && isGestureDetectorEnabled) {
+                val handled = onPaperGesture?.invoke(result.dx, result.dy, result.scale) == true
+                if (!handled && result.scale == 1f) {
+                    val distance = if (isHorizontal) result.dx else result.dy
+                    setCurrentItem(currentItem + if (distance < 0) 1 else -1, false)
+                }
+            }
+            return true
         }
+        val handled = super.dispatchTouchEvent(ev)
+        if (isGestureDetectorEnabled) gestureDetector.onTouchEvent(ev)
         return handled
     }
 
@@ -70,11 +93,7 @@ open class Pager(
      * views manipulate [requestDisallowInterceptTouchEvent].
      */
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        return try {
-            super.onInterceptTouchEvent(ev)
-        } catch (e: IllegalArgumentException) {
-            false
-        }
+        return false
     }
 
     /**
@@ -82,15 +101,7 @@ open class Pager(
      * [requestDisallowInterceptTouchEvent].
      */
     override fun onTouchEvent(ev: MotionEvent): Boolean {
-        return try {
-            super.onTouchEvent(ev)
-        } catch (e: NullPointerException) {
-            false
-        } catch (e: IndexOutOfBoundsException) {
-            false
-        } catch (e: IllegalArgumentException) {
-            false
-        }
+        return true
     }
 
     /**

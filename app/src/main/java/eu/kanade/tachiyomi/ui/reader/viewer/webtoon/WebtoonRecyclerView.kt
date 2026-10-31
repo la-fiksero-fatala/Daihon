@@ -82,7 +82,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
         }
 
         detector.onTouchEvent(e)
-        return super.onTouchEvent(e)
+        return true
     }
 
     override fun onScrolled(dx: Int, dy: Int) {
@@ -130,55 +130,23 @@ class WebtoonRecyclerView @JvmOverloads constructor(
         fromY: Float,
         toY: Float,
     ) {
-        isZooming = true
-        val animatorSet = AnimatorSet()
-        val translationXAnimator = ValueAnimator.ofFloat(fromX, toX)
-        translationXAnimator.addUpdateListener { animation -> x = getPositionX(animation.animatedValue as Float) }
-
-        val translationYAnimator = ValueAnimator.ofFloat(fromY, toY)
-        translationYAnimator.addUpdateListener { animation -> y = animation.animatedValue as Float }
-
-        val scaleAnimator = ValueAnimator.ofFloat(fromRate, toRate)
-        scaleAnimator.addUpdateListener { animation ->
-            currentScale = animation.animatedValue as Float
-            setScaleRate(currentScale)
-        }
-        animatorSet.playTogether(translationXAnimator, translationYAnimator, scaleAnimator)
-        animatorSet.duration = ANIMATOR_DURATION_TIME.toLong()
-        animatorSet.interpolator = DecelerateInterpolator()
-        animatorSet.start()
-        animatorSet.doOnEnd {
-            isZooming = false
-            currentScale = toRate
-        }
+        currentScale = toRate
+        setScaleRate(toRate)
+        x = getPositionX(toX)
+        y = getPositionY(toY)
     }
 
-    fun zoomFling(velocityX: Int, velocityY: Int): Boolean {
-        if (currentScale <= 1f) return false
+    var onPage: ((Int) -> Unit)? = null
 
-        val distanceTimeFactor = 0.4f
-        val animatorSet = AnimatorSet()
-
-        if (velocityX != 0) {
-            val dx = (distanceTimeFactor * velocityX / 2)
-            val newX = getPositionX(x + dx)
-            val translationXAnimator = ValueAnimator.ofFloat(x, newX)
-            translationXAnimator.addUpdateListener { animation -> x = getPositionX(animation.animatedValue as Float) }
-            animatorSet.play(translationXAnimator)
+    fun applyPaperGesture(dx: Float, dy: Float, factor: Float) {
+        if (factor != 1f) {
+            onScale(factor)
+            onScaleEnd()
+        } else if (abs(dx) > abs(dy) && currentScale > 1f) {
+            zoomScrollBy(dx.toInt(), 0)
+        } else if (dy != 0f) {
+            onPage?.invoke(if (dy < 0) 1 else -1)
         }
-        if (velocityY != 0 && (atFirstPosition || atLastPosition)) {
-            val dy = (distanceTimeFactor * velocityY / 2)
-            val newY = getPositionY(y + dy)
-            val translationYAnimator = ValueAnimator.ofFloat(y, newY)
-            translationYAnimator.addUpdateListener { animation -> y = getPositionY(animation.animatedValue as Float) }
-            animatorSet.play(translationYAnimator)
-        }
-
-        animatorSet.duration = 400
-        animatorSet.interpolator = DecelerateInterpolator()
-        animatorSet.start()
-
-        return true
     }
 
     private fun zoomScrollBy(dx: Int, dy: Int) {

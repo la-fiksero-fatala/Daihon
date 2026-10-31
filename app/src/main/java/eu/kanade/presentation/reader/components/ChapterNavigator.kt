@@ -86,7 +86,7 @@ fun ChapterNavigator(
             )
         }
             .also {
-                it.value = currentPage.toFloat()
+                LaunchedEffect(currentPage) { it.value = currentPage.toFloat() }
             }
     } else {
         null
@@ -214,8 +214,11 @@ fun HorizontalChapterNavigator(
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(horizontal = 8.dp),
-                            onValueChange = { onPageChange(it.roundToInt()) },
-                            onValueChangeFinished = onPageChangeFinished,
+                            onValueChange = { state.value = it },
+                            onValueChangeFinished = {
+                                onPageChange(state.value.roundToInt())
+                                onPageChangeFinished()
+                            },
                             interactionSource = interactionSource,
                         )
 
@@ -293,8 +296,11 @@ fun VerticalChapterNavigator(
                     modifier = Modifier
                         .weight(1f)
                         .padding(vertical = 8.dp),
-                    onValueChange = { onPageChange(it.roundToInt()) },
-                    onValueChangeFinished = onPageChangeFinished,
+                    onValueChange = { state.value = it },
+                    onValueChangeFinished = {
+                        onPageChange(state.value.roundToInt())
+                        onPageChangeFinished()
+                    },
                     interactionSource = interactionSource,
                 )
 

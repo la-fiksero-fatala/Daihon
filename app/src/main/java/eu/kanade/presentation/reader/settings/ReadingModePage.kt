@@ -26,12 +26,6 @@ import java.text.NumberFormat
 
 @Composable
 internal fun ColumnScope.ReadingModePage(viewModel: ReaderSettingsViewModel) {
-    val isWebGpu by viewModel.isWebGpu.collectAsState()
-    if (isWebGpu) {
-        WebGpuViewerSettings(viewModel)
-        return
-    }
-
     HeadingItem(MR.strings.pref_category_for_this_series)
     val manga by viewModel.mangaFlow.collectAsState()
     val readingMode = remember(manga) { ReadingMode.fromPreference(manga?.readingMode?.toInt()) }

@@ -115,6 +115,9 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
         pager.id = R.id.reader_pager
         pager.adapter = adapter
         pager.addOnPageChangeListener(pagerListener)
+        pager.onPaperGesture = { dx, dy, scale ->
+            (tracker.currentPage as? ReaderPage)?.let(::getPageHolder)?.applyPaperGesture(dx, dy, scale) == true
+        }
         pager.tapListener = { event ->
             val viewPosition = IntArray(2)
             pager.getLocationOnScreen(viewPosition)

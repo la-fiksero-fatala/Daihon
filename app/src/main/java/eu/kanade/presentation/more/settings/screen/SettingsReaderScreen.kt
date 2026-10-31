@@ -36,15 +36,6 @@ object SettingsReaderScreen : SearchableSettings {
                     .associate { it.flagValue to stringResource(it.stringRes) },
                 title = stringResource(MR.strings.pref_viewer_type),
             ),
-            Preference.PreferenceItem.ListPreference(
-                preference = readerPref.doubleTapAnimSpeed,
-                entries = mapOf(
-                    1 to stringResource(MR.strings.double_tap_anim_speed_0),
-                    500 to stringResource(MR.strings.double_tap_anim_speed_normal),
-                    250 to stringResource(MR.strings.double_tap_anim_speed_fast),
-                ),
-                title = stringResource(MR.strings.pref_double_tap_anim_speed),
-            ),
             Preference.PreferenceItem.SwitchPreference(
                 preference = readerPref.showReadingMode,
                 title = stringResource(MR.strings.pref_show_reading_mode),
@@ -56,16 +47,11 @@ object SettingsReaderScreen : SearchableSettings {
                 subtitle = stringResource(MR.strings.pref_show_navigation_mode_summary),
             ),
             Preference.PreferenceItem.SwitchPreference(
-                preference = readerPref.pageTransitions,
-                title = stringResource(MR.strings.pref_page_transitions),
-            ),
-            Preference.PreferenceItem.SwitchPreference(
                 preference = readerPref.loadAheadOnlyOverWifi,
                 title = stringResource(MR.strings.pref_load_ahead_only_over_wifi),
                 subtitle = stringResource(MR.strings.pref_load_ahead_only_over_wifi_summary),
             ),
             getDisplayGroup(readerPreferences = readerPref),
-            getEInkGroup(readerPreferences = readerPref),
             getReadingGroup(readerPreferences = readerPref),
             getPagedGroup(readerPreferences = readerPref),
             getWebtoonGroup(readerPreferences = readerPref),
@@ -86,16 +72,6 @@ object SettingsReaderScreen : SearchableSettings {
                         .associate { it.flagValue to stringResource(it.stringRes) },
                     title = stringResource(MR.strings.pref_rotation_type),
                 ),
-                Preference.PreferenceItem.ListPreference(
-                    preference = readerPreferences.readerTheme,
-                    entries = mapOf(
-                        1 to stringResource(MR.strings.black_background),
-                        2 to stringResource(MR.strings.gray_background),
-                        0 to stringResource(MR.strings.white_background),
-                        3 to stringResource(MR.strings.automatic_background),
-                    ),
-                    title = stringResource(MR.strings.pref_reader_theme),
-                ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = readerPreferences.fullscreen,
                     title = stringResource(MR.strings.pref_fullscreen),
@@ -112,49 +88,6 @@ object SettingsReaderScreen : SearchableSettings {
                 Preference.PreferenceItem.SwitchPreference(
                     preference = readerPreferences.showPageNumber,
                     title = stringResource(MR.strings.pref_show_page_number),
-                ),
-            ),
-        )
-    }
-
-    @Composable
-    private fun getEInkGroup(readerPreferences: ReaderPreferences): Preference.PreferenceGroup {
-        val flashPageState by readerPreferences.flashOnPageChange.collectAsState()
-
-        val flashColorPref = readerPreferences.flashColor
-
-        return Preference.PreferenceGroup(
-            title = "E-Ink",
-            preferenceItems = listOf(
-                Preference.PreferenceItem.SwitchPreference(
-                    preference = readerPreferences.flashOnPageChange,
-                    title = stringResource(MR.strings.pref_flash_page),
-                    subtitle = stringResource(MR.strings.pref_flash_page_summ),
-                ),
-                Preference.PreferenceItem.SliderPreference(
-                    preference = readerPreferences.flashDurationMillis,
-                    valueRange = ReaderPreferences.MILLI_CONVERSION.let { it..it * 15 step it },
-                    title = stringResource(MR.strings.pref_flash_duration),
-                    valueText = { stringResource(MR.strings.pref_flash_duration_summary, it) },
-                    visible = flashPageState,
-                ),
-                Preference.PreferenceItem.SliderPreference(
-                    preference = readerPreferences.flashPageInterval,
-                    valueRange = 1..10,
-                    title = stringResource(MR.strings.pref_flash_page_interval),
-                    valueText = { pluralStringResource(MR.plurals.pref_pages, it, it) },
-                    visible = flashPageState,
-                ),
-                Preference.PreferenceItem.ListPreference(
-                    preference = flashColorPref,
-                    entries = mapOf(
-                        ReaderPreferences.FlashColor.BLACK to stringResource(MR.strings.pref_flash_style_black),
-                        ReaderPreferences.FlashColor.WHITE to stringResource(MR.strings.pref_flash_style_white),
-                        ReaderPreferences.FlashColor.WHITE_BLACK
-                            to stringResource(MR.strings.pref_flash_style_white_black),
-                    ),
-                    title = stringResource(MR.strings.pref_flash_with),
-                    visible = flashPageState,
                 ),
             ),
         )
@@ -383,10 +316,6 @@ object SettingsReaderScreen : SearchableSettings {
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_reader_navigation),
             preferenceItems = listOf(
-                Preference.PreferenceItem.SwitchPreference(
-                    preference = readWithVolumeKeysPref,
-                    title = stringResource(MR.strings.pref_read_with_volume_keys),
-                ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = readerPreferences.readWithVolumeKeysInverted,
                     title = stringResource(MR.strings.pref_read_with_volume_keys_inverted),

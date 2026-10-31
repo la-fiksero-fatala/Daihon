@@ -58,7 +58,7 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
     /**
      * Distance to scroll when the user taps on one side of the recycler view.
      */
-    private val scrollDistance = activity.resources.displayMetrics.heightPixels * 3 / 4
+    private val scrollDistance get() = (recycler.originalHeight * .8f).toInt().coerceAtLeast(1)
 
     /**
      * Layout manager of the recycler view.
@@ -99,6 +99,7 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
     )
 
     init {
+        recycler.onPage = { if (it > 0) moveForward() else moveBackward() }
         recycler.sidePaddingPercent = simpleLongStrip.page.sidePadding
         recycler.setItemViewCacheSize(RECYCLER_VIEW_CACHE_SIZE)
         recycler.isVisible = false // Don't let the recycler layout yet
@@ -241,22 +242,14 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
      * Scrolls up by [scrollDistance].
      */
     override fun moveBackward() {
-        if (general.usePageTransitions) {
-            recycler.smoothScrollBy(0, -scrollDistance)
-        } else {
-            recycler.scrollBy(0, -scrollDistance)
-        }
+        recycler.scrollBy(0, -scrollDistance)
     }
 
     /**
      * Scrolls down by [scrollDistance].
      */
     override fun moveForward() {
-        if (general.usePageTransitions) {
-            recycler.smoothScrollBy(0, scrollDistance)
-        } else {
-            recycler.scrollBy(0, scrollDistance)
-        }
+        recycler.scrollBy(0, scrollDistance)
     }
 
     /**
