@@ -93,7 +93,9 @@ class LibraryPaginationTest {
 
     @Test
     fun `vertical fitting disables stretch when rows exceed auto`() {
-        libraryGridPageLayout(600, 200, 3, 8, 56, 4, 48, 0).canStretchSpacing shouldBe true
+        libraryGridPageLayout(1000, 200, 3, 8, 56, 4, 48, 0).canStretchSpacing shouldBe true
+        // A single row has no inter-row space to distribute.
+        libraryGridPageLayout(600, 200, 3, 8, 56, 4, 48, 0).canStretchSpacing shouldBe false
         libraryGridPageLayout(600, 200, 3, 8, 56, 4, 48, 3).canStretchSpacing shouldBe false
         libraryGridPageLayout(344, 200, 3, 8, 56, 4, 48, 0).canStretchSpacing shouldBe false
         libraryCompatiblePageRows(-1, 5) shouldBe 5

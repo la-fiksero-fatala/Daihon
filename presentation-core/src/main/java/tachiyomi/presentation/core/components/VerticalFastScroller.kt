@@ -24,7 +24,7 @@ fun VerticalFastScroller(
     endContentPadding: Dp = Dp.Hairline,
     content: @Composable () -> Unit,
 ) {
-    Box(modifier = modifier) { content() }
+    Box(modifier = modifier, propagateMinConstraints = true) { content() }
 }
 
 @Composable
@@ -41,7 +41,7 @@ fun VerticalGridFastScroller(
     endContentPadding: Dp = Dp.Hairline,
     content: @Composable () -> Unit,
 ) {
-    Box(modifier = modifier) { content() }
+    Box(modifier = modifier, propagateMinConstraints = true) { content() }
 }
 
 object Scroller {

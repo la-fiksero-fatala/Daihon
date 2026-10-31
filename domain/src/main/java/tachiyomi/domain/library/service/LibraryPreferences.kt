@@ -3,6 +3,7 @@ package tachiyomi.domain.library.service
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import tachiyomi.core.common.preference.FixedPreference
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.TriState
@@ -40,7 +41,7 @@ class LibraryPreferences(
 
     val landscapeColumns: Preference<Int> = preferenceStore.getInt("pref_library_columns_landscape_key", 0)
 
-    val scrollWithVolumeKeys: Preference<Boolean> = preferenceStore.getBoolean("library_volume_keys", false)
+    val scrollWithVolumeKeys: Preference<Boolean> = FixedPreference("scrollWithVolumeKeys", true)
 
     val scrollChaptersWithVolumeKeys: Preference<Boolean> = preferenceStore.getBoolean(
         "chapter_list_volume_keys",
@@ -52,21 +53,16 @@ class LibraryPreferences(
         ChapterNavigationControls.Disabled,
     )
 
-    val paginated: Preference<Boolean> = preferenceStore.getBoolean("library_paginated", false)
+    val paginated: Preference<Boolean> = FixedPreference("paginated", true)
 
     val pageRows: Preference<Int> = preferenceStore.getInt("library_page_rows", 0)
 
     val stretchPageSpacing: Preference<Boolean> = preferenceStore.getBoolean("library_stretch_page_spacing", false)
 
-    val pageButtons: Preference<LibraryPageButtons> = preferenceStore.getEnum(
-        "library_page_buttons",
-        LibraryPageButtons.Bottom,
-    )
+    val pageButtons: Preference<LibraryPageButtons> = FixedPreference("pageButtons", LibraryPageButtons.Bottom)
 
-    val pageNavigation: Preference<LibraryNavigationMode> = preferenceStore.getEnum(
-        "library_page_navigation",
-        LibraryNavigationMode.Buttons,
-    )
+    val pageNavigation: Preference<LibraryNavigationMode> =
+        FixedPreference("pageNavigation", LibraryNavigationMode.Buttons)
 
     val lastUpdatedTimestamp: Preference<Long> = preferenceStore.getLong(
         Preference.appStateKey("library_update_last_timestamp"),
@@ -162,7 +158,7 @@ class LibraryPreferences(
 
     val lastUsedCategory: Preference<Int> = preferenceStore.getInt(Preference.appStateKey("last_used_category"), 0)
 
-    val categoryTabs: Preference<Boolean> = preferenceStore.getBoolean("display_category_tabs", true)
+    val categoryTabs: Preference<Boolean> = FixedPreference("categoryTabs", true)
 
     val categoryNumberOfItems: Preference<Boolean> = preferenceStore.getBoolean("display_number_of_items", false)
 

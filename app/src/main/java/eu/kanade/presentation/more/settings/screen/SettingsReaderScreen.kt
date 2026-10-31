@@ -394,10 +394,6 @@ object SettingsReaderScreen : SearchableSettings {
                     visible = readWithVolumeKeys,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = libraryPreferences.scrollWithVolumeKeys,
-                    title = stringResource(MR.strings.pref_library_volume_keys),
-                ),
-                Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.scrollChaptersWithVolumeKeys,
                     title = stringResource(MR.strings.pref_chapter_volume_keys),
                 ),

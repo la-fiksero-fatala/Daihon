@@ -1108,4 +1108,6 @@
     <string name="donationCampaign.dismiss">Dismiss</string>
     <string name="daihon_display_summary">Display, language, date &amp; time format</string>
     <string name="daihon_item_number">Entry number:</string>
+    <string name="daihon_categories">Categories</string>
+    <string name="daihon_page_layout">Page layout</string>
 </resources>

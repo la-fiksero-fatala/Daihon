@@ -304,102 +304,26 @@ private fun ColumnScope.DisplayPage(
         pref = viewModel.libraryPreferences.showContinueReadingButton,
     )
 
-    HeadingItem(MR.strings.tabs_header)
-    CheckboxItem(
-        label = stringResource(MR.strings.action_display_show_tabs),
-        pref = viewModel.libraryPreferences.categoryTabs,
-    )
+    HeadingItem(MR.strings.daihon_categories)
     CheckboxItem(
         label = stringResource(MR.strings.action_display_show_number_of_items),
         pref = viewModel.libraryPreferences.categoryNumberOfItems,
     )
 
-    var showPagination by rememberSaveable { mutableStateOf(false) }
-    BaseSortItem(
-        label = stringResource(MR.strings.library_pagination),
-        icon = MaterialSymbols.Rounded.KeyboardArrowRight,
-        onClick = { showPagination = true },
-    )
-    if (showPagination) {
-        PaginationSettings(
-            viewModel.libraryPreferences,
-            maxPageRows,
-            canStretchPageSpacing,
-            onDismissRequest = { showPagination = false },
-        )
-    }
-}
-
-@Composable
-private fun PaginationSettings(
-    preferences: LibraryPreferences,
-    maxPageRows: Int,
-    canStretchPageSpacing: Boolean,
-    onDismissRequest: () -> Unit,
-) {
-    val paginated by preferences.paginated.collectAsState()
-    val rows by preferences.pageRows.collectAsState()
-    val buttons by preferences.pageButtons.collectAsState()
-    val navigation by preferences.pageNavigation.collectAsState()
+    HeadingItem(MR.strings.daihon_page_layout)
+    val rows by viewModel.libraryPreferences.pageRows.collectAsState()
     val maximum = maxPageRows.coerceAtLeast(1)
-    val rowValue = if (rows < 0) maximum else rows.coerceAtMost(maximum)
-    val buttonLabels = listOf(
-        MR.strings.library_page_buttons_bottom,
-        MR.strings.library_page_buttons_top,
-        MR.strings.nav_zone_left,
-        MR.strings.nav_zone_right,
-    ).map { stringResource(it) }
-
-    AdaptiveSheet(onDismissRequest = onDismissRequest) {
-        PaperScrollColumn(
-            Modifier,
-            state = rememberScrollState(),
-        ) {
-            HeadingItem(MR.strings.library_pagination)
-            CheckboxItem(stringResource(MR.strings.library_paginated), preferences.paginated)
-            if (paginated) {
-                SliderItem(
-                    value = rowValue,
-                    valueRange = 0..maximum,
-                    label = stringResource(MR.strings.library_page_rows),
-                    valueString = if (rowValue == 0) stringResource(MR.strings.label_auto) else rowValue.toString(),
-                    onChange = preferences.pageRows::set,
-                )
-                CheckboxItem(
-                    label = stringResource(MR.strings.library_stretch_page_spacing),
-                    pref = preferences.stretchPageSpacing,
-                    enabled = canStretchPageSpacing,
-                )
-                SelectItem(
-                    label = stringResource(MR.strings.pref_reader_navigation),
-                    options = arrayOf(
-                        stringResource(MR.strings.library_page_buttons_hidden),
-                        stringResource(MR.strings.library_page_indicator_bar),
-                        stringResource(MR.strings.library_page_buttons),
-                    ),
-                    selectedIndex = navigation.ordinal,
-                    onSelect = { preferences.pageNavigation.set(LibraryNavigationMode.entries[it]) },
-                )
-                if (navigation != LibraryNavigationMode.Hidden) {
-                    SelectItem(
-                        label = stringResource(MR.strings.library_page_position),
-                        options = buttonLabels.toTypedArray(),
-                        selectedIndex = buttons.takeUnless { it == LibraryPageButtons.Hidden }?.ordinal ?: 0,
-                        onSelect = { preferences.pageButtons.set(LibraryPageButtons.entries[it]) },
-                    )
-                }
-                Text(
-                    text = stringResource(MR.strings.library_pagination_summary),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                )
-            }
-            TextButton(
-                onClick = onDismissRequest,
-                modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp, vertical = 8.dp),
-            ) {
-                Text(stringResource(MR.strings.action_close))
-            }
-        }
-    }
+    val rowValue = rows.coerceIn(0, maximum)
+    SliderItem(
+        value = rowValue,
+        valueRange = 0..maximum,
+        label = stringResource(MR.strings.library_page_rows),
+        valueString = if (rowValue == 0) stringResource(MR.strings.label_auto) else rowValue.toString(),
+        onChange = viewModel.libraryPreferences.pageRows::set,
+    )
+    CheckboxItem(
+        label = stringResource(MR.strings.library_stretch_page_spacing),
+        pref = viewModel.libraryPreferences.stretchPageSpacing,
+        enabled = canStretchPageSpacing,
+    )
 }

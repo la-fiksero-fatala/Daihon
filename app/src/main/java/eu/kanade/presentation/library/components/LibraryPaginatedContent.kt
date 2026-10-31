@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -52,6 +54,7 @@ import mihon.icons.materialsymbols.rounded.KeyboardArrowUp
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryPageButtons
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperPageControls
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -99,7 +102,17 @@ internal fun LibraryPaginatedContent(
             0
         }
     }
-    val minimumCoverHeight = with(density) { 48.dp.roundToPx() }
+    val minimumCoverHeight = with(density) {
+        if (displayMode == LibraryDisplayMode.CompactGrid) {
+            maxOf(
+                48.dp.roundToPx(),
+                ceil(CommonMangaItemDefaults.GridTitleLineHeight.toPx() * 2).toInt() +
+                    16.dp.roundToPx(),
+            )
+        } else {
+            48.dp.roundToPx()
+        }
+    }
 
     LaunchedEffect(viewport, displayMode, columns, requestedRows, buttons, density) {
         if (isList) listState.scrollToItem(0) else gridState.scrollToItem(0)
@@ -115,7 +128,7 @@ internal fun LibraryPaginatedContent(
                         requestedRows < 0 -> maximum
                         else -> requestedRows.coerceAtMost(maximum)
                     }
-                    LibraryPageLayout(rows, maximum, null, height - rows * it.size > 1, rows)
+                    LibraryPageLayout(rows, maximum, null, rows > 1 && height - rows * it.size > 1, rows)
                 }
             } else {
                 val info = gridState.layoutInfo
@@ -183,7 +196,7 @@ internal fun LibraryPaginatedContent(
 
     val onClickPageNumber = { navigation.showPageDialog = true }
     val swipeThreshold = with(density) { 48.dp.toPx() }
-    Column(Modifier.fillMaxSize().padding(contentPadding)) {
+    Column(Modifier.fillMaxSize().padding(contentPadding).consumeWindowInsets(contentPadding).navigationBarsPadding()) {
         if (!searchQuery.isNullOrEmpty()) {
             GlobalSearchItem(searchQuery = searchQuery, onClick = onGlobalSearchClicked)
         }
@@ -241,62 +254,14 @@ private fun LibraryPageControls(
     onPageChange: (Int) -> Unit,
     onClickPageNumber: () -> Unit,
 ) {
-    var selectedPage by remember(page, pageCount) { mutableIntStateOf(page) }
-    val modifier = if (vertical) {
-        Modifier.fillMaxHeight().width(72.dp).padding(horizontal = 4.dp)
-    } else {
-        Modifier.fillMaxWidth().padding(horizontal = 8.dp)
-    }
-    if (showSlider) {
-        LibraryPageSlider(
-            page = selectedPage,
-            pageCount = pageCount,
-            onValueChange = { selectedPage = it },
-            onValueChangeFinished = { onPageChange(selectedPage - page) },
-            vertical = vertical,
-            modifier = modifier.padding(
-                if (vertical) PaddingValues(vertical = 16.dp) else PaddingValues(horizontal = 24.dp),
-            ),
-        )
-        return
-    }
-    val previous: @Composable () -> Unit = {
-        IconButton(
-            onClick = { onPageChange(-1) },
-            enabled = page > 0,
-            modifier = Modifier.size(56.dp),
-        ) {
-            Icon(MaterialSymbols.Rounded.KeyboardArrowUp, stringResource(MR.strings.spen_previous_page))
-        }
-    }
-    val next: @Composable () -> Unit = {
-        IconButton(
-            onClick = { onPageChange(1) },
-            enabled = page < pageCount - 1,
-            modifier = Modifier.size(56.dp),
-        ) {
-            Icon(MaterialSymbols.Rounded.KeyboardArrowDown, stringResource(MR.strings.spen_next_page))
-        }
-    }
-    if (vertical) {
-        Column(
-            modifier = modifier,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { previous() }
-            LibraryPageNumber(page, pageCount, onClick = onClickPageNumber)
-            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { next() }
-        }
-    } else {
-        Row(
-            modifier = modifier.height(56.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) { previous() }
-            LibraryPageNumber(page, pageCount, onClick = onClickPageNumber)
-            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) { next() }
-        }
-    }
+    PaperPageControls(
+        label = "${page + 1} / $pageCount",
+        canPrevious = page > 0,
+        canNext = page + 1 < pageCount,
+        onPrevious = { onPageChange(-1) },
+        onNext = { onPageChange(1) },
+        onJump = onClickPageNumber,
+    )
 }
 
 @Composable
@@ -381,7 +346,7 @@ internal fun libraryGridPageLayout(
     } else {
         null
     }
-    val canStretch = height - rows * naturalHeight - spacing * (rows - 1) > 1
+    val canStretch = rows > 1 && height - rows * naturalHeight - spacing * (rows - 1) > 1
     return LibraryPageLayout(rows * columns.coerceAtLeast(1), maximum, width, canStretch, rows)
 }
 

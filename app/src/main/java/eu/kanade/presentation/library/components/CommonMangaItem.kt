@@ -1,6 +1,7 @@
 package eu.kanade.presentation.library.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -33,6 +34,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -52,7 +54,7 @@ object CommonMangaItemDefaults {
     val GridVerticalSpacer = 4.dp
     val GridItemPadding = 4.dp
     val ComfortableGridTitlePadding = 4.dp
-    val GridTitleLineHeight = 18.sp
+    val GridTitleLineHeight = 20.sp
 
     @Suppress("ConstPropertyName")
     const val BrowseFavoriteCoverAlpha = 0.34f
@@ -97,7 +99,7 @@ fun MangaCompactGridItem(
                 MangaCover.Book(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .alpha(if (isSelected) GRID_SELECTED_COVER_ALPHA else coverAlpha),
+                        .alpha(coverAlpha),
                     data = coverData,
                 )
             },
@@ -132,21 +134,10 @@ private fun BoxScope.CoverTextOverlay(
     title: String,
     onClickContinueReading: (() -> Unit)? = null,
 ) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp))
-            .background(
-                Brush.verticalGradient(
-                    0f to Color.Transparent,
-                    1f to Color(0xAA000000),
-                ),
-            )
-            .fillMaxHeight(0.33f)
-            .fillMaxWidth()
-            .align(Alignment.BottomCenter),
-    )
     Row(
-        modifier = Modifier.align(Alignment.BottomStart),
+        modifier = Modifier.align(
+            Alignment.BottomStart,
+        ).fillMaxWidth().background(Color.White).border(1.dp, Color.Black),
         verticalAlignment = Alignment.Bottom,
     ) {
         GridItemTitle(
@@ -155,11 +146,7 @@ private fun BoxScope.CoverTextOverlay(
                 .padding(8.dp),
             title = title,
             style = MaterialTheme.typography.titleSmall.copy(
-                color = Color.White,
-                shadow = Shadow(
-                    color = Color.Black,
-                    blurRadius = 4f,
-                ),
+                color = Color.Black,
             ),
             minLines = 1,
         )
@@ -206,7 +193,7 @@ fun MangaComfortableGridItem(
                     MangaCover.Book(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .alpha(if (isSelected) GRID_SELECTED_COVER_ALPHA else coverAlpha),
+                            .alpha(coverAlpha),
                         data = coverData,
                     )
                 },
@@ -285,7 +272,7 @@ private fun GridItemTitle(
     Text(
         modifier = modifier,
         text = title,
-        fontSize = 12.sp,
+        fontSize = 14.sp,
         lineHeight = CommonMangaItemDefaults.GridTitleLineHeight,
         minLines = minLines,
         maxLines = maxLines,
@@ -307,7 +294,7 @@ private fun GridItemSelectable(
 ) {
     Box(
         modifier = modifier
-            .clip(MaterialTheme.shapes.small)
+            .clip(RoundedCornerShape(4.dp))
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
@@ -315,11 +302,7 @@ private fun GridItemSelectable(
             .selectedOutline(isSelected = isSelected, color = MaterialTheme.colorScheme.secondary)
             .padding(CommonMangaItemDefaults.GridItemPadding),
     ) {
-        val contentColor = if (isSelected) {
-            MaterialTheme.colorScheme.onSecondary
-        } else {
-            LocalContentColor.current
-        }
+        val contentColor = Color.Black
         CompositionLocalProvider(LocalContentColor provides contentColor) {
             content()
         }
@@ -332,7 +315,7 @@ private fun GridItemSelectable(
 private fun Modifier.selectedOutline(
     isSelected: Boolean,
     color: Color,
-) = drawBehind { if (isSelected) drawRect(color = color) }
+) = border(if (isSelected) 3.dp else 1.dp, color, RoundedCornerShape(4.dp))
 
 /**
  * Layout of list item.
@@ -351,6 +334,7 @@ fun MangaListItem(
     Row(
         modifier = Modifier
             .selectedBackground(isSelected)
+            .border(if (isSelected) 3.dp else 1.dp, Color.Black)
             .height(56.dp)
             .combinedClickable(
                 onClick = onClick,
