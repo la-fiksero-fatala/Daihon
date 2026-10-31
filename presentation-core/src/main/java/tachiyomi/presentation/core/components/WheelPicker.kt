@@ -3,8 +3,11 @@ package tachiyomi.presentation.core.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,7 +51,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.material.PaperAlertDialog
+import tachiyomi.presentation.core.components.material.PaperButton
 import tachiyomi.presentation.core.components.material.padding
+import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.clearFocusOnSoftKeyboardHide
 import tachiyomi.presentation.core.util.clickableNoIndication
 import tachiyomi.presentation.core.util.showSoftKeyboard
@@ -108,168 +116,71 @@ private fun <T> WheelPicker(
     size: DpSize = DpSize(128.dp, 128.dp),
     onSelectionChanged: (index: Int) -> Unit = {},
     manualInputType: KeyboardType? = null,
-    backgroundContent: (@Composable (size: DpSize) -> Unit)? = {
-        WheelPickerDefaults.Background(size = it)
-    },
+    backgroundContent: (@Composable (size: DpSize) -> Unit)? = null,
     itemContent: @Composable LazyItemScope.(item: T) -> Unit,
 ) {
-    val haptic = LocalHapticFeedback.current
-    val lazyListState = rememberLazyListState(startIndex)
-
-    var internalIndex by remember { mutableIntStateOf(startIndex) }
-    val internalOnSelectionChanged: (Int) -> Unit = {
-        internalIndex = it
-        onSelectionChanged(it)
+    var index by rememberSaveable(items) {
+        mutableIntStateOf(startIndex.coerceIn(0, (items.size - 1).coerceAtLeast(0)))
     }
-
-    LaunchedEffect(lazyListState, onSelectionChanged) {
-        snapshotFlow { lazyListState.firstVisibleItemScrollOffset }
-            .map { calculateSnappedItemIndex(lazyListState) }
-            .distinctUntilChanged()
-            .collectLatest {
-                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                internalOnSelectionChanged(it)
-            }
+    LaunchedEffect(Unit) { if (items.isNotEmpty()) onSelectionChanged(index) }
+    var open by remember { mutableStateOf(false) }
+    var input by remember { mutableStateOf("") }
+    PaperButton(onClick = {
+        input = items.getOrNull(index)?.toString().orEmpty()
+        open = true
+    }, modifier = modifier.width(size.width), enabled = items.isNotEmpty()) {
+        Text(items.getOrNull(index)?.toString().orEmpty(), style = MaterialTheme.typography.titleMedium)
     }
-
-    Box(
-        modifier = modifier
-            .height(size.height)
-            .width(size.width),
-        contentAlignment = Alignment.Center,
-    ) {
-        backgroundContent?.invoke(size)
-
-        var showManualInput by remember { mutableStateOf(false) }
-        if (showManualInput) {
-            val value = rememberSaveable(saver = TextFieldState.Saver) {
-                val currentString = items[internalIndex].toString()
-                TextFieldState(initialText = currentString, initialSelection = TextRange(currentString.length))
-            }
-
-            val scope = rememberCoroutineScope()
-            val processManualInput: () -> Unit = {
-                scope.launch {
-                    items
-                        .indexOfFirst { it.toString() == value.text }
-                        .takeIf { it >= 0 }
-                        ?.apply {
-                            internalOnSelectionChanged(this)
-                            lazyListState.scrollToItem(this)
+    if (open) {
+        val select: (Int) -> Unit = {
+            index = it
+            onSelectionChanged(it)
+            open = false
+        }
+        val entered = items.indexOfFirst { it.toString() == input }
+        PaperAlertDialog(
+            onDismissRequest = { open = false },
+            title = { Text(stringResource(MR.strings.daihon_select_value)) },
+            text = {
+                Column {
+                    if (manualInputType != null) {
+                        OutlinedTextField(
+                            value = input,
+                            onValueChange = { input = it },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = manualInputType),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    PaperLazyColumn(Modifier.heightIn(max = 280.dp), state = rememberLazyListState(index)) {
+                        itemsIndexed(items) { i, item ->
+                            PaperButton(onClick = { select(i) }, modifier = Modifier.fillMaxWidth()) {
+                                Text((if (i == index) "✓ " else "") + item.toString())
+                            }
                         }
-                    showManualInput = false
-                }
-            }
-
-            BasicTextField(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .showSoftKeyboard(true)
-                    .clearFocusOnSoftKeyboardHide(processManualInput),
-                onKeyboardAction = { processManualInput() },
-                state = value,
-                lineLimits = TextFieldLineLimits.SingleLine,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = manualInputType!!,
-                    imeAction = ImeAction.Done,
-                ),
-                textStyle = MaterialTheme.typography.titleMedium +
-                    TextStyle(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                    ),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .let {
-                        if (manualInputType != null) {
-                            it.clickableNoIndication { showManualInput = true }
-                        } else {
-                            it
-                        }
-                    },
-                state = lazyListState,
-                contentPadding = PaddingValues(vertical = size.height / ROW_COUNT * ((ROW_COUNT - 1) / 2)),
-                flingBehavior = rememberSnapFlingBehavior(lazyListState = lazyListState),
-            ) {
-                itemsIndexed(items) { index, item ->
-                    Box(
-                        modifier = Modifier
-                            .height(size.height / ROW_COUNT)
-                            .width(size.width)
-                            .alpha(
-                                calculateAnimatedAlpha(
-                                    lazyListState = lazyListState,
-                                    index = index,
-                                ),
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        itemContent(item)
                     }
                 }
-            }
-        }
+            },
+            confirmButton = {
+                if (manualInputType !=
+                    null
+                ) {
+                    PaperButton(onClick = {
+                        select(entered)
+                    }, enabled = entered >= 0) { Text(stringResource(MR.strings.action_ok)) }
+                }
+            },
+            dismissButton = {
+                PaperButton(onClick = { open = false }) { Text(stringResource(MR.strings.action_cancel)) }
+            },
+        )
     }
-}
-
-private fun LazyListState.snapOffsetForItem(itemInfo: LazyListItemInfo): Int {
-    val startScrollOffset = 0
-    val endScrollOffset = layoutInfo.let { it.viewportEndOffset - it.afterContentPadding }
-    return startScrollOffset + (endScrollOffset - startScrollOffset - itemInfo.size) / 2
-}
-
-private fun LazyListState.distanceToSnapForIndex(index: Int): Int {
-    val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
-    if (itemInfo != null) {
-        return itemInfo.offset - snapOffsetForItem(itemInfo)
-    }
-    return 0
-}
-
-private fun calculateAnimatedAlpha(
-    lazyListState: LazyListState,
-    index: Int,
-): Float {
-    val distanceToIndexSnap = lazyListState.distanceToSnapForIndex(index).absoluteValue
-    val viewPortHeight = lazyListState.layoutInfo.viewportSize.height.toFloat()
-    val singleViewPortHeight = viewPortHeight / ROW_COUNT
-    return if (distanceToIndexSnap in 0..singleViewPortHeight.toInt()) {
-        1.2f - (distanceToIndexSnap / singleViewPortHeight)
-    } else {
-        0.2f
-    }
-}
-
-private fun calculateSnappedItemIndex(lazyListState: LazyListState): Int {
-    return lazyListState.layoutInfo.visibleItemsInfo
-        .maxBy { calculateAnimatedAlpha(lazyListState, it.index) }
-        .index
 }
 
 object WheelPickerDefaults {
-    @Composable
-    fun Background(size: DpSize) {
-        androidx.compose.material3.Surface(
-            modifier = Modifier
-                .size(size.width, size.height / ROW_COUNT),
-            shape = RoundedCornerShape(MaterialTheme.padding.medium),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-            content = {},
-        )
-    }
+    @Composable fun Background(size: DpSize) = Unit
 
-    @Composable
-    fun Item(text: String) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 1,
-        )
+    @Composable fun Item(text: String) {
+        Text(text, style = MaterialTheme.typography.titleMedium)
     }
 }
-
-private const val ROW_COUNT = 3

@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,6 +54,7 @@ import mihon.icons.materialsymbols.rounded.FormatUnderlined
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.util.selectedBackground
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -122,25 +124,22 @@ fun MangaNotesTextArea(
                 .padding(vertical = MaterialTheme.padding.small)
                 .fillMaxWidth(),
         ) {
-            LazyRow(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                item {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.weight(1f)) {
+                run {
                     MangaNotesTextAreaButton(
                         onClick = { richTextState.toggleSpanStyle(SpanStyle(fontWeight = FontWeight.Bold)) },
                         isSelected = richTextState.currentSpanStyle.fontWeight == FontWeight.Bold,
                         icon = MaterialSymbols.Rounded.FormatBold,
                     )
                 }
-                item {
+                run {
                     MangaNotesTextAreaButton(
                         onClick = { richTextState.toggleSpanStyle(SpanStyle(fontStyle = FontStyle.Italic)) },
                         isSelected = richTextState.currentSpanStyle.fontStyle == FontStyle.Italic,
                         icon = MaterialSymbols.Rounded.FormatItalic,
                     )
                 }
-                item {
+                run {
                     MangaNotesTextAreaButton(
                         onClick = {
                             richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.Underline))
@@ -151,21 +150,21 @@ fun MangaNotesTextArea(
                         icon = MaterialSymbols.Rounded.FormatUnderlined,
                     )
                 }
-                item {
+                run {
                     VerticalDivider(
                         modifier = Modifier
                             .padding(horizontal = MaterialTheme.padding.extraSmall)
                             .height(MaterialTheme.padding.large),
                     )
                 }
-                item {
+                run {
                     MangaNotesTextAreaButton(
                         onClick = { richTextState.toggleUnorderedList() },
                         isSelected = richTextState.isUnorderedList,
                         icon = MaterialSymbols.AutoMirroredRounded.FormatListBulleted,
                     )
                 }
-                item {
+                run {
                     MangaNotesTextAreaButton(
                         onClick = { richTextState.toggleOrderedList() },
                         isSelected = richTextState.isOrderedList,
@@ -195,6 +194,7 @@ fun MangaNotesTextAreaButton(
 ) {
     Box(
         modifier = modifier
+            .selectedBackground(isSelected)
             .clip(MaterialTheme.shapes.small)
             .clickable(
                 onClick = onClick,
@@ -206,7 +206,7 @@ fun MangaNotesTextAreaButton(
         Icon(
             imageVector = icon,
             contentDescription = icon.name,
-            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .background(color = if (isSelected) MaterialTheme.colorScheme.onBackground else Color.Transparent)
                 .padding(MaterialTheme.padding.extraSmall),

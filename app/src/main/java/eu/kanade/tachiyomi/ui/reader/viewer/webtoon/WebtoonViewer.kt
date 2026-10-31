@@ -58,12 +58,12 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
     /**
      * Distance to scroll when the user taps on one side of the recycler view.
      */
-    private val scrollDistance get() = (recycler.originalHeight * .8f).toInt().coerceAtLeast(1)
+    private val scrollDistance get() = paperStripStep(recycler.originalHeight, recycler.scaleY)
 
     /**
      * Layout manager of the recycler view.
      */
-    private val layoutManager = WebtoonLayoutManager(activity, scrollDistance)
+    private val layoutManager = WebtoonLayoutManager(activity, activity.resources.displayMetrics.heightPixels)
 
     private val settingsViewModel = activity.settingsViewModel
 

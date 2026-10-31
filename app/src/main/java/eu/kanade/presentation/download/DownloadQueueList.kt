@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
@@ -48,6 +49,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.DragHandle
+import mihon.icons.materialsymbols.rounded.KeyboardArrowDown
+import mihon.icons.materialsymbols.rounded.KeyboardArrowUp
 import mihon.icons.materialsymbols.rounded.MoreVert
 import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableItem
@@ -55,6 +58,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 import sh.calvin.reorderable.rememberScroller
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.ListGroupHeader
+import tachiyomi.presentation.core.components.PaperAnchor
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.components.PaperLazyColumn as LazyColumn
@@ -74,235 +78,71 @@ fun DownloadQueueList(
     onCancelSeries: (Download) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val sectionsState = remember { sections.toMutableStateList() }
-    // While a section is dragged its downloads are hidden, so it moves past whole sections
-    var isSectionDragging by remember { mutableStateOf(false) }
-    // While a download is dragged only its own section's rows can be swapped with it
-    var draggingSectionId by remember { mutableStateOf<Long?>(null) }
-    // The release animation starts from the finger, so the last dragged row stays held while it settles too
-    var lastDraggedKey by remember { mutableStateOf<String?>(null) }
-    val listCoordinates = remember { CoordinatesHolder() }
-    val draggingSection by rememberUpdatedState(sectionsState.find { it.id == draggingSectionId })
-    // Auto-scroll would otherwise carry a download held at its section's edge off screen
-    val sectionScrollState = remember(lazyListState) {
-        LimitedScrollableState(lazyListState) { pixels ->
-            draggingSection?.let { lazyListState.limitScrollToSection(it, pixels) } ?: pixels
-        }
-    }
-    val reorderableState = rememberReorderableLazyListState(
-        lazyListState = lazyListState,
-        scrollThresholdPadding = contentPadding,
-        scroller = rememberScroller(
-            scrollableState = sectionScrollState,
-            pixelAmountProvider = { lazyListState.layoutInfo.viewportSize.height * 0.05f },
-        ),
-    ) { from, to ->
-        val fromKey = from.key as String
-        val toKey = to.key as String
-        when {
-            fromKey.startsWith(SECTION_KEY) && toKey.startsWith(SECTION_KEY) -> {
-                val fromIndex = sectionsState.indexOfFirst { it.key == fromKey }
-                val toIndex = sectionsState.indexOfFirst { it.key == toKey }
-                sectionsState.add(toIndex, sectionsState.removeAt(fromIndex))
-            }
-            // Downloads don't change section
-            fromKey.startsWith(DOWNLOAD_KEY) && toKey.startsWith(DOWNLOAD_KEY) -> {
-                val sectionIndex = sectionsState.indexOfFirst { section ->
-                    section.downloads.any { it.key == fromKey }
-                }
-                val section = sectionsState[sectionIndex]
-                val toIndex = section.downloads.indexOfFirst { it.key == toKey }
-                if (toIndex != -1) {
-                    val downloads = section.downloads.toMutableList()
-                    val fromIndex = downloads.indexOfFirst { it.key == fromKey }
-                    downloads.add(toIndex, downloads.removeAt(fromIndex))
-                    sectionsState[sectionIndex] = section.copy(downloads = downloads)
-                }
-            }
-        }
-    }
-
+    var pendingAnchor by remember { mutableStateOf<PaperAnchor?>(null) }
     LaunchedEffect(sections) {
-        if (!reorderableState.isAnyItemDragging) {
-            sectionsState.clear()
-            sectionsState.addAll(sections)
+        pendingAnchor?.let { anchor ->
+            lazyListState.scrollToItem(anchor.index, anchor.offset)
+            pendingAnchor = null
         }
     }
-
-    val onDragStopped = {
-        isSectionDragging = false
-        draggingSectionId = null
-        onReorder(sectionsState.flatMap { it.downloads })
+    fun keepPage() {
+        pendingAnchor = PaperAnchor(lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset)
     }
-
-    val firstDownload = sectionsState.firstOrNull()?.downloads?.firstOrNull()
-    val lastDownload = sectionsState.lastOrNull()?.downloads?.lastOrNull()
-
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .onGloballyPositioned { listCoordinates.value = it },
-        state = lazyListState,
-        contentPadding = contentPadding,
-    ) {
-        sectionsState.forEach { section ->
-            item(key = section.key) {
-                ReorderableItem(reorderableState, section.key, enabled = draggingSectionId == null) { isDragging ->
-                    DownloadQueueHeader(
-                        section = section,
-                        isDragging = isDragging,
-                        onDragStarted = { isSectionDragging = true },
-                        onDragStopped = onDragStopped,
-                    )
-                }
-            }
-            if (!isSectionDragging) {
-                items(
-                    items = section.downloads,
-                    key = { it.key },
-                ) { download ->
-                    ReorderableItem(
-                        state = reorderableState,
-                        key = download.key,
-                        enabled = draggingSectionId == null || draggingSectionId == section.id,
-                    ) { isDragging ->
-                        DownloadQueueItem(
-                            download = download,
-                            isDragging = isDragging,
-                            modifier = if (isDragging || download.key == lastDraggedKey) {
-                                Modifier.keepInSection(
-                                    lazyListState = lazyListState,
-                                    listCoordinates = listCoordinates,
-                                    sectionKey = section.key,
-                                    lastDownloadKey = section.downloads.last().key,
-                                )
-                            } else {
-                                Modifier
-                            },
-                            canMoveToTop = download != firstDownload,
-                            canMoveToBottom = download != lastDownload,
-                            onDragStarted = {
-                                draggingSectionId = section.id
-                                lastDraggedKey = download.key
-                            },
-                            onDragStopped = onDragStopped,
-                            onMove = { toTop -> onMove(download, toTop) },
-                            onMoveSeries = { toTop -> onMoveSeries(download, toTop) },
-                            onCancel = { onCancel(download) },
-                            onCancelSeries = { onCancelSeries(download) },
-                        )
+    fun moveSection(index: Int, step: Int) {
+        val updated = sections.toMutableList()
+        updated.add(index + step, updated.removeAt(index))
+        keepPage()
+        onReorder(updated.flatMap { it.downloads })
+    }
+    fun moveDownload(sectionIndex: Int, index: Int, step: Int) {
+        val updated = sections[sectionIndex].downloads.toMutableList()
+        updated.add(index + step, updated.removeAt(index))
+        keepPage()
+        onReorder(sections.flatMapIndexed { i, section -> if (i == sectionIndex) updated else section.downloads })
+    }
+    val all = sections.flatMap { it.downloads }
+    LazyColumn(modifier = modifier.fillMaxSize(), state = lazyListState, contentPadding = contentPadding) {
+        sections.forEachIndexed { sectionIndex, section ->
+            item(key = "section-${section.id}") {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ListGroupHeader("${section.name} (${section.downloads.size})", Modifier.weight(1f))
+                    IconButton(onClick = {
+                        moveSection(sectionIndex, -1)
+                    }, enabled = sectionIndex > 0) {
+                        Icon(MaterialSymbols.Rounded.KeyboardArrowUp, stringResource(MR.strings.daihon_move_up))
+                    }
+                    IconButton(onClick = {
+                        moveSection(sectionIndex, 1)
+                    }, enabled = sectionIndex < sections.lastIndex) {
+                        Icon(MaterialSymbols.Rounded.KeyboardArrowDown, stringResource(MR.strings.daihon_move_down))
                     }
                 }
             }
-        }
-    }
-}
-
-// Lazy list keys must fit in a Bundle
-private const val SECTION_KEY = "section-"
-private const val DOWNLOAD_KEY = "download-"
-private val DownloadQueueSection.key get() = "$SECTION_KEY$id"
-private val Download.key get() = "$DOWNLOAD_KEY${chapter.id}"
-
-private class CoordinatesHolder {
-    var value: LayoutCoordinates? = null
-}
-
-/**
- * [lazyListState], with every scroll step passed through [limit] first.
- */
-private class LimitedScrollableState(
-    private val lazyListState: LazyListState,
-    private val limit: (Float) -> Float,
-) : ScrollableState by lazyListState {
-    override suspend fun scroll(scrollPriority: MutatePriority, block: suspend ScrollScope.() -> Unit) {
-        lazyListState.scroll(scrollPriority) {
-            val scope = this
-            object : ScrollScope {
-                override fun scrollBy(pixels: Float) = scope.scrollBy(limit(pixels))
-            }.block()
-        }
-    }
-}
-
-/**
- * Limits [pixels] so the list scrolls no further than the end of [section] reaching the bottom, or its header
- * reaching the top, while that edge is on screen.
- */
-private fun LazyListState.limitScrollToSection(section: DownloadQueueSection, pixels: Float): Float {
-    val items = layoutInfo.visibleItemsInfo
-    return if (pixels > 0) {
-        val last = items.firstOrNull { it.key == section.downloads.last().key } ?: return pixels
-        val contentEnd = layoutInfo.viewportEndOffset - layoutInfo.afterContentPadding
-        pixels.coerceAtMost((last.offset + last.size - contentEnd).coerceAtLeast(0).toFloat())
-    } else {
-        val header = items.firstOrNull { it.key == section.key } ?: return pixels
-        pixels.coerceAtLeast((header.offset).coerceAtMost(0).toFloat())
-    }
-}
-
-/**
- * Stops a dragged download at the edges of its section, between the header and the section's last slot, instead of
- * letting it float over another source it can't be dropped in.
- */
-@Composable
-private fun Modifier.keepInSection(
-    lazyListState: LazyListState,
-    listCoordinates: CoordinatesHolder,
-    sectionKey: String,
-    lastDownloadKey: String,
-): Modifier {
-    var correction by remember { mutableFloatStateOf(0f) }
-    return this
-        // Before the correction layer, so it sees where the drag put the row
-        .onGloballyPositioned { coordinates ->
-            val list = listCoordinates.value?.takeIf { it.isAttached } ?: return@onGloballyPositioned
-            val top = list.localPositionOf(coordinates, Offset.Zero).y
-            val layoutInfo = lazyListState.layoutInfo
-            val itemStart = layoutInfo.beforeContentPadding
-            val header = layoutInfo.visibleItemsInfo.firstOrNull { it.key == sectionKey }
-            val last = layoutInfo.visibleItemsInfo.firstOrNull { it.key == lastDownloadKey }
-            val minTop = header?.let { (itemStart + it.offset + it.size).toFloat() } ?: Float.NEGATIVE_INFINITY
-            val maxTop = last?.let { (itemStart + it.offset + it.size - coordinates.size.height).toFloat() }
-                ?: Float.POSITIVE_INFINITY
-            correction = top.coerceIn(minTop, maxOf(minTop, maxTop)) - top
-        }
-        .graphicsLayer { translationY = correction }
-}
-
-@Composable
-private fun ReorderableCollectionItemScope.DownloadQueueHeader(
-    section: DownloadQueueSection,
-    isDragging: Boolean,
-    onDragStarted: () -> Unit,
-    onDragStopped: () -> Unit,
-) {
-    Surface(
-        modifier = Modifier.padding(top = MaterialTheme.padding.small),
-        color = listItemContainerColor(isDragging),
-        shadowElevation = listItemElevation(isDragging),
-    ) {
-        Row(
-            modifier = Modifier.padding(end = MaterialTheme.padding.small),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            ListGroupHeader(
-                text = "${section.name} (${section.downloads.size})",
-                modifier = Modifier.weight(1f),
-            )
-            DragHandle(onDragStarted = onDragStarted, onDragStopped = onDragStopped)
+            itemsIndexed(section.downloads, key = { _, download ->
+                "download-${download.chapter.id}"
+            }) { index, download ->
+                DownloadQueueItem(
+                    download = download,
+                    canMoveToTop = download != all.firstOrNull(), canMoveToBottom = download != all.lastOrNull(),
+                    onStep = { moveDownload(sectionIndex, index, it) }, canStepUp = index > 0,
+                    canStepDown =
+                    index < section.downloads.lastIndex,
+                    onMove = { onMove(download, it) }, onMoveSeries = { onMoveSeries(download, it) },
+                    onCancel = { onCancel(download) }, onCancelSeries = { onCancelSeries(download) },
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun ReorderableCollectionItemScope.DownloadQueueItem(
+private fun DownloadQueueItem(
     download: Download,
-    isDragging: Boolean,
     canMoveToTop: Boolean,
     canMoveToBottom: Boolean,
-    onDragStarted: () -> Unit,
-    onDragStopped: () -> Unit,
+    onStep: (Int) -> Unit,
+    canStepUp: Boolean,
+    canStepDown: Boolean,
     onMove: (toTop: Boolean) -> Unit,
     onMoveSeries: (toTop: Boolean) -> Unit,
     onCancel: () -> Unit,
@@ -310,12 +150,10 @@ private fun ReorderableCollectionItemScope.DownloadQueueItem(
     modifier: Modifier = Modifier,
 ) {
     val progress by remember(download) { download.pagesProgressFlow() }.collectAsState(null)
-    val animatedProgress by animateFloatAsState(progress?.fraction ?: 0f, label = "progress")
 
     Surface(
         modifier = modifier,
-        color = listItemContainerColor(isDragging),
-        shadowElevation = listItemElevation(isDragging),
+
     ) {
         Row(
             modifier = Modifier.padding(
@@ -324,7 +162,18 @@ private fun ReorderableCollectionItemScope.DownloadQueueItem(
             ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            DragHandle(onDragStarted = onDragStarted, onDragStopped = onDragStopped)
+            Column {
+                IconButton(onClick = {
+                    onStep(-1)
+                }, enabled = canStepUp) {
+                    Icon(MaterialSymbols.Rounded.KeyboardArrowUp, stringResource(MR.strings.daihon_move_up))
+                }
+                IconButton(onClick = {
+                    onStep(1)
+                }, enabled = canStepDown) {
+                    Icon(MaterialSymbols.Rounded.KeyboardArrowDown, stringResource(MR.strings.daihon_move_down))
+                }
+            }
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -354,7 +203,7 @@ private fun ReorderableCollectionItemScope.DownloadQueueItem(
                     style = MaterialTheme.typography.bodySmall,
                 )
                 LinearProgressIndicator(
-                    progress = { animatedProgress },
+                    progress = { progress?.fraction ?: 0f },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = MaterialTheme.padding.extraSmall),
@@ -370,20 +219,6 @@ private fun ReorderableCollectionItemScope.DownloadQueueItem(
             )
         }
     }
-}
-
-@Composable
-private fun ReorderableCollectionItemScope.DragHandle(onDragStarted: () -> Unit, onDragStopped: () -> Unit) {
-    Icon(
-        imageVector = MaterialSymbols.Rounded.DragHandle,
-        contentDescription = null,
-        modifier = Modifier
-            .draggableHandle(
-                onDragStarted = { onDragStarted() },
-                onDragStopped = onDragStopped,
-            )
-            .padding(MaterialTheme.padding.small),
-    )
 }
 
 @Composable
@@ -453,18 +288,6 @@ private fun DownloadQueueItemMenu(
             )
         }
     }
-}
-
-// A neutral lifted surface while dragged, rather than Material's tertiaryContainer list tint
-@Composable
-private fun listItemContainerColor(isDragging: Boolean): Color {
-    return if (isDragging) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.background
-}
-
-@Composable
-private fun listItemElevation(isDragging: Boolean): Dp {
-    val elevation = ListItemDefaults.elevation()
-    return if (isDragging) elevation.draggedElevation else elevation.elevation
 }
 
 private class PagesProgress(

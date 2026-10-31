@@ -47,6 +47,7 @@ fun PaperPageControls(
     onNext: () -> Unit,
     onJump: () -> Unit,
     modifier: Modifier = Modifier,
+    canJump: Boolean = true,
 ) {
     Row(
         modifier.fillMaxWidth().border(1.dp, Color.Black).padding(horizontal = 32.dp, vertical = 8.dp),
@@ -58,6 +59,7 @@ fun PaperPageControls(
         }
         PaperButton(
             onClick = onJump,
+            enabled = canJump,
             modifier = Modifier.weight(1f).heightIn(min = 56.dp),
             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
         ) {
@@ -97,7 +99,14 @@ fun PaperJumpDialog(
                 value = input,
                 onValueChange = { input = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(MR.strings.library_page_input, count)) },
+                label = {
+                    Text(
+                        stringResource(
+                            if (itemNumber) MR.strings.daihon_entry_input else MR.strings.library_page_input,
+                            count,
+                        ),
+                    )
+                },
                 singleLine = true,
                 isError = input.text.isNotEmpty() && selected == null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),

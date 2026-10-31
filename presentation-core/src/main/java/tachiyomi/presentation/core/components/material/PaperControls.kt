@@ -31,7 +31,7 @@ fun PaperButton(
         containerColor = Color.White,
         contentColor = Color.Black,
         disabledContainerColor = Color.White,
-        disabledContentColor = Color.Black,
+        disabledContentColor = Color.Black.copy(alpha = .38f),
     ),
     elevation: ButtonElevation? = null,
     border: BorderStroke? = BorderStroke(1.dp, Color.Black),

@@ -1,8 +1,6 @@
 package eu.kanade.tachiyomi.ui.browse.migration.search
 
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SmallExtendedFloatingActionButton
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.animateFloatingActionButton
@@ -40,6 +38,8 @@ import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.source.local.LocalSource
+import tachiyomi.presentation.core.components.material.PaperExtendedActionButton as SmallExtendedFloatingActionButton
+import tachiyomi.presentation.core.components.material.PaperSnackbarHost as SnackbarHost
 
 data class MigrateSourceSearchScreen(
     private val currentManga: Manga,

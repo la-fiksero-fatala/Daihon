@@ -500,7 +500,7 @@ class MainActivity : BaseActivity() {
                                 contentDescription = null,
                             )
                             Text(
-                                text = stringResource(MR.strings.label_support_us),
+                                text = stringResource(MR.strings.daihon_support_upstream),
                                 color = MaterialTheme.colorScheme.onPrimary,
                             )
                         }

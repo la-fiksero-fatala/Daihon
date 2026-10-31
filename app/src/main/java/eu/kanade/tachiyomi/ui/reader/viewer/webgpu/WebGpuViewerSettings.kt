@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -59,6 +58,7 @@ import tachiyomi.presentation.core.util.collectAsState
 import java.text.NumberFormat
 import tachiyomi.presentation.core.components.material.PaperAlertDialog as AlertDialog
 import tachiyomi.presentation.core.components.material.PaperButton as TextButton
+import tachiyomi.presentation.core.components.material.PaperFilterChip as FilterChip
 import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
 
 @Composable

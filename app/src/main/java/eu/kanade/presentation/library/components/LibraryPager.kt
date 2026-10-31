@@ -1,10 +1,13 @@
 package eu.kanade.presentation.library.components
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -29,6 +32,7 @@ import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.library.model.LibraryPageButtons
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperPageControls
 import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.paperHorizontalPaging
 import tachiyomi.presentation.core.screens.EmptyScreen
@@ -73,12 +77,21 @@ fun LibraryPager(
         val items = getItemsForCategory(category)
 
         if (items.isEmpty()) {
-            LibraryPagerEmptyScreen(
-                searchQuery = searchQuery,
-                hasActiveFilters = hasActiveFilters,
-                contentPadding = contentPadding,
-                onGlobalSearchClicked = onGlobalSearchClicked,
-            )
+            Column(
+                Modifier.fillMaxSize().padding(
+                    contentPadding,
+                ).consumeWindowInsets(contentPadding).navigationBarsPadding(),
+            ) {
+                Box(Modifier.weight(1f)) {
+                    LibraryPagerEmptyScreen(
+                        searchQuery = searchQuery,
+                        hasActiveFilters = hasActiveFilters,
+                        contentPadding = PaddingValues(0.dp),
+                        onGlobalSearchClicked = onGlobalSearchClicked,
+                    )
+                }
+                PaperPageControls("0 / 0", false, false, {}, {}, {}, canJump = false)
+            }
             return@HorizontalPager
         }
 
@@ -206,11 +219,10 @@ private fun LibraryPagerEmptyScreen(
         else -> MR.strings.information_no_manga_category
     }
 
-    PaperScrollColumn(
+    Column(
         modifier = Modifier
             .padding(contentPadding + PaddingValues(8.dp))
             .fillMaxSize(),
-        state = rememberScrollState(),
     ) {
         if (!searchQuery.isNullOrEmpty()) {
             GlobalSearchItem(

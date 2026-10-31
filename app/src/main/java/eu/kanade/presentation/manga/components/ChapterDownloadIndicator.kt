@@ -130,39 +130,11 @@ private fun DownloadingIndicator(
         contentAlignment = Alignment.Center,
     ) {
         val color = MaterialTheme.colorScheme.onSurfaceVariant
-        val trackColor = color.copy(alpha = TRACK_ALPHA)
-        val stroke = Stroke(width = with(LocalDensity.current) { IndicatorStrokeWidth.toPx() }, cap = StrokeCap.Round)
-        val downloadProgress = downloadProgressProvider()
-        val indeterminate = downloadState == Download.State.QUEUE ||
-            (downloadState == Download.State.DOWNLOADING && downloadProgress == 0)
-        if (indeterminate) {
-            CircularWavyProgressIndicator(
-                modifier = IndicatorModifier,
-                color = color,
-                trackColor = Color.Transparent,
-                stroke = stroke,
-                trackStroke = stroke,
-                // Only an active download waves, so a queued one reads as waiting
-                amplitude = if (downloadState == Download.State.DOWNLOADING) INDICATOR_AMPLITUDE else 0f,
-                wavelength = IndicatorWavelength,
-            )
-        } else {
-            val animatedProgress by animateFloatAsState(
-                targetValue = downloadProgress / 100f,
-                animationSpec = WavyProgressIndicatorDefaults.ProgressAnimationSpec,
-                label = "progress",
-            )
-            CircularWavyProgressIndicator(
-                progress = { animatedProgress },
-                modifier = IndicatorModifier,
-                color = color,
-                trackColor = trackColor,
-                stroke = stroke,
-                trackStroke = stroke,
-                amplitude = { WavyProgressIndicatorDefaults.indicatorAmplitude(it) * INDICATOR_AMPLITUDE },
-                wavelength = IndicatorWavelength,
-            )
-        }
+        Text(
+            text = if (downloadState == Download.State.QUEUE) "…" else "${downloadProgressProvider()}%",
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+        )
         DropdownMenu(expanded = isMenuExpanded, onDismissRequest = { isMenuExpanded = false }) {
             DropdownMenuItem(
                 text = { Text(text = stringResource(MR.strings.action_start_downloading_now)) },
@@ -179,12 +151,6 @@ private fun DownloadingIndicator(
                 },
             )
         }
-        Icon(
-            imageVector = CustomMaterialSymbols.Rounded.DownloadArrow,
-            contentDescription = null,
-            modifier = ArrowModifier,
-            tint = color,
-        )
     }
 }
 
@@ -264,10 +230,7 @@ private fun Modifier.commonClickable(
     onClick = onClick,
     role = Role.Button,
     interactionSource = null,
-    indication = ripple(
-        bounded = false,
-        radius = IconButtonTokens.StateLayerSize / 2,
-    ),
+    indication = null,
 )
 
 private val IndicatorSize = 26.dp

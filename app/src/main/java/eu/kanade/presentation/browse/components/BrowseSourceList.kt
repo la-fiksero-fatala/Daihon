@@ -23,14 +23,9 @@ fun BrowseSourceList(
     onMangaLongClick: (Manga) -> Unit,
 ) {
     LazyColumn(
+        hasMoreItems = !mangaList.loadState.append.endOfPaginationReached,
         contentPadding = contentPadding + PaddingValues(vertical = 8.dp),
     ) {
-        item {
-            if (mangaList.loadState.prepend is LoadState.Loading) {
-                BrowseSourceLoadingItem()
-            }
-        }
-
         items(count = mangaList.itemCount) { index ->
             val manga by mangaList[index]?.collectAsState() ?: return@items
             BrowseSourceListItem(
@@ -38,12 +33,6 @@ fun BrowseSourceList(
                 onClick = { onMangaClick(manga) },
                 onLongClick = { onMangaLongClick(manga) },
             )
-        }
-
-        item {
-            if (mangaList.loadState.refresh is LoadState.Loading || mangaList.loadState.append is LoadState.Loading) {
-                BrowseSourceLoadingItem()
-            }
         }
     }
 }

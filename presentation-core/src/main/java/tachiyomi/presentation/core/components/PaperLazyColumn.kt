@@ -57,6 +57,7 @@ fun PaperLazyColumn(
     userScrollEnabled: Boolean = true,
     alwaysShowControls: Boolean = false,
     beforeControls: @Composable (() -> Unit)? = null,
+    hasMoreItems: Boolean = false,
     content: LazyListScope.() -> Unit,
 ) {
     // The library already supplies a fixed subset and its own page controls.
@@ -131,6 +132,14 @@ fun PaperLazyColumn(
                         Spacer(Modifier.height(if (paged) with(density) { viewport.toDp() } else 0.dp))
                     }
                 }
+                // Native lazy layouts draw cached preceding rows into their leading padding.
+                // Keep that margin blank when a new page starts.
+                if (hasPrevious && contentPadding.calculateTopPadding() > 0.dp) {
+                    Box(
+                        Modifier.align(Alignment.TopCenter).fillMaxWidth()
+                            .height(contentPadding.calculateTopPadding()).background(Color.White),
+                    )
+                }
                 if (mask > 0) {
                     Box(
                         Modifier.align(Alignment.BottomCenter).fillMaxWidth()
@@ -143,7 +152,13 @@ fun PaperLazyColumn(
             if (paged || alwaysShowControls) {
                 val shownLast = visible.lastOrNull { it.offset + it.size <= end }?.index ?: first.index
                 PaperPageControls(
-                    "${first.index + 1}–${shownLast + 1} / $total",
+                    if (total ==
+                        0
+                    ) {
+                        "0 / 0"
+                    } else {
+                        "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}"
+                    },
                     hasPrevious,
                     next != null,
                     { navigate(-1) },
@@ -151,6 +166,7 @@ fun PaperLazyColumn(
                     { showJump = true },
                     Modifier.padding(bottom = contentPadding.calculateBottomPadding())
                         .consumeWindowInsets(contentPadding).navigationBarsPadding(),
+                    canJump = total > 0,
                 )
             }
         }

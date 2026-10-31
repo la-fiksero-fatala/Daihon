@@ -100,7 +100,7 @@ class WorkerInfoScreen : Screen() {
         ) { contentPadding ->
             LazyColumn(
                 contentPadding = contentPadding + PaddingValues(horizontal = 16.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                modifier = Modifier,
             ) {
                 item { SectionTitle(title = "Enqueued") }
                 item { SectionText(text = enqueued) }

@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -35,8 +33,10 @@ import mihon.icons.simpleicons.SimpleIcons
 import tachiyomi.core.common.Constants
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.PaperScrollColumn
+import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.components.material.PaperCard as Card
 
 class SupportUsScreen : Screen() {
 
@@ -48,7 +48,7 @@ class SupportUsScreen : Screen() {
         Scaffold(
             topBar = {
                 AppBar(
-                    title = stringResource(MR.strings.label_support_us),
+                    title = stringResource(MR.strings.daihon_support_upstream),
                     navigateUp = navigator::pop,
                 )
             },
@@ -83,7 +83,7 @@ class SupportUsScreen : Screen() {
                 Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
 
                 Text(
-                    text = stringResource(MR.strings.supportUsScreen_perks),
+                    text = stringResource(MR.strings.daihon_support_explanation),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(horizontal = MaterialTheme.padding.medium),
                 )

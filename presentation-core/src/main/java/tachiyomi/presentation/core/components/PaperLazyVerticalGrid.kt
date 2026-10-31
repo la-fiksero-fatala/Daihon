@@ -57,6 +57,7 @@ fun PaperLazyVerticalGrid(
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
     flingBehavior: FlingBehavior = ScrollableDefaults.flingBehavior(),
     userScrollEnabled: Boolean = true,
+    hasMoreItems: Boolean = false,
     content: LazyGridScope.() -> Unit,
 ) {
     if (!userScrollEnabled) {
@@ -131,6 +132,14 @@ fun PaperLazyVerticalGrid(
                         Spacer(Modifier.height(if (paged) with(density) { viewport.toDp() } else 0.dp))
                     }
                 }
+                // Native lazy layouts draw cached preceding rows into their leading padding.
+                // Keep that margin blank when a new page starts.
+                if (hasPrevious && contentPadding.calculateTopPadding() > 0.dp) {
+                    Box(
+                        Modifier.align(Alignment.TopCenter).fillMaxWidth()
+                            .height(contentPadding.calculateTopPadding()).background(Color.White),
+                    )
+                }
                 if (mask > 0) {
                     Box(
                         Modifier.align(Alignment.BottomCenter).fillMaxWidth()
@@ -142,7 +151,7 @@ fun PaperLazyVerticalGrid(
             if (paged) {
                 val shownLast = visible.lastOrNull { it.offset.y + it.size.height <= end }?.index ?: first.index
                 PaperPageControls(
-                    "${first.index + 1}–${shownLast + 1} / $total",
+                    "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}",
                     hasPrevious,
                     next != null,
                     { navigate(-1) },

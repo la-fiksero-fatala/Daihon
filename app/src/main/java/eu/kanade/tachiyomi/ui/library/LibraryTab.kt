@@ -8,7 +8,6 @@ import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -71,6 +70,7 @@ import tachiyomi.presentation.core.screens.EmptyScreenAction
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.presentation.core.util.collectAsState
 import tachiyomi.source.local.isLocal
+import tachiyomi.presentation.core.components.material.PaperSnackbarHost as SnackbarHost
 
 data object LibraryTab : Tab {
 
@@ -118,13 +118,19 @@ data object LibraryTab : Tab {
         val tabNavigator = LocalTabNavigator.current
         val lifecycle = LocalLifecycleOwner.current.lifecycle
         val keysEnabled by rememberUpdatedState(
-            tabNavigator.current == this && state.dialog == null && !searchFocused && !libraryNavigation.showPageDialog,
+            tabNavigator.current == this && state.dialog == null && !libraryNavigation.showPageDialog,
         )
         val currentVolumeKeys by rememberUpdatedState(volumeKeys)
         DisposableEffect(context, lifecycle, libraryNavigation) {
             val activity = context as? MainActivity
             val handler: (android.view.KeyEvent) -> Boolean = handler@{ event ->
                 if (!keysEnabled || !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@handler false
+                val keyboardVisible = activity?.window?.decorView?.let {
+                    androidx.core.view.ViewCompat.getRootWindowInsets(
+                        it,
+                    )?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())
+                } == true
+                if (keyboardVisible) return@handler false
                 val direction = libraryPageDirection(event.keyCode, currentVolumeKeys) ?: return@handler false
                 if (event.action == android.view.KeyEvent.ACTION_UP && !event.isCanceled) {
                     libraryNavigation.onPageChange?.invoke(direction)

@@ -207,6 +207,7 @@
 
                 <!-- Comick requires native reverse-domain schemes  -->
                 <data android:scheme="app.daihon" />
+                <data android:scheme="app.mihon" />
                 <data android:host="comick-auth" />
             </intent-filter>
         </activity>

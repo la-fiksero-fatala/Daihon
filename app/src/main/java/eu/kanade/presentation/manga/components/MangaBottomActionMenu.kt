@@ -197,7 +197,7 @@ private fun RowScope.Button(
             .weight(animatedWeight)
             .combinedClickable(
                 interactionSource = null,
-                indication = ripple(bounded = false),
+                indication = null,
                 onLongClick = onLongClick,
                 onClick = onClick,
             ),

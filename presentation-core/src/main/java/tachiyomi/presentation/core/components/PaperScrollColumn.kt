@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
@@ -37,6 +38,7 @@ fun PaperScrollColumn(
     enabled: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     val owner = remember { Any() }
     var viewport by remember { mutableIntStateOf(1) }
@@ -52,10 +54,12 @@ fun PaperScrollColumn(
     val fallback = (LocalConfiguration.current.screenHeightDp * .75f).dp
     BoxWithConstraints(modifier) {
         val limit = if (constraints.hasBoundedHeight) maxHeight else fallback
-        Column(Modifier.heightIn(max = limit).fillMaxWidth()) {
+        val fill = constraints.minHeight > 0
+        Column(Modifier.heightIn(min = with(density) { constraints.minHeight.toDp() }, max = limit).fillMaxWidth()) {
             Box(
-                Modifier.weight(1f, fill = false).onSizeChanged { viewport = it.height.coerceAtLeast(1) }
+                Modifier.weight(1f, fill = fill).onSizeChanged { viewport = it.height.coerceAtLeast(1) }
                     .then(paperInput(owner, enabled && !showJump, navigate, atTop = page == 0)),
+                propagateMinConstraints = fill,
             ) {
                 Column(
                     Modifier.fillMaxWidth().verticalScroll(state, enabled = false, reverseScrolling = reverseScrolling),

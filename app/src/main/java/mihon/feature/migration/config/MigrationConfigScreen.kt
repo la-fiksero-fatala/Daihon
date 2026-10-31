@@ -9,13 +9,11 @@ import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -59,6 +57,8 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.ArrowForward
 import mihon.icons.materialsymbols.rounded.Deselect
 import mihon.icons.materialsymbols.rounded.DragHandle
+import mihon.icons.materialsymbols.rounded.KeyboardArrowDown
+import mihon.icons.materialsymbols.rounded.KeyboardArrowUp
 import mihon.icons.materialsymbols.rounded.SelectAll
 import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableItem
@@ -69,11 +69,15 @@ import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
 import tachiyomi.presentation.core.components.Pill
+import tachiyomi.presentation.core.components.material.PaperIconButton
+import tachiyomi.presentation.core.components.material.PaperSurface
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.presentation.core.util.shouldExpandFAB
+import tachiyomi.presentation.core.components.material.PaperCard as ElevatedCard
+import tachiyomi.presentation.core.components.material.PaperExtendedActionButton as SmallExtendedFloatingActionButton
 
 class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
 
@@ -161,13 +165,6 @@ class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
                 )
             },
         ) { contentPadding ->
-            val reorderableState = rememberReorderableLazyListState(lazyListState, contentPadding) { from, to ->
-                val fromIndex = selectedSources.indexOfFirst { it.id == from.key }
-                val toIndex = selectedSources.indexOfFirst { it.id == to.key }
-                if (fromIndex == -1 || toIndex == -1) return@rememberReorderableLazyListState
-                viewModel.orderSource(fromIndex, toIndex)
-            }
-
             FastScrollLazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = lazyListState,
@@ -203,7 +200,8 @@ class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
                             source = item,
                             showLanguage = showLanguage,
                             dragEnabled = selectedSourceList && sources.size > 1,
-                            state = reorderableState,
+                            onMoveUp = { viewModel.orderSource(index, index - 1) },
+                            onMoveDown = { viewModel.orderSource(index, index + 1) },
                             key = { if (selectedSourceList) it.id else "available-${it.id}" },
                             onClick = { viewModel.toggleSelection(item.id) },
                         )
@@ -231,7 +229,8 @@ class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
         source: MigrationSource,
         showLanguage: Boolean,
         dragEnabled: Boolean,
-        state: ReorderableLazyListState,
+        onMoveUp: () -> Unit,
+        onMoveDown: () -> Unit,
         key: (MigrationSource) -> Any,
         onClick: () -> Unit,
     ) {
@@ -241,25 +240,8 @@ class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
             RoundedCornerShape(top, top, bottom, bottom)
         }
 
-        ReorderableItem(
-            state = state,
-            key = key(source),
-            enabled = dragEnabled,
-        ) { _ ->
-            ElevatedCard(
-                shape = shape,
-                modifier = Modifier
-                    .padding(horizontal = MaterialTheme.padding.medium)
-                    .animateItem(),
-            ) {
-                SourceItem(
-                    source = source,
-                    showLanguage = showLanguage,
-                    dragEnabled = dragEnabled,
-                    scope = this@ReorderableItem,
-                    onClick = onClick,
-                )
-            }
+        PaperSurface(shape = shape, modifier = Modifier.padding(horizontal = MaterialTheme.padding.medium)) {
+            SourceItem(source, showLanguage, dragEnabled, !firstItem, !lastItem, onMoveUp, onMoveDown, onClick)
         }
 
         if (!lastItem) {
@@ -272,20 +254,24 @@ class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
         source: MigrationSource,
         showLanguage: Boolean,
         dragEnabled: Boolean,
-        scope: ReorderableCollectionItemScope,
+        canUp: Boolean,
+        canDown: Boolean,
+        onMoveUp: () -> Unit,
+        onMoveDown: () -> Unit,
         onClick: () -> Unit,
     ) {
         ListItem(
             modifier = Modifier.clickable(onClick = onClick),
             trailingContent = if (dragEnabled) {
                 {
-                    Icon(
-                        imageVector = MaterialSymbols.Rounded.DragHandle,
-                        contentDescription = null,
-                        modifier = with(scope) {
-                            Modifier.draggableHandle()
-                        },
-                    )
+                    Row {
+                        PaperIconButton(onClick = onMoveUp, enabled = canUp) {
+                            Icon(MaterialSymbols.Rounded.KeyboardArrowUp, stringResource(MR.strings.daihon_move_up))
+                        }
+                        PaperIconButton(onClick = onMoveDown, enabled = canDown) {
+                            Icon(MaterialSymbols.Rounded.KeyboardArrowDown, stringResource(MR.strings.daihon_move_down))
+                        }
+                    }
                 }
             } else {
                 null

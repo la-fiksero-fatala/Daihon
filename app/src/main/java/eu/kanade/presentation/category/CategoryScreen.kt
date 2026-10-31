@@ -3,16 +3,24 @@ package eu.kanade.presentation.category
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.category.components.CategoryFloatingActionButton
 import eu.kanade.presentation.category.components.CategoryListItem
 import eu.kanade.presentation.components.AppBar
@@ -21,6 +29,8 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import tachiyomi.domain.category.model.Category
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperAnchor
+import tachiyomi.presentation.core.components.material.PaperButton
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.components.material.topSmallPaddingValues
@@ -47,11 +57,13 @@ fun CategoryScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        floatingActionButton = {
-            CategoryFloatingActionButton(
-                lazyListState = lazyListState,
-                onCreate = onClickCreate,
-            )
+        bottomBar = {
+            PaperButton(
+                onClick = onClickCreate,
+                modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp),
+            ) {
+                Text(stringResource(MR.strings.action_add))
+            }
         },
     ) { paddingValues ->
         if (state.isEmpty) {
@@ -82,40 +94,34 @@ private fun CategoryContent(
     onClickDelete: (Category) -> Unit,
     onChangeOrder: (Category, Int) -> Unit,
 ) {
-    val categoriesState = remember { categories.toMutableStateList() }
-    val reorderableState = rememberReorderableLazyListState(lazyListState, paddingValues) { from, to ->
-        val item = categoriesState.removeAt(from.index)
-        categoriesState.add(to.index, item)
-        onChangeOrder(item, to.index)
-    }
-
+    var pendingAnchor by remember { mutableStateOf<PaperAnchor?>(null) }
     LaunchedEffect(categories) {
-        if (!reorderableState.isAnyItemDragging) {
-            categoriesState.clear()
-            categoriesState.addAll(categories)
+        pendingAnchor?.let { anchor ->
+            lazyListState.scrollToItem(anchor.index.coerceAtMost((categories.size - 1).coerceAtLeast(0)), anchor.offset)
+            pendingAnchor = null
         }
     }
-
+    val move: (Category, Int) -> Unit = { category, index ->
+        pendingAnchor = PaperAnchor(lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset)
+        onChangeOrder(category, index)
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         state = lazyListState,
-        contentPadding = paddingValues +
-            topSmallPaddingValues +
-            PaddingValues(horizontal = MaterialTheme.padding.medium),
+        contentPadding =
+        paddingValues + topSmallPaddingValues + PaddingValues(horizontal = MaterialTheme.padding.medium),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
     ) {
-        items(
-            items = categoriesState,
-            key = { category -> category.key },
-        ) { category ->
-            ReorderableItem(reorderableState, category.key) {
-                CategoryListItem(
-                    modifier = Modifier.animateItem(),
-                    category = category,
-                    onRename = { onClickRename(category) },
-                    onDelete = { onClickDelete(category) },
-                )
-            }
+        itemsIndexed(categories, key = { _, category -> category.key }) { index, category ->
+            CategoryListItem(
+                category = category,
+                onRename = { onClickRename(category) },
+                onDelete = { onClickDelete(category) },
+                canUp = index > 0,
+                canDown = index < categories.lastIndex,
+                onUp = { move(category, index - 1) },
+                onDown = { move(category, index + 1) },
+            )
         }
     }
 }

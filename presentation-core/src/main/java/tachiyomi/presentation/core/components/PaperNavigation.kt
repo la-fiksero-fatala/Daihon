@@ -1,9 +1,7 @@
 package tachiyomi.presentation.core.components
 
-import android.content.Context
 import android.view.KeyEvent
 import android.view.Window
-import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -22,6 +20,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import tachiyomi.presentation.core.components.material.LocalPaperRefresh
 import kotlin.math.abs
 
@@ -95,9 +95,6 @@ internal fun paperInput(
     val view = LocalView.current
     val window = LocalWindowInfo.current
     val dialogWindow = (view.parent as? DialogWindowProvider)?.window
-    val inputMethod = remember(view) {
-        view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    }
     val refresh by rememberUpdatedState(LocalPaperRefresh.current)
     val firstPage by rememberUpdatedState(atTop)
     val navigate by rememberUpdatedState(onNavigate)
@@ -108,7 +105,11 @@ internal fun paperInput(
         val releaseWindow = dialogWindow?.let(PaperNavigation::bindWindow)
         PaperNavigation.register(
             owner,
-            enabled = { available && visible && window.isWindowFocused && !inputMethod.isAcceptingText },
+            enabled = {
+                val keyboardVisible =
+                    ViewCompat.getRootWindowInsets(view)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+                available && visible && window.isWindowFocused && !keyboardVisible
+            },
             navigate = { navigate(it) },
         )
         onDispose {

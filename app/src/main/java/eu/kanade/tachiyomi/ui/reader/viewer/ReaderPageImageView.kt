@@ -191,6 +191,25 @@ open class ReaderPageImageView @JvmOverloads constructor(
         }
     }
 
+    private val paperGesture = PaperReaderGesture(android.view.ViewConfiguration.get(context).scaledTouchSlop.toFloat())
+    private var childCancelled = false
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) childCancelled = false
+        val result = paperGesture.update(event)
+        if (paperGesture.moving) {
+            if (!childCancelled) {
+                val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
+                super.dispatchTouchEvent(cancel)
+                cancel.recycle()
+                childCancelled = true
+            }
+            if (result != null) applyPaperGesture(result.dx, result.dy, result.scale)
+            return true
+        }
+        return super.dispatchTouchEvent(event)
+    }
+
     /** Commit a pinch or pan once, after the finger has been lifted. */
     fun applyPaperGesture(dx: Float, dy: Float, factor: Float): Boolean {
         when (val view = pageView) {

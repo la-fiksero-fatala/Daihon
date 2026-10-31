@@ -57,7 +57,7 @@ object CommonMangaItemDefaults {
     val GridTitleLineHeight = 20.sp
 
     @Suppress("ConstPropertyName")
-    const val BrowseFavoriteCoverAlpha = 0.34f
+    const val BrowseFavoriteCoverAlpha = 1f
 }
 
 private val ContinueReadingButtonSizeSmall = 28.dp

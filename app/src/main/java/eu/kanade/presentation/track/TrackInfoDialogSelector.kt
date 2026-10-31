@@ -147,6 +147,7 @@ fun TrackDateSelector(
     val pickerState = rememberDatePickerState(
         initialSelectedDateMillis = initialSelectedDateMillis,
         selectableDates = selectableDates,
+        initialDisplayMode = androidx.compose.material3.DisplayMode.Input,
     )
     AlertDialogContent(
         modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
@@ -175,7 +176,11 @@ fun TrackDateSelector(
                     TextButton(onClick = onDismissRequest) {
                         Text(text = stringResource(MR.strings.action_cancel))
                     }
-                    TextButton(onClick = { onConfirm(pickerState.selectedDateMillis!!) }) {
+                    TextButton(
+                        onClick = { pickerState.selectedDateMillis?.let(onConfirm) },
+                        enabled =
+                        pickerState.selectedDateMillis != null,
+                    ) {
                         Text(text = stringResource(MR.strings.action_ok))
                     }
                 }

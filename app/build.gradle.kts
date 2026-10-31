@@ -71,6 +71,7 @@ android {
     buildTypes {
         val debug = getByName("debug") {
             applicationIdSuffix = ".dev"
+            resValue("string", "app_name", "Daihon Debug")
             isPseudoLocalesEnabled = true
         }
         val release = getByName("release") {
@@ -97,6 +98,7 @@ android {
             initWith(release)
 
             applicationIdSuffix = ".debug"
+            resValue("string", "app_name", "Daihon Preview")
 
             matchingFallbacks.addAll(commonMatchingFallbacks)
         }
@@ -166,6 +168,7 @@ android {
     }
 
     buildFeatures {
+        resValues = true
         viewBinding = true
         buildConfig = true
         aidl = true

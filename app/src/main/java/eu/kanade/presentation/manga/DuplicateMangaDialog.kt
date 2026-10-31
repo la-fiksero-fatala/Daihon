@@ -118,15 +118,11 @@ fun DuplicateMangaDialog(
                 modifier = Modifier.then(horizontalPaddingModifier),
             )
 
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
-                modifier = Modifier.height(getMaximumMangaCardHeight(duplicates)),
-                contentPadding = horizontalPadding,
+            Column(
+                modifier = horizontalPaddingModifier,
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
             ) {
-                items(
-                    items = duplicates,
-                    key = { it.manga.id },
-                ) {
+                duplicates.forEach {
                     DuplicateMangaListItem(
                         duplicate = it,
                         getSource = { sourceManager.getOrStub(it.manga.source) },

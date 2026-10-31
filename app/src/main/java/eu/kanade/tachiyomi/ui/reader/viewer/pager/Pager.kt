@@ -78,7 +78,10 @@ open class Pager(
                 val handled = onPaperGesture?.invoke(result.dx, result.dy, result.scale) == true
                 if (!handled && result.scale == 1f) {
                     val distance = if (isHorizontal) result.dx else result.dy
-                    setCurrentItem(currentItem + if (distance < 0) 1 else -1, false)
+                    val perpendicular = if (isHorizontal) result.dy else result.dx
+                    if (kotlin.math.abs(distance) > kotlin.math.abs(perpendicular)) {
+                        setCurrentItem(currentItem + if (distance < 0) 1 else -1, false)
+                    }
                 }
             }
             return true

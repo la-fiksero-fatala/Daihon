@@ -133,7 +133,7 @@ fun MoreScreen(
             }
             item {
                 TextPreferenceWidget(
-                    title = stringResource(MR.strings.label_support_us),
+                    title = stringResource(MR.strings.daihon_support_upstream),
                     icon = MaterialSymbols.RoundedFilled.VolunteerActivism,
                     onPreferenceClick = onClickSupport,
                 )

@@ -21,6 +21,7 @@ import kotlinx.serialization.protobuf.schema.ProtoBufSchemaGenerator
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.ContentCopy
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -59,14 +60,14 @@ class BackupSchemaScreen : Screen() {
                 )
             },
         ) { contentPadding ->
-            Text(
-                text = schema,
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(contentPadding)
-                    .padding(16.dp),
-                fontFamily = FontFamily.Monospace,
-            )
+            PaperScrollColumn(Modifier.padding(contentPadding)) {
+                Text(
+                    text = schema,
+                    modifier = Modifier
+                        .padding(16.dp),
+                    fontFamily = FontFamily.Monospace,
+                )
+            }
         }
     }
 }
