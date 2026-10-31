@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -27,6 +26,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 import java.util.Locale
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import tachiyomi.presentation.core.components.PaperLazyColumn as LazyColumn
 
 @Composable
 fun StatsScreenContent(

@@ -16,6 +16,7 @@ import eu.kanade.presentation.components.TabbedDialog
 import eu.kanade.presentation.components.TabbedDialogPaddings
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsViewModel
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
@@ -54,10 +55,10 @@ fun ReaderSettingsDialog(
                 }
             }
 
-            Column(
+            PaperScrollColumn(
                 modifier = Modifier
-                    .padding(vertical = TabbedDialogPaddings.Vertical)
-                    .verticalScroll(rememberScrollState()),
+                    .padding(vertical = TabbedDialogPaddings.Vertical),
+                state = rememberScrollState(),
             ) {
                 when (page) {
                     0 -> ReadingModePage(viewModel)

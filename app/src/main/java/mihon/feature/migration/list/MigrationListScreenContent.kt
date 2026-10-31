@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +63,7 @@ import tachiyomi.presentation.core.components.material.topSmallPaddingValues
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.plus
 import tachiyomi.presentation.core.components.StaticCircularProgressIndicator as CircularProgressIndicator
+import tachiyomi.presentation.core.components.material.PaperDropdownMenu as DropdownMenu
 import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
 
 @Composable

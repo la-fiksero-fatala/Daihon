@@ -1,9 +1,9 @@
 package eu.kanade.presentation.more.settings.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,6 +48,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import cafe.adriel.voyager.core.screen.Screen as VoyagerScreen
+import tachiyomi.presentation.core.components.PaperLazyColumn as LazyColumn
 
 object SettingsMainScreen : Screen() {
 
@@ -106,7 +107,7 @@ object SettingsMainScreen : Screen() {
                     items.indexOfFirst { it.screen::class == navigator.items.first()::class }
                         .also {
                             LaunchedEffect(Unit) {
-                                state.animateScrollToItem(it)
+                                state.scrollToItem(it)
                                 if (it > 0) {
                                     // Lift scroll
                                     topBarState.contentOffset = topBarState.heightOffsetLimit
@@ -131,10 +132,14 @@ object SettingsMainScreen : Screen() {
                         if (twoPane) {
                             modifier = Modifier
                                 .padding(horizontal = 8.dp)
-                                .clip(RoundedCornerShape(24.dp))
+                                .clip(RoundedCornerShape(4.dp))
                                 .then(
                                     if (selected) {
-                                        Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
+                                        Modifier.border(
+                                            2.dp,
+                                            androidx.compose.ui.graphics.Color.Black,
+                                            RoundedCornerShape(4.dp),
+                                        )
                                     } else {
                                         Modifier
                                     },

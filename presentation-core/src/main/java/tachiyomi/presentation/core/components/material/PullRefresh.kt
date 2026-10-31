@@ -3,22 +3,19 @@ package tachiyomi.presentation.core.components.material
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.pullToRefresh
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.i18n.stringResource
 
-/**
- * @param refreshing Whether the layout is currently refreshing
- * @param onRefresh Lambda which is invoked when a swipe to refresh gesture is completed.
- * @param enabled Whether the the layout should react to swipe gestures or not.
- * @param indicatorPadding Content padding for the indicator, to inset the indicator in if required.
- * @param content The content containing a vertically scrollable composable.
- */
+internal val LocalPaperRefresh = staticCompositionLocalOf<(() -> Unit)?> { null }
+
+/** A downward swipe at the first page requests refresh only after release. */
 @Composable
 fun PullRefresh(
     refreshing: Boolean,
@@ -28,26 +25,14 @@ fun PullRefresh(
     indicatorPadding: PaddingValues = PaddingValues(0.dp),
     content: @Composable () -> Unit,
 ) {
-    val state = rememberPullToRefreshState()
-    Box(
-        modifier = modifier
-            .pullToRefresh(
-                isRefreshing = refreshing,
-                state = state,
-                enabled = enabled,
-                onRefresh = onRefresh,
-            ),
-    ) {
-        content()
-
-        PullToRefreshDefaults.Indicator(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(indicatorPadding),
-            isRefreshing = refreshing,
-            state = state,
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+    CompositionLocalProvider(LocalPaperRefresh provides onRefresh.takeIf { enabled && !refreshing }) {
+        Box(modifier) {
+            content()
+            if (refreshing) {
+                PaperSurface(Modifier.align(Alignment.TopCenter).padding(indicatorPadding)) {
+                    Text(stringResource(MR.strings.loading), Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+                }
+            }
+        }
     }
 }

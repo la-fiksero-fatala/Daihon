@@ -124,6 +124,7 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
@@ -334,6 +335,7 @@ class MainActivity : BaseActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (tachiyomi.presentation.core.components.PaperNavigation.dispatchKeyEvent(event)) return true
         if (navigator?.lastItem == HomeScreen && libraryKeyHandler?.invoke(event) == true) return true
         if (navigator?.lastItem is MangaScreen && chapterKeyHandler?.invoke(event) == true) return true
         return super.dispatchKeyEvent(event)
@@ -450,13 +452,13 @@ class MainActivity : BaseActivity() {
             ) {
                 Column {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Column(
+                    PaperScrollColumn(
                         modifier = Modifier
-                            .verticalScroll(rememberScrollState())
                             .padding(16.dp)
                             .weight(1f, fill = false)
                             .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
+                        state = rememberScrollState(),
                     ) {
                         Text(
                             text = stringResource(MR.strings.donationCampaign_title),

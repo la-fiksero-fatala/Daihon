@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
@@ -28,6 +27,7 @@ import mihon.icons.materialsymbols.roundedfilled.CheckBox
 import mihon.icons.materialsymbols.roundedfilled.DisabledByDefault
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.components.PaperLazyColumn as LazyColumn
 import tachiyomi.presentation.core.components.material.PaperAlertDialog as AlertDialog
 import tachiyomi.presentation.core.components.material.PaperButton as TextButton
 

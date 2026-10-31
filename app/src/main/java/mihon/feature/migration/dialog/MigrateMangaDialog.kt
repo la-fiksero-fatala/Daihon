@@ -40,6 +40,7 @@ import mihon.feature.common.utils.getLabel
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.LabeledCheckbox
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
@@ -77,8 +78,9 @@ internal fun Screen.MigrateMangaDialog(
             Text(text = stringResource(MR.strings.migration_dialog_what_to_include))
         },
         text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+            PaperScrollColumn(
+                modifier = Modifier,
+                state = rememberScrollState(),
             ) {
                 state.applicableFlags.fastForEach { flag ->
                     LabeledCheckbox(

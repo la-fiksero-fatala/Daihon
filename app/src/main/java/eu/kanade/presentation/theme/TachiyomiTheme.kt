@@ -10,6 +10,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalCursorBlinkEnabled
 import tachiyomi.presentation.core.components.PaperIndication
 
 private val PaperColors = lightColorScheme(
@@ -77,6 +78,7 @@ fun TachiyomiTheme(content: @Composable () -> Unit) {
     MaterialExpressiveTheme(colorScheme = PaperColors, motionScheme = PaperMotion) {
         CompositionLocalProvider(
             LocalRippleConfiguration provides null,
+            LocalCursorBlinkEnabled provides false,
             LocalIndication provides PaperIndication,
             content = content,
         )

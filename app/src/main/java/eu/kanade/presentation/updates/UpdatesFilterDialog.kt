@@ -30,6 +30,7 @@ import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.domain.updates.service.UpdatesPreferences
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.SettingsItemsPaddings
 import tachiyomi.presentation.core.components.TriStateItem
 import tachiyomi.presentation.core.components.material.padding
@@ -49,10 +50,10 @@ fun UpdatesFilterDialog(
             stringResource(MR.strings.categories),
         ),
     ) { page ->
-        Column(
+        PaperScrollColumn(
             modifier = Modifier
-                .padding(vertical = TabbedDialogPaddings.Vertical)
-                .verticalScroll(rememberScrollState()),
+                .padding(vertical = TabbedDialogPaddings.Vertical),
+            state = rememberScrollState(),
         ) {
             when (page) {
                 0 -> FilterSheet(viewModel = viewModel)

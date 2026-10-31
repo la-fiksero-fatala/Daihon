@@ -55,7 +55,7 @@ fun UpcomingScreenContent(
     val onClickDay: (LocalDate, Int) -> Unit = { date, offset ->
         state.headerIndexes[date]?.let {
             scope.launch {
-                listState.animateScrollToItem(it + offset)
+                listState.scrollToItem(it + offset)
             }
         }
     }

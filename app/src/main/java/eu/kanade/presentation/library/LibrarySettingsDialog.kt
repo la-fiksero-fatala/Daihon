@@ -40,6 +40,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.BaseSortItem
 import tachiyomi.presentation.core.components.CheckboxItem
 import tachiyomi.presentation.core.components.HeadingItem
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.SelectItem
 import tachiyomi.presentation.core.components.SettingsChipRow
 import tachiyomi.presentation.core.components.SliderItem
@@ -65,10 +66,10 @@ fun LibrarySettingsDialog(
             stringResource(MR.strings.action_display),
         ),
     ) { page ->
-        Column(
+        PaperScrollColumn(
             modifier = Modifier
-                .padding(vertical = TabbedDialogPaddings.Vertical)
-                .verticalScroll(rememberScrollState()),
+                .padding(vertical = TabbedDialogPaddings.Vertical),
+            state = rememberScrollState(),
         ) {
             when (page) {
                 0 -> FilterPage(
@@ -350,7 +351,10 @@ private fun PaginationSettings(
     ).map { stringResource(it) }
 
     AdaptiveSheet(onDismissRequest = onDismissRequest) {
-        Column(Modifier.verticalScroll(rememberScrollState())) {
+        PaperScrollColumn(
+            Modifier,
+            state = rememberScrollState(),
+        ) {
             HeadingItem(MR.strings.library_pagination)
             CheckboxItem(stringResource(MR.strings.library_paginated), preferences.paginated)
             if (paginated) {

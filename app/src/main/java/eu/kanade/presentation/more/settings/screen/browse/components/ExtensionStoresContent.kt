@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -25,6 +24,7 @@ import mihon.icons.simpleicons.SimpleIcons
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.components.PaperLazyColumn as LazyColumn
 import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
 
 @Composable

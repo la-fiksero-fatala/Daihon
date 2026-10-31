@@ -25,7 +25,7 @@ import mihon.icons.materialsymbols.rounded.RadioButtonChecked
 import mihon.icons.materialsymbols.rounded.RadioButtonUnchecked
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
-import androidx.compose.material3.DropdownMenu as ComposeDropdownMenu
+import tachiyomi.presentation.core.components.material.PaperDropdownMenu as ComposeDropdownMenu
 
 /**
  * DropdownMenu but overlaps anchor and has width constraints to better
@@ -44,7 +44,7 @@ fun DropdownMenu(
     ComposeDropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
-        modifier = modifier.border(2.dp, Color.Black).sizeIn(minWidth = 196.dp, maxWidth = 196.dp),
+        modifier = modifier.border(2.dp, Color.Black).sizeIn(minWidth = 280.dp, maxWidth = 320.dp),
         offset = offset,
         scrollState = scrollState,
         properties = properties,

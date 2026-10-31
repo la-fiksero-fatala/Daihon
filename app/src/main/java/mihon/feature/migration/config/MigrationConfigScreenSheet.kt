@@ -39,6 +39,7 @@ import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.core.common.preference.toggle
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.material.Button
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
@@ -56,12 +57,12 @@ fun MigrationConfigScreenSheet(
     val migrationFlags by preferences.migrationFlags.collectAsState()
     AdaptiveSheet(onDismissRequest = onDismissRequest) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Column(
+            PaperScrollColumn(
                 modifier = Modifier
                     .weight(1f, fill = false)
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
                     .padding(top = MaterialTheme.padding.medium),
+                state = rememberScrollState(),
             ) {
                 Text(
                     text = stringResource(MR.strings.migrationConfigScreen_dataToMigrateHeader),

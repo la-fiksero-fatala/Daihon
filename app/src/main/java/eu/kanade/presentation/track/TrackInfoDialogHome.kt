@@ -58,6 +58,7 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.MoreVert
 import mihon.icons.materialsymbols.roundedfilled.VisibilityOff
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.i18n.stringResource
 import java.time.format.DateTimeFormatter
 import tachiyomi.presentation.core.components.material.PaperButton as TextButton
@@ -79,14 +80,14 @@ fun TrackInfoDialogHome(
     onCopyLink: (TrackItem) -> Unit,
     onTogglePrivate: (TrackItem) -> Unit,
 ) {
-    Column(
+    PaperScrollColumn(
         modifier = Modifier
             .animateContentSize()
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
             .padding(16.dp)
             .windowInsetsPadding(WindowInsets.systemBars),
         verticalArrangement = Arrangement.spacedBy(24.dp),
+        state = rememberScrollState(),
     ) {
         trackItems.forEach { item ->
             if (item.track != null) {

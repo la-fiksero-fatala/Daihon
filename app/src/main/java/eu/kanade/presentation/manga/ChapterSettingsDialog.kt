@@ -34,6 +34,7 @@ import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.LabeledCheckbox
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.RadioItem
 import tachiyomi.presentation.core.components.SortItem
 import tachiyomi.presentation.core.components.TriStateItem
@@ -91,10 +92,10 @@ fun ChapterSettingsDialog(
             )
         },
     ) { page ->
-        Column(
+        PaperScrollColumn(
             modifier = Modifier
-                .padding(vertical = TabbedDialogPaddings.Vertical)
-                .verticalScroll(rememberScrollState()),
+                .padding(vertical = TabbedDialogPaddings.Vertical),
+            state = rememberScrollState(),
         ) {
             when (page) {
                 0 -> {

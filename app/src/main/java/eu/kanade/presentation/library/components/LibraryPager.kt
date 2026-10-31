@@ -29,6 +29,8 @@ import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.library.model.LibraryPageButtons
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperScrollColumn
+import tachiyomi.presentation.core.components.paperHorizontalPaging
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.util.plus
 
@@ -56,10 +58,12 @@ fun LibraryPager(
     onClickContinueReading: ((LibraryManga) -> Unit)?,
 ) {
     HorizontalPager(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().then(paperHorizontalPaging(state)),
         state = state,
         key = { getCategoryForPage(it).id },
         verticalAlignment = Alignment.Top,
+
+        userScrollEnabled = false,
     ) { page ->
         if (page !in ((state.currentPage - 1)..(state.currentPage + 1))) {
             // To make sure only one offscreen page is being composed
@@ -202,11 +206,11 @@ private fun LibraryPagerEmptyScreen(
         else -> MR.strings.information_no_manga_category
     }
 
-    Column(
+    PaperScrollColumn(
         modifier = Modifier
             .padding(contentPadding + PaddingValues(8.dp))
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .fillMaxSize(),
+        state = rememberScrollState(),
     ) {
         if (!searchQuery.isNullOrEmpty()) {
             GlobalSearchItem(

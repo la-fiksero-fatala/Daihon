@@ -24,6 +24,9 @@ kotlin {
 }
 
 dependencies {
+    testImplementation(libs.bundles.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
+
     api(projects.core.common)
     api(projects.i18n)
     implementation(projects.icons.materialSymbols)

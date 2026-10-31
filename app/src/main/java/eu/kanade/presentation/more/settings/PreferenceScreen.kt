@@ -35,7 +35,7 @@ fun PreferenceScreen(
             val i = items.findHighlightedIndex(highlightKey)
             if (i >= 0) {
                 delay(0.5.seconds)
-                state.animateScrollToItem(i)
+                state.scrollToItem(i)
             }
             SearchableSettings.highlightKey = null
         }

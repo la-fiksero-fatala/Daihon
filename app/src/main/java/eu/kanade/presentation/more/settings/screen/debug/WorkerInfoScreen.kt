@@ -5,7 +5,6 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,6 +52,7 @@ import tachiyomi.presentation.core.util.plus
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.time.Instant
+import tachiyomi.presentation.core.components.PaperLazyColumn as LazyColumn
 
 class WorkerInfoScreen : Screen() {
 

@@ -3,7 +3,6 @@ package tachiyomi.presentation.core.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -15,6 +14,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import tachiyomi.presentation.core.util.drawVerticalScrollbar
+import tachiyomi.presentation.core.components.PaperLazyColumn as LazyColumn
 
 /**
  * LazyColumn with scrollbar.
@@ -31,23 +31,13 @@ fun ScrollbarLazyColumn(
     userScrollEnabled: Boolean = true,
     content: LazyListScope.() -> Unit,
 ) {
-    val direction = LocalLayoutDirection.current
-    val density = LocalDensity.current
-    val positionOffset = remember(contentPadding) {
-        with(density) { contentPadding.calculateEndPadding(direction).toPx() }
-    }
     LazyColumn(
-        modifier = modifier
-            .drawVerticalScrollbar(
-                state = state,
-                reverseScrolling = reverseLayout,
-                positionOffsetPx = positionOffset,
-            ),
-        state = state,
-        contentPadding = contentPadding,
-        reverseLayout = reverseLayout,
-        verticalArrangement = verticalArrangement,
-        horizontalAlignment = horizontalAlignment,
+        modifier,
+        state,
+        contentPadding,
+        reverseLayout,
+        verticalArrangement,
+        horizontalAlignment,
         userScrollEnabled = userScrollEnabled,
         content = content,
     )

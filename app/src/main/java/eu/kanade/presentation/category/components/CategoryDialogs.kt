@@ -28,6 +28,7 @@ import eu.kanade.presentation.category.visualName
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.domain.category.model.Category
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.components.material.PaperAlertDialog as AlertDialog
@@ -250,8 +251,9 @@ fun ChangeCategoryDialog(
             Text(text = stringResource(MR.strings.action_move_category))
         },
         text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+            PaperScrollColumn(
+                modifier = Modifier,
+                state = rememberScrollState(),
             ) {
                 selection.forEach { checkbox ->
                     val onChange: (CheckboxState<Category>) -> Unit = {

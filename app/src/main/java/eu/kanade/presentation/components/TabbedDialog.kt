@@ -28,6 +28,7 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.MoreVert
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.TabText
+import tachiyomi.presentation.core.components.paperHorizontalPaging
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
 
@@ -61,7 +62,7 @@ fun TabbedDialog(
                     tabTitles.fastForEachIndexed { index, tab ->
                         Tab(
                             selected = pagerState.currentPage == index,
-                            onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                            onClick = { scope.launch { pagerState.scrollToPage(index) } },
                             text = { TabText(text = tab) },
                             unselectedContentColor = MaterialTheme.colorScheme.onSurface,
                         )
@@ -72,10 +73,12 @@ fun TabbedDialog(
             }
 
             HorizontalPager(
-                modifier = Modifier.animateContentSize(),
+                modifier = Modifier.then(paperHorizontalPaging(pagerState)),
                 state = pagerState,
                 verticalAlignment = Alignment.Top,
                 pageContent = { page -> content(page) },
+
+                userScrollEnabled = false,
             )
         }
     }

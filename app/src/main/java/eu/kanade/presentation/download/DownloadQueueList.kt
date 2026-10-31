@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DropdownMenuItem
@@ -58,6 +57,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.ListGroupHeader
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.components.PaperLazyColumn as LazyColumn
 import tachiyomi.presentation.core.components.StaticLinearProgressIndicator as LinearProgressIndicator
 import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
 import tachiyomi.presentation.core.components.material.PaperSurface as Surface

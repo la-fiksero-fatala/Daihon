@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Newspaper
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.util.secondaryItemAlpha
@@ -100,13 +101,13 @@ fun InfoScreen(
                 .height(paddingValues.calculateTopPadding()),
         )
 
-        Column(
+        PaperScrollColumn(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
                 .padding(paddingValues)
                 .padding(top = 48.dp)
                 .padding(horizontal = MaterialTheme.padding.medium),
+            state = rememberScrollState(),
         ) {
             Icon(
                 imageVector = icon,

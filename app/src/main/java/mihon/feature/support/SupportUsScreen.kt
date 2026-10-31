@@ -34,6 +34,7 @@ import mihon.icons.simpleicons.Patreon
 import mihon.icons.simpleicons.SimpleIcons
 import tachiyomi.core.common.Constants
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -52,9 +53,9 @@ class SupportUsScreen : Screen() {
                 )
             },
         ) { paddingValues ->
-            Column(
+            PaperScrollColumn(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
-                modifier = Modifier.verticalScroll(rememberScrollState()).padding(
+                modifier = Modifier.padding(
                     remember(paddingValues) {
                         object : PaddingValues {
                             override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp {
@@ -77,6 +78,7 @@ class SupportUsScreen : Screen() {
                         }
                     },
                 ),
+                state = rememberScrollState(),
             ) {
                 Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
 

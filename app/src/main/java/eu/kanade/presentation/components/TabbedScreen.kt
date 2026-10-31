@@ -25,6 +25,7 @@ import dev.icerock.moko.resources.StringResource
 import kotlinx.coroutines.launch
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.TabText
+import tachiyomi.presentation.core.components.paperHorizontalPaging
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
@@ -67,7 +68,7 @@ fun TabbedScreen(
                 tabs.forEachIndexed { index, tab ->
                     Tab(
                         selected = state.currentPage == index,
-                        onClick = { scope.launch { state.animateScrollToPage(index) } },
+                        onClick = { scope.launch { state.scrollToPage(index) } },
                         text = { TabText(text = stringResource(tab.titleRes), badgeCount = tab.badgeNumber) },
                         unselectedContentColor = MaterialTheme.colorScheme.onSurface,
                     )
@@ -75,9 +76,11 @@ fun TabbedScreen(
             }
 
             HorizontalPager(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().then(paperHorizontalPaging(state)),
                 state = state,
                 verticalAlignment = Alignment.Top,
+
+                userScrollEnabled = false,
             ) { page ->
                 tabs[page].content(
                     PaddingValues(bottom = contentPadding.calculateBottomPadding()),

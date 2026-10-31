@@ -72,6 +72,7 @@ import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.Badge
 import tachiyomi.presentation.core.components.BadgeGroup
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
@@ -96,12 +97,12 @@ fun DuplicateMangaDialog(
         modifier = modifier,
         onDismissRequest = onDismissRequest,
     ) {
-        Column(
+        PaperScrollColumn(
             modifier = Modifier
                 .padding(vertical = TabbedDialogPaddings.Vertical)
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.medium),
+            state = rememberScrollState(),
         ) {
             Text(
                 text = stringResource(MR.strings.possible_duplicates_title),

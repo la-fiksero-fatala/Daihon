@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -71,6 +70,7 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.TwoPanelBox
 import tachiyomi.presentation.core.components.VerticalFastScroller
 import tachiyomi.presentation.core.components.material.PullRefresh
@@ -79,6 +79,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.shouldExpandFAB
 import tachiyomi.source.local.isLocal
 import kotlin.time.Instant
+import tachiyomi.presentation.core.components.PaperLazyColumn as LazyColumn
 
 @Composable
 fun MangaScreen(
@@ -649,10 +650,10 @@ fun MangaScreenLargeImpl(
                     end = contentPadding.calculateEndPadding(layoutDirection),
                 ),
                 startContent = {
-                    Column(
+                    PaperScrollColumn(
                         modifier = Modifier
-                            .verticalScroll(rememberScrollState())
                             .padding(bottom = contentPadding.calculateBottomPadding()),
+                        state = rememberScrollState(),
                     ) {
                         MangaInfoBox(
                             isTabletUi = true,
