@@ -3,7 +3,8 @@
 Daihon is a public Mihon derivative designed exclusively for e-paper displays.
 It builds on the paginated library and instant navigation work contributed to Mihon.
 
-The interface uses one high-contrast light appearance, black borders, and stationary page navigation.
+The interface uses one high-contrast light appearance and stationary page navigation.
+Panels and dialogs have clear outlines; icons and unselected manga entries stay unframed.
 App animations stay disabled independently of Android settings. Swipes commit on release, and page
 keys and volume keys navigate the active list or dialog. Android system interfaces and external
 websites retain their own behavior.
@@ -13,9 +14,11 @@ websites retain their own behavior.
   vertical spacing remain adjustable.
 - Chapters open first, with Details separate on phones and alongside chapters on tablets.
   Start/Resume and page navigation stay at the bottom.
+- Paged images support physical-pixel edge padding for displays with covered margins.
 - Normal reading turns pages instantly. Long strips advance in sections with 20% overlap,
   including while zoomed. Zoom and pan commit on release; animated images remain still.
-- Lists, forms, search results, settings, choice dialogs, and license text use discrete pages.
+- Lists, forms, search results, settings, and license text use discrete pages.
+  Numeric choices use direct entry and step controls.
   Category, download, and migration ordering use explicit controls.
 
 Mihon's source, extension, tracking, and backup formats are retained. Existing tracker callback

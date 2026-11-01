@@ -1105,7 +1105,7 @@
     <string name="daihon_categories">Categories</string>
     <string name="daihon_page_layout">Page layout</string>
     <string name="daihon_details">Details</string>
-    <string name="daihon_select_value">Select a value</string>
+    <string name="daihon_select_value">Value</string>
     <string name="daihon_move_up">Move up</string>
     <string name="daihon_move_down">Move down</string>
     <string name="daihon_choose_source">Choose source</string>
@@ -1141,4 +1141,6 @@
     <string name="daihon_increase_value">Increase value</string>
     <string name="daihon_valid_value">Enter a supported value</string>
     <string name="daihon_filter_value">Type to filter choices, or use − and +</string>
+    <string name="pref_page_padding">Page padding (px)</string>
+    <string name="page_padding_pixels">%1$d px on each side</string>
 </resources>

@@ -91,6 +91,8 @@ class ReaderPreferences(
         true,
     )
 
+    val pagePadding: Preference<Int> = preferenceStore.getInt("reader_page_padding_px", 0)
+
     val cropBorders: Preference<Boolean> = preferenceStore.getBoolean("crop_borders", false)
 
     val navigateToPan: Preference<Boolean> = preferenceStore.getBoolean("navigate_pan", true)

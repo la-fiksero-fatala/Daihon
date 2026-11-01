@@ -18,11 +18,13 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Text
@@ -53,6 +55,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.keepScreenOn
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
@@ -94,6 +97,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.LocalPageColorFilter
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.Action
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.NavigationRegion
+import eu.kanade.tachiyomi.ui.reader.viewer.boundedReaderPagePadding
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.readerBackgroundColor
@@ -458,6 +462,8 @@ class ReaderActivity : BaseActivity() {
     private fun ReaderViewer() {
         val viewer by viewerFlow.collectAsState()
         val general by settingsViewModel.general.collectAsState()
+        val padding by readerPreferences.pagePadding.collectAsState()
+        val paged = viewer != null && ReadingMode.isPagerType(viewModel.getMangaReadingMode())
         val insets = when {
             !general.fullscreen -> WindowInsets.systemBars
             !general.drawUnderCutout -> WindowInsets.displayCutout
@@ -469,12 +475,21 @@ class ReaderActivity : BaseActivity() {
 
         // Each viewer filters its page images alone: transition, loading and error pages keep their colours.
         CompositionLocalProvider(LocalPageColorFilter provides colorFilter) {
-            key(viewer) {
-                viewer?.Content(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .windowInsetsPadding(insets),
-                )
+            BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(insets)) {
+                val pixels = if (paged) {
+                    boundedReaderPagePadding(
+                        padding,
+                        constraints.maxWidth,
+                        constraints.maxHeight,
+                    )
+                } else {
+                    0
+                }
+                val margin = with(LocalDensity.current) { pixels.toDp() }
+                LaunchedEffect(viewer, pixels) { onDisplayContentChanged() }
+                key(viewer) {
+                    viewer?.Content(modifier = Modifier.fillMaxSize().padding(margin))
+                }
             }
         }
     }

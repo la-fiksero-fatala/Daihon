@@ -93,6 +93,8 @@ private fun ColumnScope.PagerViewerSettings(viewModel: ReaderSettingsViewModel) 
         }
     }
 
+    PagePaddingSetting()
+
     CheckboxItem(
         label = stringResource(MR.strings.pref_crop_borders),
         pref = viewModel.preferences.cropBorders,

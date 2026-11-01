@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import eu.kanade.presentation.more.settings.Preference
+import eu.kanade.presentation.reader.settings.PagePaddingSetting
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
@@ -166,6 +167,9 @@ object SettingsReaderScreen : SearchableSettings {
                         .toMap(),
                     title = stringResource(MR.strings.pref_zoom_start),
                 ),
+                Preference.PreferenceItem.CustomPreference(stringResource(MR.strings.pref_page_padding)) {
+                    PagePaddingSetting()
+                },
                 Preference.PreferenceItem.SwitchPreference(
                     preference = readerPreferences.cropBorders,
                     title = stringResource(MR.strings.pref_crop_borders),
