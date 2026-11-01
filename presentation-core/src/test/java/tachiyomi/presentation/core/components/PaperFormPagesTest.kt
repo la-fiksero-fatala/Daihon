@@ -21,6 +21,16 @@ class PaperFormPagesTest {
     }
 
     @Test
+    fun `a description uses the remaining first page even when the whole paragraph fits one viewport`() {
+        paperFormPages(
+            listOf(PaperSpan(0, 200), PaperSpan(200, 600)),
+            List(4) { PaperSpan(200 + it * 100, 300 + it * 100) },
+            emptyList(),
+            500,
+        ) shouldBe listOf(PaperSlice(0, 500), PaperSlice(500, 600))
+    }
+
+    @Test
     fun `a repeated section heading reserves space above complete controls`() {
         paperFormPages(
             listOf(PaperSpan(0, 50)) + List(5) { PaperSpan(50 + it * 100, 150 + it * 100) },

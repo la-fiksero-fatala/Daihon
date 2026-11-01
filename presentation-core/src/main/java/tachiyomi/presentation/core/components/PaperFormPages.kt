@@ -14,7 +14,12 @@ fun paperFormPages(
 ): List<PaperSlice> {
     val contentEnd = blocks.maxOfOrNull { it.bottom } ?: 0
     if (contentEnd <= 0 || viewport <= 0) return listOf(PaperSlice(0, contentEnd))
-    val units = (blocks + details).filter { it.height > 0 && it.bottom <= contentEnd }
+    // Measured text lines/chips provide their own breaks. Their containing section
+    // must not be deferred as one control merely because it fits a whole viewport.
+    val controls = blocks.filter { block ->
+        details.none { it.top >= block.top && it.bottom <= block.bottom && it.height < block.height }
+    }
+    val units = (controls + details).filter { it.height > 0 && it.bottom <= contentEnd }
     val headers = headings.sortedBy { it.top }
     val pages = mutableListOf<PaperSlice>()
     var start = 0
