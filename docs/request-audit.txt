@@ -1,4 +1,4 @@
-Daihon request audit — 2026-11-01
+Daihon request audit — 2026-11-02
 
 [x] Public Daihon fork and separate project/application identity. Stable, Preview,
     and internal Debug package IDs differ from Mihon. Existing data is retained
@@ -83,10 +83,13 @@ Daihon request audit — 2026-11-01
     Preloads, duplicate callbacks, menus, and chapter transitions do not trigger it.
     A failed command shows a message once per reader session. Existing System
     preference values remain compatible with the renamed BOOX refresh option.
-[x] WebGPU is the default renderer, with a standard-renderer switch in Reader
-    settings and a fallback after an actual renderer failure. Paged turns, zoom,
+[x] The legacy reader is the default. WebGPU is opt-in through Use WebGPU renderer
+    in Reader settings, with a fallback after an actual renderer failure. Paged turns, zoom,
     pan, strip steps, fades and image frames follow the no-animation policy.
-    Reader controls stay live; touch movement is committed on release.
+    Reader controls stay live; touch movement is committed on release. Paged frames
+    prepare their high-quality tile grid before presentation to avoid centre-out
+    refinement appearing as a ripple. The native sampler/filter/cache paths remain;
+    this uses a small isolated adapter for the pinned v54 internal full-tile API.
 [x] Reader image padding accepts physical pixels and applies around paged images.
     The bottom page number rises by the same applied pixel padding, using the
     same viewport limit and system insets as the image. Strip mode is unchanged.
@@ -148,8 +151,17 @@ Daihon request audit — 2026-11-01
 [x] Manga Refresh is a visible toolbar icon next to Download in both views. The
     chapter filter/sort icon is hidden in Details unless a tablet chapter pane is
     also visible. The overflow Refresh entry is removed, rather than duplicated.
-[x] Corner overflow menus use a narrower 196–260 dp width instead of 280–320 dp.
+[x] Corner overflow menus share a 112–144 dp width constraint, including menus
+    that call the core popup directly. The redundant wrapper outline is removed.
 [x] Time format defaults to Follow system. Existing explicit choices are retained.
+[x] The legacy reader offers Catmull-Rom (default), Mitchell-Netravali, Lanczos-3
+    and System/bilinear enlargement. Android 13+ samples decoded source pixels
+    directly with AGSL while keeping the tiled decoder, crop, zoom and fit logic.
+    Downscaling with image filters off uses the original draw path. Padding adds
+    no resampling stage. Optional Gentle sharpening, Paper contrast and Monochrome
+    dithering default off. Controls are in global Reader settings and Custom filter.
+    Unsupported Android versions/software canvases retain system sampling. The
+    shader implements standard mathematical kernels under Apache-2.0; see upscaling.txt.
 [x] Optional MIT-licensed Anime4K DoG source-space enhancement is available in
     global Reader settings and the in-reader Reading mode settings. Catmull–Rom
     remains the default scaler. DoG runs only while enlarging; native-size and
@@ -162,13 +174,16 @@ Daihon request audit — 2026-11-01
 [x] WebGPU retains grayscale and inverted page-image colors without filtering
     loading, error or transition controls. Both off adds no built-in color pass.
 [x] Custom filter shows the current source image resolution before cropping,
-    splitting or fitting. Preloaded pages update only their own metadata.
+    splitting or fitting, followed by Cropped resolution from the actual crop
+    bounds before display scaling. Preloaded pages update only their own metadata.
 [x] Exactly one selected chapter exposes Check resolution in its bottom actions.
     It prefers downloaded/local and cached data, reads PNG/GIF/JPEG/WebP headers,
     and uses native metadata parsing for other formats. Online checks preserve
     source request overrides and first try a partial image request. Unsupported
     ranges/long metadata retry the original request; the image body is cancelled
-    as soon as dimensions are known. A progress bar and Cancel/X are provided.
+    as soon as dimensions are known. The median is updated after each probe, so
+    users can read an early result and close with X to cancel the remaining work.
+    A progress bar and X are provided; there are no Cancel or OK footer buttons.
     Results sort by width*height using 64-bit area and show actual width × height;
     even counts select the lower middle page. Failed probes are counted and any
     partial median is clearly identified. Reading progress is not changed.
@@ -176,6 +191,11 @@ Daihon request audit — 2026-11-01
 
 Validation
 - Debug build and formatting pass.
+- Follow-up checks: overflow width reduced from 520 to 288 px at emulator density;
+  source/cropped labels read 640x960 and 616x936; legacy Catmull-Rom renders normally;
+  Lanczos plus monochrome produces strictly black/white image pixels; a downscaled
+  1800x2700 page is pixel-identical between System and Lanczos selections with
+  image filters off. Final full suites and USB installation are recorded in TESTING.txt.
 - App suite before these changes: 74 tests passed. Current additions include two
   real shader-planning checks and five image-header/median tests. Presentation-core: 33 tests,
   including three header-free item-numbering and jump-target regression tests.
