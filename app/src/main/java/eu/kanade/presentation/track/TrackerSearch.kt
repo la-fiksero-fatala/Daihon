@@ -75,6 +75,7 @@ import mihon.icons.materialsymbols.rounded.Close
 import mihon.icons.materialsymbols.roundedfilled.CheckCircle
 import mihon.icons.materialsymbols.roundedfilled.VisibilityOff
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.LocalPaperPageIndicator
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
@@ -144,6 +145,7 @@ fun TrackerSearch(
                         )
                     },
                     actions = {
+                        LocalPaperPageIndicator.current?.Indicator()
                         if (state.text.isNotEmpty()) {
                             IconButton(
                                 onClick = {

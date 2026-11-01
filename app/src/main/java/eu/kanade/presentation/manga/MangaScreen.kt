@@ -225,7 +225,6 @@ fun MangaScreen(
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     state = chapterState,
-                    alwaysShowControls = true,
                     fillRowGaps = true,
                     pageLabel = chapterNumbers?.let { numbers -> { first, last -> numbers.label(first, last) } },
                     onJump = chapterNumbers?.let { { row -> jumpFromRow = row } },

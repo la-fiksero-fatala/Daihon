@@ -30,10 +30,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+import tachiyomi.presentation.core.components.LocalPaperNavigationArea
 import tachiyomi.presentation.core.components.LocalPaperPageIndicator
 import tachiyomi.presentation.core.components.PaperNavigation
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.PaperPageIndicatorState
 import tachiyomi.presentation.core.components.PaperScrollColumn
+import tachiyomi.presentation.core.components.paperPopupReady
 
 /** Stationary, paginated menu that stays within the available window. */
 @Composable
@@ -76,9 +79,12 @@ fun PaperDropdownMenu(
         val focus = remember { FocusRequester() }
         LaunchedEffect(Unit) { focus.requestFocus() }
         val indicator = remember { PaperPageIndicatorState() }
-        CompositionLocalProvider(LocalPaperPageIndicator provides indicator) {
+        CompositionLocalProvider(
+            LocalPaperPageIndicator provides indicator,
+            LocalPaperNavigationArea provides PaperNavigationArea.Dialogs,
+        ) {
             PaperSurface(
-                modifier = modifier.widthIn(max = (configuration.screenWidthDp - 24).dp)
+                modifier = modifier.paperPopupReady(indicator).widthIn(max = (configuration.screenWidthDp - 24).dp)
                     .heightIn(max = (configuration.screenHeightDp * .7f).dp),
                 shape = shape,
                 color = Color.White,

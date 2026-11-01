@@ -57,7 +57,6 @@ fun PaperLazyColumn(
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     flingBehavior: FlingBehavior = ScrollableDefaults.flingBehavior(),
     userScrollEnabled: Boolean = true,
-    alwaysShowControls: Boolean = false,
     fillRowGaps: Boolean = false,
     hasMoreItems: Boolean = false,
     pageLabel: ((first: Int, last: Int) -> String?)? = null,
@@ -163,7 +162,7 @@ fun PaperLazyColumn(
             "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}"
         }
         PaperPageFrame(
-            owner, label, paged || alwaysShowControls, hasPrevious, next != null,
+            owner, label, paged, hasPrevious, next != null,
             { navigate(-1) }, { navigate(1) },
             {
                 if (onJump != null) {
@@ -177,7 +176,7 @@ fun PaperLazyColumn(
                 top = contentPadding.calculateTopPadding(),
                 bottom = contentPadding.calculateBottomPadding(),
             ).consumeWindowInsets(contentPadding).navigationBarsPadding(),
-            fill = constraints.minHeight > 0,
+            fill = constraints.minHeight > 0, ready = info.totalItemsCount > 0,
         ) {
             Box(
                 Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -255,6 +256,11 @@ internal fun LibraryPageControls(
     onPageChange: (Int) -> Unit,
 ) {
     val height = LocalPaperNavigationSettings.current.height
+    if (pageCount <= 1) {
+        // Keep fitting geometry stable when hiding a single-page rail.
+        Spacer(if (vertical) Modifier.width(height).fillMaxHeight() else Modifier.fillMaxWidth().height(height))
+        return
+    }
     if (showSlider) {
         var target by remember(page, pageCount) { mutableIntStateOf(page) }
         val size = if (vertical) {

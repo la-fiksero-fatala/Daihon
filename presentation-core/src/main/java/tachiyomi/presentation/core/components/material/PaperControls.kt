@@ -31,6 +31,7 @@ import tachiyomi.presentation.core.components.LocalPaperNavigationArea
 import tachiyomi.presentation.core.components.LocalPaperPageIndicator
 import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.PaperPageIndicatorState
+import tachiyomi.presentation.core.components.paperPopupReady
 
 @Composable
 fun PaperButton(
@@ -91,7 +92,11 @@ fun PaperAlertDialog(
     val indicator = remember { PaperPageIndicatorState(header = true) }
     CompositionLocalProvider(LocalPaperPageIndicator provides indicator) {
         androidx.compose.material3.AlertDialog(
-            onDismissRequest, confirmButton, modifier.border(2.dp, Color.Black, shape), dismissButton, icon,
+            onDismissRequest, confirmButton,
+            modifier.paperPopupReady(
+                indicator,
+            ).border(2.dp, Color.Black, shape),
+            dismissButton, icon,
             {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.weight(1f)) {

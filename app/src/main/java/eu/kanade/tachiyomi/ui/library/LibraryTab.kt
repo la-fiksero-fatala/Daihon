@@ -168,8 +168,8 @@ data object LibraryTab : Tab {
                 )
                 LibraryToolbar(
                     onClickPageNumber = { libraryNavigation.showPageDialog = true },
-                    pagination = libraryNavigation.pageInfo.takeIf {
-                        paginated
+                    pagination = libraryNavigation.pageInfo?.takeIf {
+                        paginated && it.count > 1
                     },
                     searchInteractionSource = searchInteractionSource,
                     hasActiveFilters = state.hasActiveFilters,

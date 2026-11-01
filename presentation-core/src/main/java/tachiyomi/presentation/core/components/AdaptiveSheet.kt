@@ -73,7 +73,7 @@ fun AdaptiveSheet(
                 }
                 Box(Modifier.fillMaxSize().systemBarsPadding().padding(16.dp), contentAlignment = Alignment.Center) {
                     Surface(
-                        modifier = modifier.widthIn(max = 560.dp).heightIn(
+                        modifier = modifier.paperPopupReady(indicator).widthIn(max = 560.dp).heightIn(
                             max = (configuration.screenHeightDp * .9f).dp,
                         ),
                         shape = MaterialTheme.shapes.small,

@@ -60,7 +60,6 @@ fun Scaffold(
                     Box(Modifier.weight(1f).onSizeChanged { indicator.hasHeader = it.height > 0 }) {
                         topBar(topBarScrollBehavior)
                     }
-                    if (indicator.hasHeader) indicator.Indicator(Modifier.statusBarsPadding())
                 }
             },
             bottomBar = {

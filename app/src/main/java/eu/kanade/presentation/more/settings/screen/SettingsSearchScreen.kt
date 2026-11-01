@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.collectLatest
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Close
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.LocalPaperPageIndicator
 import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
@@ -130,6 +131,7 @@ class SettingsSearchScreen : Screen() {
                             )
                         },
                         actions = {
+                            LocalPaperPageIndicator.current?.Indicator()
                             if (textFieldState.text.isNotEmpty()) {
                                 IconButton(onClick = { textFieldState.clearText() }) {
                                     Icon(

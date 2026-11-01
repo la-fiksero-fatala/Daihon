@@ -31,6 +31,7 @@ internal fun PaperPageFrame(
     onJump: () -> Unit,
     modifier: Modifier = Modifier,
     fill: Boolean = false,
+    ready: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val settings = LocalPaperNavigationSettings.current
@@ -39,14 +40,14 @@ internal fun PaperPageFrame(
     val host = LocalPaperPageIndicator.current
     val currentJump by rememberUpdatedState(onJump)
     var visible by remember { mutableStateOf(false) }
-    val publish = visible && area != PaperNavigationArea.Library
+    val publish = area != PaperNavigationArea.Library
     DisposableEffect(owner, host, publish) {
-        if (publish) host?.register(owner, label) { currentJump() }
+        if (publish) host?.register(owner, label, paged, ready, visible) { currentJump() }
         onDispose { host?.remove(owner) }
     }
-    SideEffect { if (publish) host?.update(owner, label) }
+    SideEffect { if (publish) host?.update(owner, label, paged, ready, visible) }
     Column(modifier.onGloballyPositioned { visible = !it.boundsInWindow().isEmpty }) {
-        if (host?.hasHeader != true) {
+        if (paged && ready && host?.hasHeader != true) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                 PaperPageNumber(label, onJump)
             }

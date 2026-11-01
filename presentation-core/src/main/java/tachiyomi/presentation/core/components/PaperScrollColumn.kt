@@ -51,6 +51,7 @@ fun PaperScrollColumn(
     val owner = remember { Any() }
     var viewport by remember { mutableIntStateOf(0) }
     var blocks by remember { mutableStateOf(emptyList<PaperSpan>()) }
+    var measured by remember { mutableStateOf(false) }
     var showJump by remember { mutableStateOf(false) }
     val sections = remember(state) { PaperSections { state.value } }
     val breaks = remember(state) { PaperContentBreaks { state.value } }
@@ -81,7 +82,7 @@ fun PaperScrollColumn(
             page > 0, page < pages.lastIndex, { navigate(-1) }, { navigate(1) }, { showJump = true },
             Modifier.heightIn(min = with(density) { constraints.minHeight.toDp() }, max = limit)
                 .fillMaxWidth().navigationBarsPadding(),
-            fill = fill,
+            fill = fill, ready = measured && viewport > 0,
         ) {
             Box(
                 Modifier.weight(1f, fill = fill).clipToBounds().onSizeChanged { viewport = it.height.coerceAtLeast(1) }
@@ -113,7 +114,10 @@ fun PaperScrollColumn(
                                 tail = if (pages.size > 1 || contentEnd > viewport) viewport else 0,
                                 arrangement = verticalArrangement,
                                 alignment = horizontalAlignment,
-                                onMeasured = { if (blocks != it) blocks = it },
+                                onMeasured = {
+                                    measured = true
+                                    if (blocks != it) blocks = it
+                                },
                                 content = content,
                             )
                         }

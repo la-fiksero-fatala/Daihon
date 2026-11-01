@@ -123,7 +123,7 @@ fun PaperLazyVerticalGrid(
                 top = contentPadding.calculateTopPadding(),
                 bottom = contentPadding.calculateBottomPadding(),
             ).consumeWindowInsets(contentPadding).navigationBarsPadding(),
-            fill = constraints.minHeight > 0,
+            fill = constraints.minHeight > 0, ready = info.totalItemsCount > 0,
         ) {
             Box(
                 Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }
