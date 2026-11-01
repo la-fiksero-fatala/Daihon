@@ -46,14 +46,11 @@ import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun PaperPageControls(
-    label: String,
     canPrevious: Boolean,
     canNext: Boolean,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
-    onJump: () -> Unit,
     modifier: Modifier = Modifier,
-    canJump: Boolean = true,
     showDivider: Boolean = true,
     vertical: Boolean = false,
 ) {
@@ -73,13 +70,6 @@ fun PaperPageControls(
             PaperIconButton(onPrevious, Modifier.fillMaxWidth().weight(1f), enabled = canPrevious) {
                 Icon(MaterialSymbols.Rounded.KeyboardArrowUp, stringResource(MR.strings.spen_previous_page))
             }
-            PaperButton(
-                onJump,
-                Modifier.fillMaxWidth().weight(1f),
-                enabled = canJump,
-                border = null,
-                contentPadding = PaddingValues(2.dp),
-            ) { Text(label, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center) }
             PaperIconButton(onNext, Modifier.fillMaxWidth().weight(1f), enabled = canNext) {
                 Icon(MaterialSymbols.Rounded.KeyboardArrowDown, stringResource(MR.strings.spen_next_page))
             }
@@ -107,14 +97,7 @@ fun PaperPageControls(
         ) {
             Icon(MaterialSymbols.Rounded.KeyboardArrowUp, stringResource(MR.strings.spen_previous_page))
         }
-        PaperButton(
-            onClick = onJump,
-            enabled = canJump,
-            modifier = Modifier.weight(1f).heightIn(min = buttonHeight),
-            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
-        ) {
-            Text(label, style = MaterialTheme.typography.bodyLarge)
-        }
+        Spacer(Modifier.weight(1f))
         PaperIconButton(
             onClick = onNext,
             enabled = canNext,

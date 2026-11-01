@@ -59,7 +59,6 @@ fun PaperLazyColumn(
     userScrollEnabled: Boolean = true,
     alwaysShowControls: Boolean = false,
     fillRowGaps: Boolean = false,
-    beforeControls: @Composable (() -> Unit)? = null,
     hasMoreItems: Boolean = false,
     pageLabel: ((first: Int, last: Int) -> String?)? = null,
     onJump: ((first: Int) -> Unit)? = null,
@@ -178,7 +177,7 @@ fun PaperLazyColumn(
                 top = contentPadding.calculateTopPadding(),
                 bottom = contentPadding.calculateBottomPadding(),
             ).consumeWindowInsets(contentPadding).navigationBarsPadding(),
-            fill = constraints.minHeight > 0, canJump = total > 0,
+            fill = constraints.minHeight > 0,
         ) {
             Box(
                 Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }
@@ -212,7 +211,6 @@ fun PaperLazyColumn(
                     )
                 }
             }
-            beforeControls?.invoke()
         }
     }
     if (showJump) {

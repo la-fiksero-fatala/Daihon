@@ -62,6 +62,7 @@ import tachiyomi.presentation.core.components.LocalPaperNavigationArea
 import tachiyomi.presentation.core.components.LocalPaperNavigationSettings
 import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.PaperPageControls
+import tachiyomi.presentation.core.components.PaperPageNumber
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -201,7 +202,6 @@ internal fun LibraryPaginatedContent(
         }
     }
 
-    val onClickPageNumber = { navigation.showPageDialog = true }
     val swipeThreshold = with(density) { 48.dp.toPx() }
     Column(Modifier.fillMaxSize().padding(contentPadding).consumeWindowInsets(contentPadding).navigationBarsPadding()) {
         if (!searchQuery.isNullOrEmpty()) {
@@ -209,11 +209,11 @@ internal fun LibraryPaginatedContent(
         }
         Row(Modifier.weight(1f)) {
             if (buttons == LibraryPageButtons.Left) {
-                LibraryPageControls(page, pageCount, true, showSlider, onPageChange, onClickPageNumber)
+                LibraryPageControls(page, pageCount, true, showSlider, onPageChange)
             }
             Column(Modifier.weight(1f).fillMaxHeight()) {
                 if (buttons == LibraryPageButtons.Top) {
-                    LibraryPageControls(page, pageCount, false, showSlider, onPageChange, onClickPageNumber)
+                    LibraryPageControls(page, pageCount, false, showSlider, onPageChange)
                 }
                 Box(
                     Modifier.weight(1f)
@@ -242,11 +242,11 @@ internal fun LibraryPaginatedContent(
                     )
                 }
                 if (buttons == LibraryPageButtons.Bottom) {
-                    LibraryPageControls(page, pageCount, false, showSlider, onPageChange, onClickPageNumber)
+                    LibraryPageControls(page, pageCount, false, showSlider, onPageChange)
                 }
             }
             if (buttons == LibraryPageButtons.Right) {
-                LibraryPageControls(page, pageCount, true, showSlider, onPageChange, onClickPageNumber)
+                LibraryPageControls(page, pageCount, true, showSlider, onPageChange)
             }
         }
     }
@@ -259,7 +259,6 @@ internal fun LibraryPageControls(
     vertical: Boolean,
     showSlider: Boolean,
     onPageChange: (Int) -> Unit,
-    onClickPageNumber: () -> Unit,
 ) {
     val height = LocalPaperNavigationSettings.current.height
     if (showSlider) {
@@ -281,18 +280,16 @@ internal fun LibraryPageControls(
                 vertical = if (vertical) 32.dp else ((height.value - 48f) / 2f).coerceIn(0f, 8f).dp,
             ),
             vertical = vertical,
+            showNumbers = false,
         )
         return
     }
     CompositionLocalProvider(LocalPaperNavigationArea provides PaperNavigationArea.Library) {
         PaperPageControls(
-            label = "${page + 1} / $pageCount",
             canPrevious = page > 0,
             canNext = page + 1 < pageCount,
             onPrevious = { onPageChange(-1) },
             onNext = { onPageChange(1) },
-            onJump = onClickPageNumber,
-            canJump = pageCount > 0,
             vertical = vertical,
         )
     }
@@ -308,25 +305,19 @@ internal fun LibraryPageNumber(
 ) {
     val description = stringResource(MR.strings.library_page_number, page + 1, pageCount)
     val numberModifier = if (onClick != null) modifier.clickable(role = Role.Button, onClick = onClick) else modifier
-    val textModifier = if (compact) Modifier.padding(horizontal = 8.dp, vertical = 4.dp) else numberModifier
-    val number: @Composable () -> Unit = {
+    if (compact) {
+        PaperPageNumber(
+            "${page + 1} / $pageCount",
+            onClick ?: {},
+            modifier.semantics { contentDescription = description },
+        )
+    } else {
         Text(
             text = "${page + 1} / $pageCount",
-            style = if (compact) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyLarge,
             maxLines = 1,
-            modifier = textModifier.semantics { contentDescription = description },
+            modifier = numberModifier.semantics { contentDescription = description },
         )
-    }
-    if (compact) {
-        Surface(
-            modifier = numberModifier,
-            shape = MaterialTheme.shapes.small,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ) {
-            number()
-        }
-    } else {
-        number()
     }
 }
 

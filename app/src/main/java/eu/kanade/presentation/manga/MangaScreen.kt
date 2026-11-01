@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -160,6 +161,7 @@ fun MangaScreen(
     onInvertSelection: () -> Unit,
 ) {
     val context = LocalContext.current
+    val bottomGap = with(LocalDensity.current) { 16.toDp() }
     val chapters = state.chapterListItems
     val selected = state.isAnySelected
     var showDetails by rememberSaveable(state.manga.id) { mutableStateOf(true) }
@@ -200,39 +202,6 @@ fun MangaScreen(
                 onEditIntervalClicked = onEditFetchIntervalClicked,
                 onEditCategory = onEditCategoryClicked,
             )
-            MangaReadingActions(
-                onContinueReading = onContinueReading,
-                canContinue = nextChapter != null && !selected,
-                showingDetails = true,
-                onSwitchView = if (isTabletUi) {
-                    null
-                } else {
-                    { showDetails = false }
-                },
-                modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
-            ) {
-                Icon(MaterialSymbols.RoundedFilled.PlayArrow, null)
-                val chapterName = nextChapter?.let {
-                    if (it.isRecognizedNumber) {
-                        stringResource(MR.strings.display_mode_chapter, formatChapterNumber(it.chapterNumber))
-                    } else {
-                        it.name
-                    }
-                }
-                Text(
-                    text = if (chapterName.isNullOrBlank()) {
-                        stringResource(if (state.hasReadChapters) MR.strings.action_resume else MR.strings.action_start)
-                    } else {
-                        stringResource(
-                            if (state.hasReadChapters) MR.strings.action_resume_from else MR.strings.action_start_from,
-                            chapterName,
-                        )
-                    },
-                    modifier = Modifier.padding(start = 8.dp),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
             ExpandableMangaDescription(
                 defaultExpandState = true,
                 description = state.manga.description,
@@ -260,32 +229,6 @@ fun MangaScreen(
                     fillRowGaps = true,
                     pageLabel = chapterNumbers?.let { numbers -> { first, last -> numbers.label(first, last) } },
                     onJump = chapterNumbers?.let { { row -> jumpFromRow = row } },
-                    beforeControls = {
-                        if (!selected) {
-                            MangaReadingActions(
-                                onContinueReading = onContinueReading,
-                                canContinue = state.hasUnreadChapters,
-                                showingDetails = false,
-                                onSwitchView = if (isTabletUi) {
-                                    null
-                                } else {
-                                    { showDetails = true }
-                                },
-                                modifier = Modifier.padding(horizontal = 32.dp),
-                            ) {
-                                Icon(MaterialSymbols.RoundedFilled.PlayArrow, null)
-                                Text(
-                                    stringResource(
-                                        if (state.hasReadChapters) {
-                                            MR.strings.action_resume
-                                        } else {
-                                            MR.strings.action_start
-                                        },
-                                    ),
-                                )
-                            }
-                        }
-                    },
                 ) {
                     sharedChapterItems(
                         manga = state.manga,
@@ -325,16 +268,64 @@ fun MangaScreen(
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        bottomBarBorder = false,
         bottomBar = {
-            SharedMangaBottomActionMenu(
-                selected = state.selectedChapters,
-                onMultiBookmarkClicked = onMultiBookmarkClicked,
-                onMultiMarkAsReadClicked = onMultiMarkAsReadClicked,
-                onMarkPreviousAsReadClicked = onMarkPreviousAsReadClicked,
-                onDownloadChapter = onDownloadChapter,
-                onMultiDeleteClicked = onMultiDeleteClicked,
-                fillFraction = 1f,
-            )
+            if (selected) {
+                SharedMangaBottomActionMenu(
+                    selected = state.selectedChapters,
+                    onMultiBookmarkClicked = onMultiBookmarkClicked,
+                    onMultiMarkAsReadClicked = onMultiMarkAsReadClicked,
+                    onMarkPreviousAsReadClicked = onMarkPreviousAsReadClicked,
+                    onDownloadChapter = onDownloadChapter,
+                    onMultiDeleteClicked = onMultiDeleteClicked,
+                    fillFraction = 1f,
+                )
+            } else {
+                MangaReadingActions(
+                    onContinueReading = onContinueReading,
+                    canContinue = nextChapter != null,
+                    showingDetails = showDetails,
+                    onSwitchView = if (isTabletUi) {
+                        null
+                    } else {
+                        { showDetails = !showDetails }
+                    },
+                    modifier = Modifier.navigationBarsPadding().padding(
+                        start = 32.dp,
+                        end = 32.dp,
+                        top = 8.dp,
+                        bottom = bottomGap,
+                    ),
+                ) {
+                    Icon(MaterialSymbols.RoundedFilled.PlayArrow, null)
+                    val chapterName = nextChapter?.let {
+                        if (it.isRecognizedNumber) {
+                            stringResource(MR.strings.display_mode_chapter, formatChapterNumber(it.chapterNumber))
+                        } else {
+                            it.name
+                        }
+                    }
+                    Text(
+                        text = if (!showDetails || chapterName.isNullOrBlank()) {
+                            stringResource(
+                                if (state.hasReadChapters) MR.strings.action_resume else MR.strings.action_start,
+                            )
+                        } else {
+                            stringResource(
+                                if (state.hasReadChapters) {
+                                    MR.strings.action_resume_from
+                                } else {
+                                    MR.strings.action_start_from
+                                },
+                                chapterName,
+                            )
+                        },
+                        modifier = Modifier.padding(start = 8.dp),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {

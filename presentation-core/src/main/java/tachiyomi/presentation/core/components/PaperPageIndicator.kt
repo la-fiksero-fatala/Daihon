@@ -1,7 +1,6 @@
 package tachiyomi.presentation.core.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import tachiyomi.presentation.core.components.material.PaperSurface as Surface
 
 @Stable
 class PaperPageIndicatorState(header: Boolean = false) {
@@ -47,7 +47,17 @@ val LocalPaperPageIndicator = staticCompositionLocalOf<PaperPageIndicatorState?>
 
 @Composable
 fun PaperPageNumber(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Box(modifier.widthIn(max = 112.dp).clickable(role = Role.Button, onClick = onClick).padding(8.dp)) {
-        Text(label, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    Surface(
+        modifier.widthIn(max = 160.dp).clickable(role = Role.Button, onClick = onClick),
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Text(
+            label,
+            Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }

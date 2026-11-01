@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 
-/** The rail takes width, while a hidden rail publishes its counter to the existing heading. */
+/** Arrow rails take width; position counters always occupy the existing heading. */
 @Composable
 internal fun PaperPageFrame(
     owner: Any,
@@ -31,7 +31,6 @@ internal fun PaperPageFrame(
     onJump: () -> Unit,
     modifier: Modifier = Modifier,
     fill: Boolean = false,
-    canJump: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val settings = LocalPaperNavigationSettings.current
@@ -40,14 +39,14 @@ internal fun PaperPageFrame(
     val host = LocalPaperPageIndicator.current
     val currentJump by rememberUpdatedState(onJump)
     var visible by remember { mutableStateOf(false) }
-    val publish = !visibleBar && visible && area != PaperNavigationArea.Library
+    val publish = visible && area != PaperNavigationArea.Library
     DisposableEffect(owner, host, publish) {
         if (publish) host?.register(owner, label) { currentJump() }
         onDispose { host?.remove(owner) }
     }
     SideEffect { if (publish) host?.update(owner, label) }
     Column(modifier.onGloballyPositioned { visible = !it.boundsInWindow().isEmpty }) {
-        if (!visibleBar && host?.hasHeader != true) {
+        if (host?.hasHeader != true) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                 PaperPageNumber(label, onJump)
             }
@@ -56,13 +55,10 @@ internal fun PaperPageFrame(
             Column(Modifier.weight(1f), content = content)
             if (paged && visibleBar) {
                 PaperPageControls(
-                    label,
                     canPrevious,
                     canNext,
                     onPrevious,
                     onNext,
-                    onJump,
-                    canJump = canJump,
                     vertical = true,
                 )
             }

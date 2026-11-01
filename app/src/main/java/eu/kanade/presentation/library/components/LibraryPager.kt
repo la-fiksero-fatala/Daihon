@@ -91,7 +91,7 @@ fun LibraryPager(
                     )
                 }
                 if (pageButtons != LibraryPageButtons.Hidden) {
-                    LibraryPageControls(-1, 0, true, pageSlider, {}, {})
+                    LibraryPageControls(-1, 0, true, pageSlider, {})
                 }
             }
             return@HorizontalPager

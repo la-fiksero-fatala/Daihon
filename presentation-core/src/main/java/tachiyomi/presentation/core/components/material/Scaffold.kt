@@ -39,6 +39,7 @@ fun Scaffold(
     ),
     topBar: @Composable (TopAppBarScrollBehavior) -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
+    bottomBarBorder: Boolean = true,
     snackbarHost: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     floatingActionButtonPosition: FabPosition = FabPosition.End,
@@ -62,7 +63,9 @@ fun Scaffold(
                     if (indicator.hasHeader) indicator.Indicator(Modifier.statusBarsPadding())
                 }
             },
-            bottomBar = { Box(Modifier.border(1.dp, Color.Black)) { bottomBar() } },
+            bottomBar = {
+                Box(if (bottomBarBorder) Modifier.border(1.dp, Color.Black) else Modifier) { bottomBar() }
+            },
             snackbarHost = snackbarHost,
             floatingActionButton = {
                 Box(Modifier.onSizeChanged { fabHeight = it.height }) {
