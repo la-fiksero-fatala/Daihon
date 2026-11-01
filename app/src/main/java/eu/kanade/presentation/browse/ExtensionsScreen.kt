@@ -181,9 +181,6 @@ private fun ExtensionContent(
                                     Button(onClick = { onClickUpdateAll() }) {
                                         Text(
                                             text = stringResource(MR.strings.ext_update_all),
-                                            style = LocalTextStyle.current.copy(
-                                                color = MaterialTheme.colorScheme.onPrimary,
-                                            ),
                                         )
                                     }
                                 }

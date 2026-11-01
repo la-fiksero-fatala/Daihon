@@ -501,7 +501,6 @@ class MainActivity : BaseActivity() {
                             )
                             Text(
                                 text = stringResource(MR.strings.daihon_support_upstream),
-                                color = MaterialTheme.colorScheme.onPrimary,
                             )
                         }
                     }

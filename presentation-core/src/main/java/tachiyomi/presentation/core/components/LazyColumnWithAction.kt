@@ -45,7 +45,6 @@ fun LazyColumnWithAction(
         ) {
             Text(
                 text = actionLabel,
-                color = MaterialTheme.colorScheme.onPrimary,
             )
         }
     }
