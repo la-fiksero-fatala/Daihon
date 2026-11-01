@@ -76,7 +76,7 @@ open class WebGpuViewer(
     val activity: ReaderActivity,
     val isReversed: Boolean,
     val isVertical: Boolean,
-    val viewerState: ImageViewerState = ImageViewerState(isVertical = isVertical, isReversed = isReversed),
+    val viewerState: ImageViewerState = PaperImageViewerState(isVertical = isVertical, isReversed = isReversed),
 ) : Viewer {
 
     open val isContinuous: Boolean = false
