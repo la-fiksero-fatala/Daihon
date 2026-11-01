@@ -58,6 +58,7 @@ fun PaperLazyColumn(
     flingBehavior: FlingBehavior = ScrollableDefaults.flingBehavior(),
     userScrollEnabled: Boolean = true,
     alwaysShowControls: Boolean = false,
+    showControlsDivider: Boolean = true,
     fillRowGaps: Boolean = false,
     preserveLastPageSpace: Boolean = true,
     beforeControls: @Composable (() -> Unit)? = null,
@@ -188,9 +189,7 @@ fun PaperLazyColumn(
             if (paged || alwaysShowControls) {
                 val shownLast = visible.lastOrNull { it.offset + it.size <= end }?.index ?: first.index
                 PaperPageControls(
-                    if (total ==
-                        0
-                    ) {
+                    if (total == 0) {
                         "0 / 0"
                     } else {
                         "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}"
@@ -203,6 +202,7 @@ fun PaperLazyColumn(
                     Modifier.padding(bottom = contentPadding.calculateBottomPadding())
                         .consumeWindowInsets(contentPadding).navigationBarsPadding(),
                     canJump = total > 0,
+                    showDivider = showControlsDivider,
                 )
             }
         }

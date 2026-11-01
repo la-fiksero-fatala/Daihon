@@ -49,11 +49,14 @@ fun PaperPageControls(
     onJump: () -> Unit,
     modifier: Modifier = Modifier,
     canJump: Boolean = true,
+    showDivider: Boolean = true,
 ) {
     Row(
         modifier.fillMaxWidth().drawBehind {
-            val stroke = 1.dp.toPx()
-            drawLine(Color.Black, Offset(0f, stroke / 2), Offset(size.width, stroke / 2), strokeWidth = stroke)
+            if (showDivider) {
+                val stroke = 1.dp.toPx()
+                drawLine(Color.Black, Offset(0f, stroke / 2), Offset(size.width, stroke / 2), strokeWidth = stroke)
+            }
         }.padding(horizontal = 32.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),

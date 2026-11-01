@@ -28,8 +28,10 @@ Daihon request audit — 2026-11-01
     heading. Tablet smoke check fit 24 short categories on one screen.
 [x] Library organization/sorting has an inline X and dismisses on outside taps.
 [x] Manga Details opens by default and has Start/Resume from Chapter N using the
-    existing next-unread and continue-reading logic. Details/Chapters use a single
-    shared separator; detail actions remain unboxed.
+    existing next-unread and continue-reading logic. In single-pane layouts, the
+    reading button takes two thirds of its row and a Chapters/Details button takes
+    one third. Tabs are removed; top back returns to the library. The row uses one
+    outline and divider; detail actions remain unboxed. Tablet dual panes remain.
 [x] Chapter controls remain permanently at the bottom. Chapter rows fill fractional
     vertical remainder without changing item sizes; the artificial last-page tail
     and extra vertical Resume padding are removed. Final jumps may clamp at the end.

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -29,8 +30,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
@@ -47,15 +47,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAll
@@ -81,6 +81,8 @@ import eu.kanade.tachiyomi.ui.manga.MangaViewModel
 import eu.kanade.tachiyomi.util.chapter.getNextUnread
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.FormatListNumbered
+import mihon.icons.materialsymbols.rounded.Info
 import mihon.icons.materialsymbols.roundedfilled.PlayArrow
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.manga.model.Manga
@@ -181,10 +183,16 @@ fun MangaScreen(
                 onEditIntervalClicked = onEditFetchIntervalClicked,
                 onEditCategory = onEditCategoryClicked,
             )
-            PaperButton(
-                onClick = onContinueReading,
-                enabled = nextChapter != null && !selected,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 8.dp),
+            MangaReadingActions(
+                onContinueReading = onContinueReading,
+                canContinue = nextChapter != null && !selected,
+                showingDetails = true,
+                onSwitchView = if (isTabletUi) {
+                    null
+                } else {
+                    { showDetails = false }
+                },
+                modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
             ) {
                 Icon(MaterialSymbols.RoundedFilled.PlayArrow, null)
                 val chapterName = nextChapter?.let {
@@ -231,14 +239,21 @@ fun MangaScreen(
                 modifier = Modifier.weight(1f),
                 state = chapterState,
                 alwaysShowControls = true,
+                showControlsDivider = selected,
                 fillRowGaps = true,
                 preserveLastPageSpace = false,
                 beforeControls = {
                     if (!selected) {
-                        PaperButton(
-                            onClick = onContinueReading,
-                            enabled = state.hasUnreadChapters,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+                        MangaReadingActions(
+                            onContinueReading = onContinueReading,
+                            canContinue = state.hasUnreadChapters,
+                            showingDetails = false,
+                            onSwitchView = if (isTabletUi) {
+                                null
+                            } else {
+                                { showDetails = true }
+                            },
+                            modifier = Modifier.padding(horizontal = 32.dp),
                         ) {
                             Icon(MaterialSymbols.RoundedFilled.PlayArrow, null)
                             Text(
@@ -306,29 +321,56 @@ fun MangaScreen(
                     endContent = { chapterPane() },
                 )
             } else {
-                Row(
-                    Modifier.fillMaxWidth().heightIn(min = 48.dp).height(IntrinsicSize.Min)
-                        .border(1.dp, Color.Black).selectableGroup(),
-                ) {
-                    listOf(false, true).forEach { detailsTab ->
-                        if (detailsTab) Box(Modifier.width(1.dp).fillMaxHeight().background(Color.Black))
-                        val selected = showDetails == detailsTab
-                        Box(
-                            modifier = Modifier.weight(1f).fillMaxHeight()
-                                .selectable(selected = selected, role = Role.Tab, onClick = {
-                                    showDetails = detailsTab
-                                })
-                                .padding(vertical = 12.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                stringResource(if (detailsTab) MR.strings.daihon_details else MR.strings.chapters),
-                                textDecoration = if (selected) TextDecoration.Underline else null,
-                            )
-                        }
-                    }
-                }
                 if (showDetails) details() else chapterPane()
+            }
+        }
+    }
+
+}
+
+/** One outline and one divider keep the two actions from drawing doubled adjoining borders. */
+@Composable
+private fun MangaReadingActions(
+    onContinueReading: () -> Unit,
+    canContinue: Boolean,
+    showingDetails: Boolean,
+    onSwitchView: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+    readingLabel: @Composable RowScope.() -> Unit,
+) {
+    val shape = RoundedCornerShape(4.dp)
+    Row(
+        modifier.fillMaxWidth().heightIn(min = 48.dp).height(IntrinsicSize.Min)
+            .clip(shape).border(1.dp, Color.Black, shape),
+    ) {
+        PaperButton(
+            onClick = onContinueReading,
+            enabled = canContinue,
+            modifier = Modifier.weight(if (onSwitchView == null) 1f else 2f).fillMaxHeight(),
+            shape = RectangleShape,
+            border = null,
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+            content = readingLabel,
+        )
+        if (onSwitchView != null) {
+            Box(Modifier.width(1.dp).fillMaxHeight().background(Color.Black))
+            PaperButton(
+                onClick = onSwitchView,
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                shape = RectangleShape,
+                border = null,
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+            ) {
+                Icon(
+                    if (showingDetails) MaterialSymbols.Rounded.FormatListNumbered else MaterialSymbols.Rounded.Info,
+                    null,
+                )
+                Text(
+                    stringResource(if (showingDetails) MR.strings.chapters else MR.strings.daihon_details),
+                    Modifier.padding(start = 6.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }
