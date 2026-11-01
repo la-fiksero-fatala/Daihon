@@ -19,6 +19,7 @@ fun MigrationProgressDialog(
 ) {
     AlertDialog(
         onDismissRequest = {},
+        onCloseRequest = exitMigration,
         confirmButton = {
             TextButton(onClick = exitMigration) {
                 Text(text = stringResource(MR.strings.migrationListScreen_progressDialog_cancelLabel))

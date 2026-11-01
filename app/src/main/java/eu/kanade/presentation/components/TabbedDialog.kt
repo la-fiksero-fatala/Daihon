@@ -21,12 +21,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.MoreVert
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.material.DialogCloseButton
 import tachiyomi.presentation.core.components.material.TabText
 import tachiyomi.presentation.core.components.paperHorizontalPaging
 import tachiyomi.presentation.core.i18n.stringResource
@@ -49,11 +52,12 @@ fun TabbedDialog(
     AdaptiveSheet(
         modifier = modifier,
         onDismissRequest = onDismissRequest,
+        showCloseButton = false,
     ) {
         val scope = rememberCoroutineScope()
 
         Column {
-            Row {
+            Row(Modifier.zIndex(1f), verticalAlignment = Alignment.CenterVertically) {
                 PrimaryTabRow(
                     modifier = Modifier.weight(1f),
                     selectedTabIndex = pagerState.currentPage,
@@ -70,10 +74,11 @@ fun TabbedDialog(
                 }
 
                 tabOverflowMenuContent?.let { MoreMenu(it) }
+                DialogCloseButton(onClick = onDismissRequest)
             }
 
             HorizontalPager(
-                modifier = Modifier.then(paperHorizontalPaging(pagerState)),
+                modifier = Modifier.clipToBounds().then(paperHorizontalPaging(pagerState)),
                 state = pagerState,
                 verticalAlignment = Alignment.Top,
                 pageContent = { page -> content(page) },

@@ -3,8 +3,11 @@ package tachiyomi.presentation.core.components.material
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -13,7 +16,9 @@ import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -68,16 +73,24 @@ fun PaperAlertDialog(
     icon: (@Composable () -> Unit)? = null,
     title: (@Composable () -> Unit)? = null,
     text: (@Composable () -> Unit)? = null,
-    shape: Shape = MaterialTheme.shapes.large,
+    shape: Shape = MaterialTheme.shapes.small,
     containerColor: Color = Color.White,
     iconContentColor: Color = Color.Black,
     titleContentColor: Color = Color.Black,
     textContentColor: Color = Color.Black,
     tonalElevation: Dp = 0.dp,
     properties: DialogProperties = DialogProperties(),
+    onCloseRequest: () -> Unit = onDismissRequest,
 ) = androidx.compose.material3.AlertDialog(
     onDismissRequest, confirmButton, modifier.border(2.dp, Color.Black, shape), dismissButton, icon,
-    title,
+    {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) {
+                ProvideTextStyle(MaterialTheme.typography.titleMedium) { title?.invoke() }
+            }
+            DialogCloseButton(onClick = onCloseRequest)
+        }
+    },
     text,
     shape,
     containerColor,

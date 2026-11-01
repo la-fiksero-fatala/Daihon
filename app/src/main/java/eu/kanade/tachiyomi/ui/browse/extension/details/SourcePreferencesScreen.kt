@@ -111,7 +111,9 @@ class SourcePreferencesScreen(val sourceId: Long) : Screen() {
         ) { contentPadding ->
             val items = remember(preferenceScreen.version) { preferenceScreen.items() }
             ScrollbarLazyColumn(contentPadding = contentPadding) {
-                items(items) { PreferenceRow(it) }
+                items(items, contentType = {
+                    if (it.preference is PreferenceGroup) "header" else "item"
+                }) { PreferenceRow(it) }
             }
         }
 

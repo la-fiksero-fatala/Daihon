@@ -64,6 +64,8 @@ fun AdaptiveSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     enableImplicitDismiss: Boolean = true,
+    showCloseButton: Boolean = true,
+    title: String? = null,
     content: @Composable () -> Unit,
 ) {
     val isTabletUi = isTabletUi()
@@ -71,6 +73,8 @@ fun AdaptiveSheet(
     AdaptiveSheetImpl(
         isTabletUi = isTabletUi,
         enableImplicitDismiss = enableImplicitDismiss,
+        showCloseButton = showCloseButton,
+        title = title,
         onDismissRequest = onDismissRequest,
         modifier = modifier,
         content = content,

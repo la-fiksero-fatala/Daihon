@@ -50,9 +50,9 @@ fun PreferenceScreen(
             when (preference) {
                 // Create Preference Group
                 is Preference.PreferenceGroup -> {
-                    if (!preference.visible) return@fastForEachIndexed
+                    if (!preference.visible || preference.preferenceItems.none { it.visible }) return@fastForEachIndexed
 
-                    item {
+                    item(contentType = "header") {
                         Column {
                             PreferenceGroupHeader(
                                 title = preference.title,
@@ -60,7 +60,7 @@ fun PreferenceScreen(
                             )
                         }
                     }
-                    items(preference.preferenceItems) { item ->
+                    items(preference.preferenceItems.filter { it.visible }) { item ->
                         PreferenceItem(
                             item = item,
                             highlightKey = highlightKey,
@@ -86,11 +86,14 @@ fun PreferenceScreen(
 }
 
 private fun List<Preference>.findHighlightedIndex(highlightKey: String): Int {
-    return flatMap {
+    return filter {
+        it.visible &&
+            (it !is Preference.PreferenceGroup || it.preferenceItems.any { child -> child.visible })
+    }.flatMap {
         if (it is Preference.PreferenceGroup) {
             buildList<String?> {
                 add(it.title) // Header
-                addAll(it.preferenceItems.map { groupItem -> groupItem.title })
+                addAll(it.preferenceItems.filter { child -> child.visible }.map { groupItem -> groupItem.title })
                 add(null) // Spacer
             }
         } else {

@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -35,6 +36,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -56,6 +58,8 @@ fun PaperLazyColumn(
     flingBehavior: FlingBehavior = ScrollableDefaults.flingBehavior(),
     userScrollEnabled: Boolean = true,
     alwaysShowControls: Boolean = false,
+    fillRowGaps: Boolean = false,
+    preserveLastPageSpace: Boolean = true,
     beforeControls: @Composable (() -> Unit)? = null,
     hasMoreItems: Boolean = false,
     content: LazyListScope.() -> Unit,
@@ -68,6 +72,7 @@ fun PaperLazyColumn(
         )
         return
     }
+    val sections by remember(content) { derivedStateOf { PaperListContent().apply(content) } }
     val owner = remember { Any() }
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
@@ -77,28 +82,58 @@ fun PaperLazyColumn(
     var showJump by remember { mutableStateOf(false) }
     val info = state.layoutInfo
     val total = (info.totalItemsCount - 1).coerceAtLeast(0)
-    val visible = info.visibleItemsInfo.filter { it.index < total }
+    val visible = info.visibleItemsInfo.filter { it.index < total }.sortedBy { it.index }
+    val headerSizes = remember(sections) { mutableMapOf<Int, Int>() }
+    visible.filter { it.index in sections.headers }.forEach { headerSizes[it.index] = it.size }
     val first = PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
     val end = info.viewportEndOffset - info.afterContentPadding
-    val next = nextPaperAnchor(visible.map { PaperItem(it.index, it.offset, it.size) }, first, end, total)
+    val pageItems = visible.map { PaperItem(it.index, it.offset, it.size) }
+    val orphan = paperOrphanHeader(pageItems, sections.headers, first, end)
+    val next = orphan?.let { PaperAnchor(it.index) } ?: nextPaperAnchor(
+        pageItems.filter { it.index >= first.index },
+        first,
+        end,
+        total,
+    )
+    val rowHeight = visible.maxOfOrNull { it.size } ?: 0
+    val spacing = paperRowSpacing((end - info.beforeContentPadding).coerceAtLeast(0), rowHeight, total)
+    val arrangement = if (fillRowGaps) Arrangement.spacedBy(with(density) { spacing.toDp() }) else verticalArrangement
     val hasPrevious = first.index > 0 || first.offset > 0
     val paged = total > 0 && (hasPrevious || next != null)
     val partial = visible.firstOrNull { it.index > first.index && it.offset + it.size > end }
-    val mask = partial?.let { (viewport - info.beforeContentPadding - it.offset).coerceAtLeast(0) } ?: 0
+    val mask =
+        (orphan ?: partial?.let { PaperItem(it.index, it.offset, it.size) })?.let {
+            (
+                viewport -
+                    info.beforeContentPadding -
+                    it.offset
+                ).coerceAtLeast(0)
+        }
+            ?: 0
+    suspend fun jumpTo(target: PaperAnchor) {
+        val header = sections.headers.lastOrNull { it < target.index }
+        var height = header?.let { headerSizes[it] } ?: 0
+        if (header != null && height == 0 && target.index !in sections.headers) {
+            state.scrollToItem(header)
+            height = state.layoutInfo.visibleItemsInfo.firstOrNull { it.index == header }?.size ?: 0
+        }
+        val reserve = if (target.index in sections.headers || target.offset > 0) 0 else height
+        state.scrollToItem(target.index, target.offset - reserve)
+    }
     val navigate: (Int) -> Unit = { step ->
         PaperNavigation.activate(owner)
         scope.launch {
             if (step > 0 && next != null) {
                 history.add(first)
-                state.scrollToItem(next.index, next.offset)
+                jumpTo(next)
             } else if (step < 0 && hasPrevious) {
                 val target = history.removeLastOrNull()
                 if (target != null && target.index < total) {
-                    state.scrollToItem(target.index, target.offset)
+                    jumpTo(target)
                 } else {
                     val old = state.firstVisibleItemIndex
                     state.scrollBy(-end.coerceAtLeast(1).toFloat())
-                    if (state.firstVisibleItemIndex < old) state.scrollToItem(state.firstVisibleItemIndex)
+                    if (state.firstVisibleItemIndex < old) jumpTo(PaperAnchor(state.firstVisibleItemIndex))
                 }
             }
         }
@@ -110,35 +145,36 @@ fun PaperLazyColumn(
     val fallback = (LocalConfiguration.current.screenHeightDp * .75f).dp
     BoxWithConstraints(modifier) {
         val limit = if (constraints.hasBoundedHeight) maxHeight else fallback
-        Column(Modifier.heightIn(max = limit).fillMaxWidth()) {
+        Column(Modifier.heightIn(max = limit).fillMaxWidth().padding(top = contentPadding.calculateTopPadding())) {
             Box(
-                Modifier.weight(1f, fill = false).onSizeChanged { viewport = it.height }
+                Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }
                     .then(paperInput(owner, !showJump, navigate, atTop = !hasPrevious)),
             ) {
                 LazyColumn(
                     state = state,
                     contentPadding = PaddingValues(
                         start = contentPadding.calculateStartPadding(direction),
-                        top = contentPadding.calculateTopPadding(),
                         end = contentPadding.calculateEndPadding(direction),
                     ),
                     reverseLayout = reverseLayout,
-                    verticalArrangement = verticalArrangement,
+                    verticalArrangement = arrangement,
                     horizontalAlignment = horizontalAlignment,
                     userScrollEnabled = false,
                 ) {
-                    content()
+                    sections.emit(this)
                     item(key = "__daihon_page_end", contentType = "__daihon_page_end") {
-                        Spacer(Modifier.height(if (paged) with(density) { viewport.toDp() } else 0.dp))
+                        Spacer(
+                            Modifier.height(
+                                if (paged &&
+                                    preserveLastPageSpace
+                                ) {
+                                    with(density) { viewport.toDp() }
+                                } else {
+                                    0.dp
+                                },
+                            ),
+                        )
                     }
-                }
-                // Native lazy layouts draw cached preceding rows into their leading padding.
-                // Keep that margin blank when a new page starts.
-                if (hasPrevious && contentPadding.calculateTopPadding() > 0.dp) {
-                    Box(
-                        Modifier.align(Alignment.TopCenter).fillMaxWidth()
-                            .height(contentPadding.calculateTopPadding()).background(Color.White),
-                    )
                 }
                 if (mask > 0) {
                     Box(
@@ -174,7 +210,7 @@ fun PaperLazyColumn(
     if (showJump) {
         PaperJumpDialog(first.index, total, { index ->
             history.clear()
-            scope.launch { state.scrollToItem(index) }
+            scope.launch { jumpTo(PaperAnchor(index)) }
         }, onDismissRequest = { showJump = false }, itemNumber = true)
     }
 }

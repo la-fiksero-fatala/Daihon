@@ -1,21 +1,31 @@
 package eu.kanade.tachiyomi.ui.browse.source.browse
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.AdaptiveSheet
 import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.FilterList
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.KeyboardArrowDown
+import mihon.icons.materialsymbols.rounded.KeyboardArrowUp
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.CheckboxItem
@@ -39,10 +49,11 @@ fun SourceFilterDialog(
     onUpdate: (FilterList) -> Unit,
 ) {
     val updateFilters = { onUpdate(filters) }
+    val expanded = remember(filters) { mutableStateMapOf<Filter<*>, Boolean>() }
 
     AdaptiveSheet(onDismissRequest = onDismissRequest) {
-        LazyColumn {
-            stickyHeader {
+        Column {
+            Column {
                 Row(
                     modifier = Modifier
                         .background(MaterialTheme.colorScheme.background)
@@ -69,8 +80,66 @@ fun SourceFilterDialog(
                 HorizontalDivider()
             }
 
-            items(filters) {
-                FilterItem(it, updateFilters)
+            LazyColumn(Modifier.weight(1f, fill = false)) {
+                filterItems(filters, expanded, { expanded[it] = expanded[it] != true }, updateFilters)
+            }
+        }
+    }
+}
+
+private fun LazyListScope.filterItems(
+    filters: List<Filter<*>>,
+    expanded: Map<Filter<*>, Boolean>,
+    onToggle: (Filter<*>) -> Unit,
+    onUpdate: () -> Unit,
+) {
+    filters.forEach { filter ->
+        when (filter) {
+            is Filter.Group<*>, is Filter.Sort -> {
+                val children = (filter as? Filter.Group<*>)?.state?.filterIsInstance<Filter<*>>()
+                val open = expanded[filter] == true
+                val hasChildren = children?.isNotEmpty() ?: (filter as Filter.Sort).values.isNotEmpty()
+                item(contentType = if (open && hasChildren) "header" else "item") {
+                    Row(
+                        Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { onToggle(filter) }
+                            .padding(horizontal = 24.dp, vertical = 12.dp),
+                    ) {
+                        Text(filter.name, Modifier.weight(1f))
+                        Icon(
+                            if (open) {
+                                MaterialSymbols.Rounded.KeyboardArrowUp
+                            } else {
+                                MaterialSymbols.Rounded.KeyboardArrowDown
+                            },
+                            null,
+                        )
+                    }
+                }
+                if (open && children != null) {
+                    filterItems(children, expanded, onToggle, onUpdate)
+                } else if (open && filter is Filter.Sort) {
+                    items(filter.values.size) { index ->
+                        val ascending = filter.state?.ascending?.takeIf { index == filter.state?.index }
+                        SortItem(
+                            label = filter.values[index],
+                            sortDescending = ascending?.not(),
+                            onClick = {
+                                filter.state = Filter.Sort.Selection(
+                                    index,
+                                    if (index == filter.state?.index) {
+                                        !filter.state!!.ascending
+                                    } else {
+                                        filter.state?.ascending ?: true
+                                    },
+                                )
+                                onUpdate()
+                            },
+                        )
+                    }
+                }
+            }
+            else -> item(contentType = if (filter is Filter.Header) "header" else "item") {
+                FilterItem(filter, onUpdate)
             }
         }
     }
@@ -79,6 +148,8 @@ fun SourceFilterDialog(
 @Composable
 private fun FilterItem(filter: Filter<*>, onUpdate: () -> Unit) {
     when (filter) {
+        // Group and sort containers are emitted as individual lazy rows by filterItems.
+        is Filter.Group<*>, is Filter.Sort -> Unit
         is Filter.Header -> {
             HeadingItem(filter.name)
         }
@@ -120,45 +191,6 @@ private fun FilterItem(filter: Filter<*>, onUpdate: () -> Unit) {
             ) {
                 filter.state = it
                 onUpdate()
-            }
-        }
-        is Filter.Sort -> {
-            CollapsibleBox(
-                heading = filter.name,
-            ) {
-                Column {
-                    filter.values.mapIndexed { index, item ->
-                        val sortAscending = filter.state?.ascending
-                            ?.takeIf { index == filter.state?.index }
-                        SortItem(
-                            label = item,
-                            sortDescending = if (sortAscending != null) !sortAscending else null,
-                            onClick = {
-                                val ascending = if (index == filter.state?.index) {
-                                    !filter.state!!.ascending
-                                } else {
-                                    filter.state?.ascending ?: true
-                                }
-                                filter.state = Filter.Sort.Selection(
-                                    index = index,
-                                    ascending = ascending,
-                                )
-                                onUpdate()
-                            },
-                        )
-                    }
-                }
-            }
-        }
-        is Filter.Group<*> -> {
-            CollapsibleBox(
-                heading = filter.name,
-            ) {
-                Column {
-                    filter.state
-                        .filterIsInstance<Filter<*>>()
-                        .map { FilterItem(filter = it, onUpdate = onUpdate) }
-                }
             }
         }
     }

@@ -37,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -111,7 +112,7 @@ fun PaperLazyVerticalGrid(
         val limit = if (constraints.hasBoundedHeight) maxHeight else fallback
         Column(Modifier.heightIn(max = limit).fillMaxWidth()) {
             Box(
-                Modifier.weight(1f, fill = false).onSizeChanged { viewport = it.height }
+                Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }
                     .then(paperInput(owner, !showJump, navigate, atTop = !hasPrevious)),
             ) {
                 LazyVerticalGrid(

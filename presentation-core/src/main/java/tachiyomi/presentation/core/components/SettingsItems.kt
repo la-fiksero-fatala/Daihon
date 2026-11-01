@@ -75,16 +75,18 @@ fun HeadingItem(labelRes: StringResource) {
 
 @Composable
 fun HeadingItem(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.header,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = SettingsItemsPaddings.Horizontal,
-                vertical = SettingsItemsPaddings.Vertical,
-            ),
-    )
+    PaperSectionHeading {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.header,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = SettingsItemsPaddings.Horizontal,
+                    vertical = SettingsItemsPaddings.Vertical,
+                ),
+        )
+    }
 }
 
 @Composable

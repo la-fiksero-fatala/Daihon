@@ -65,7 +65,7 @@ private fun SourcesFilterContent(
             val enabled = language in state.enabledLanguages
             item(
                 key = language,
-                contentType = "source-filter-header",
+                contentType = if (enabled && sources.isNotEmpty()) "header" else "source-filter-header",
             ) {
                 SourcesFilterHeader(
                     modifier = Modifier.animateItem(),

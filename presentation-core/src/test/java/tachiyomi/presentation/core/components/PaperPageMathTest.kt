@@ -76,4 +76,20 @@ class PaperPageMathTest {
         paperPageIndex("1", 3) shouldBe 0
         paperPageIndex("3", 3) shouldBe 2
     }
+
+    @Test
+    fun `section heading without a complete following row moves to next page`() {
+        val items = listOf(PaperItem(0, 0, 80), PaperItem(1, 80, 40), PaperItem(2, 120, 100))
+        paperOrphanHeader(items, listOf(1), PaperAnchor(0), 200) shouldBe items[1]
+        paperOrphanHeader(items, listOf(1), PaperAnchor(0), 220) shouldBe null
+        paperOrphanHeader(items, listOf(0), PaperAnchor(0), 200) shouldBe null
+    }
+
+    @Test
+    fun `vertical spacing fills fractional row remainder without enlarging short lists`() {
+        paperRowSpacing(650, 100, 30) shouldBe 10f
+        paperRowSpacing(600, 100, 30) shouldBe 0f
+        paperRowSpacing(300, 100, 3) shouldBe 0f
+        paperRowSpacing(80, 100, 30) shouldBe 0f
+    }
 }

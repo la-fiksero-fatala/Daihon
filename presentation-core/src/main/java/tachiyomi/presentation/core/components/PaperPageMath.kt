@@ -30,3 +30,17 @@ fun paperPageCount(maximumOffset: Int, step: Int): Int =
 
 fun paperPageIndex(input: String, count: Int): Int? =
     input.toIntOrNull()?.takeIf { it in 1..count }?.minus(1)
+
+/** Uniform rows keep the same positions across pages without leaving a fractional empty row. */
+fun paperRowSpacing(viewport: Int, rowHeight: Int, total: Int): Float {
+    if (rowHeight <= 0 || total <= 1) return 0f
+    val rows = (viewport / rowHeight).coerceAtMost(total)
+    return if (rows > 1) (viewport - rows * rowHeight).toFloat() / (rows - 1) else 0f
+}
+
+/** Defer a section heading when none of its following rows fits on this page. */
+fun paperOrphanHeader(items: List<PaperItem>, headers: List<Int>, first: PaperAnchor, end: Int): PaperItem? =
+    items.firstOrNull { item ->
+        item.index in headers && item.index > first.index && item.offset < end &&
+            items.none { it.index > item.index && it.index !in headers && it.offset + it.size <= end }
+    }

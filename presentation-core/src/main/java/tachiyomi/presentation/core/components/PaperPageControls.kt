@@ -1,6 +1,5 @@
 package tachiyomi.presentation.core.components
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -23,6 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
@@ -50,7 +51,10 @@ fun PaperPageControls(
     canJump: Boolean = true,
 ) {
     Row(
-        modifier.fillMaxWidth().border(1.dp, Color.Black).padding(horizontal = 32.dp, vertical = 8.dp),
+        modifier.fillMaxWidth().drawBehind {
+            val stroke = 1.dp.toPx()
+            drawLine(Color.Black, Offset(0f, stroke / 2), Offset(size.width, stroke / 2), strokeWidth = stroke)
+        }.padding(horizontal = 32.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
