@@ -3,8 +3,10 @@ package eu.kanade.presentation.browse.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
@@ -23,7 +25,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.library.components.CommonMangaItemDefaults
-import eu.kanade.presentation.library.components.MangaComfortableGridItem
+import eu.kanade.presentation.library.components.MangaCompactGridItem
 import eu.kanade.presentation.library.components.libraryPageStart
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.KeyboardArrowLeft
@@ -34,7 +36,7 @@ import tachiyomi.domain.manga.model.asMangaCover
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
-import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
+import tachiyomi.presentation.core.components.material.PaperButton as Button
 
 @Composable
 fun GlobalSearchCardRow(
@@ -49,6 +51,8 @@ fun GlobalSearchCardRow(
         val available = (maxWidth - arrowWidth * 2).coerceAtLeast(1.dp)
         val cardWidth = 88.dp.coerceAtMost(available)
         val gap = MaterialTheme.padding.extraSmall
+        val coverWidth = (cardWidth - CommonMangaItemDefaults.GridItemPadding * 2).coerceAtLeast(1.dp)
+        val arrowHeight = if (titles.isEmpty()) 48.dp else (coverWidth * 1.5f).coerceAtLeast(48.dp)
         val density = LocalDensity.current
         val capacity = with(density) {
             searchResultRowCapacity(available.roundToPx(), cardWidth.roundToPx(), gap.roundToPx())
@@ -59,14 +63,18 @@ fun GlobalSearchCardRow(
             Modifier.fillMaxWidth().padding(vertical = MaterialTheme.padding.small),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(
+            Button(
                 onClick = { anchor = (start - capacity).coerceAtLeast(0) },
                 enabled = start > 0,
-                modifier = Modifier.width(arrowWidth),
+                modifier = Modifier.width(arrowWidth).height(arrowHeight),
+                contentPadding = PaddingValues(0.dp),
             ) {
                 Icon(MaterialSymbols.Rounded.KeyboardArrowLeft, stringResource(MR.strings.spen_previous_page))
             }
-            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(gap)) {
+            Row(
+                Modifier.weight(1f),
+                horizontalArrangement = if (end - start <= 1) Arrangement.Center else Arrangement.SpaceBetween,
+            ) {
                 if (titles.isEmpty()) {
                     EmptyResultItem()
                 } else {
@@ -85,10 +93,11 @@ fun GlobalSearchCardRow(
                     }
                 }
             }
-            IconButton(
+            Button(
                 onClick = { anchor = end },
                 enabled = end < titles.size,
-                modifier = Modifier.width(arrowWidth),
+                modifier = Modifier.width(arrowWidth).height(arrowHeight),
+                contentPadding = PaddingValues(0.dp),
             ) {
                 Icon(MaterialSymbols.Rounded.KeyboardArrowRight, stringResource(MR.strings.spen_next_page))
             }
@@ -106,9 +115,8 @@ private fun MangaItem(
     onLongClick: () -> Unit,
 ) {
     Box(modifier = Modifier.width(width)) {
-        MangaComfortableGridItem(
+        MangaCompactGridItem(
             title = title,
-            titleMaxLines = 2,
             coverData = cover,
             coverBadgeStart = {
                 InLibraryBadge(enabled = isFavorite)
