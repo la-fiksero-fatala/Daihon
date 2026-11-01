@@ -5,11 +5,11 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.graphics.drawable.toBitmap
 import coil3.asDrawable
 import coil3.imageLoader
 import coil3.request.ImageRequest
@@ -65,7 +65,7 @@ class LibraryUpdateNotifier(
      * Bitmap of the app for notifications.
      */
     private val notificationBitmap by lazy {
-        BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
+        context.getDrawable(R.drawable.ic_daihon)!!.toBitmap(width = 128, height = 128)
     }
 
     /**
@@ -169,7 +169,7 @@ class LibraryUpdateNotifier(
         ) {
             setContentTitle(context.pluralStringResource(MR.plurals.notification_update_error, failed, failed))
             setContentText(context.stringResource(MR.strings.action_show_errors))
-            setSmallIcon(R.drawable.ic_mihon)
+            setSmallIcon(R.drawable.ic_daihon_notification)
 
             setContentIntent(NotificationReceiver.openErrorLogPendingActivity(context, uri))
         }
@@ -209,7 +209,7 @@ class LibraryUpdateNotifier(
                 }
             }
 
-            setSmallIcon(R.drawable.ic_mihon)
+            setSmallIcon(R.drawable.ic_daihon_notification)
             setLargeIcon(notificationBitmap)
 
             setGroup(Notifications.GROUP_NEW_CHAPTERS)
@@ -243,7 +243,7 @@ class LibraryUpdateNotifier(
             setContentText(description)
             setStyle(NotificationCompat.BigTextStyle().bigText(description))
 
-            setSmallIcon(R.drawable.ic_mihon)
+            setSmallIcon(R.drawable.ic_daihon_notification)
 
             if (icon != null) {
                 setLargeIcon(icon)

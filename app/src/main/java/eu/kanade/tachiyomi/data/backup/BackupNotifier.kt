@@ -1,8 +1,8 @@
 package eu.kanade.tachiyomi.data.backup
 
 import android.content.Context
-import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.hippo.unifile.UniFile
 import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.R
@@ -29,8 +29,8 @@ class BackupNotifier(
     private val progressNotificationBuilder = context.notificationBuilder(
         Notifications.CHANNEL_BACKUP_RESTORE_PROGRESS,
     ) {
-        setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
-        setSmallIcon(R.drawable.ic_mihon)
+        setLargeIcon(context.getDrawable(R.drawable.ic_daihon)!!.toBitmap(width = 128, height = 128))
+        setSmallIcon(R.drawable.ic_daihon_notification)
         setAutoCancel(false)
         setOngoing(true)
         setOnlyAlertOnce(true)
@@ -39,8 +39,8 @@ class BackupNotifier(
     private val completeNotificationBuilder = context.notificationBuilder(
         Notifications.CHANNEL_BACKUP_RESTORE_COMPLETE,
     ) {
-        setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
-        setSmallIcon(R.drawable.ic_mihon)
+        setLargeIcon(context.getDrawable(R.drawable.ic_daihon)!!.toBitmap(width = 128, height = 128))
+        setSmallIcon(R.drawable.ic_daihon_notification)
         setAutoCancel(false)
     }
 
