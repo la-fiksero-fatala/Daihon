@@ -46,7 +46,7 @@ fun StaticCircularProgressIndicator(
         },
     ) {
         val stroke = strokeWidth.toPx()
-        drawCircle(color, style = Stroke(stroke))
+        drawCircle(color, radius = ((size.minDimension - stroke) / 2f).coerceAtLeast(0f), style = Stroke(stroke))
         if (value.isNaN()) {
             drawLine(
                 color,

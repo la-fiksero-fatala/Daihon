@@ -80,6 +80,8 @@ Daihon request audit — 2026-11-01
     A failed command shows a message once per reader session. Existing System
     preference values remain compatible with the renamed BOOX refresh option.
 [x] Reader image padding accepts physical pixels and applies around paged images.
+[x] Static loading rings keep their full outline inside the canvas, avoiding
+    clipped edges in the reader and other small loading views.
 [x] Analytics/crash upload dependencies and identifiers removed; manga-progress
     integrations retained. Manual local debug information remains available.
 [x] Support/Help entries removed. About no longer offers What's new, Check for
