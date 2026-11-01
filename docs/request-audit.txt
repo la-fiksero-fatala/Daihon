@@ -1,0 +1,84 @@
+Daihon request audit — 2026-11-01
+
+[x] Public Daihon fork and separate project/application identity. Stable, Preview,
+    and internal Debug package IDs differ from Mihon. Existing data is retained
+    when updating the same Daihon package.
+[x] Black だ, white circle, black background; adaptive and monochrome icons.
+[x] Fixed light, high-contrast appearance; theme/dark-mode selectors removed.
+[x] Dialog outlines and section cues retained; redundant icon, cover, settings-row,
+    and detail-action borders removed.
+[x] App-owned motion disabled independently of Android animation settings;
+    animation selectors removed from the active reader and settings interfaces.
+[x] Fixed pages replace finger-following scrolling in application lists, forms,
+    search/browse results, and the active reader. Long strips retain overlapping
+    fixed sections, per the corrected request.
+[x] Library category selection replaces horizontal category swiping; category
+    and page information occupy the title bar without a redundant Library title.
+[x] Library navigation: Hidden, Bar, Buttons. Hidden numbers remain in the title
+    bar. Numbers open page selection in Hidden and Buttons modes. Jump to top,
+    typed page entry, and scrubbing are retained.
+[x] Library grid/list modes, automatic/manual columns and rows, and physical-key
+    navigation retained. Incomplete pages preserve unused grid slots. Sorting
+    preserves the numeric page. Rows per page follows Items per row. Vertical
+    spacing is always applied where the grid has vertical space; its switch is
+    removed. The obsolete Max choice is absent.
+[x] Compact cover titles use translucent overlays rather than opaque white.
+[x] Categories use the same small-corner outlined menu, compact text, 48 dp touch
+    rows, and two columns when width permits. No separate Close footer; X in the
+    heading. Tablet smoke check fit 24 short categories on one screen.
+[x] Library organization/sorting has an inline X and dismisses on outside taps.
+[x] Manga Details opens by default and has Start/Resume from Chapter N using the
+    existing next-unread and continue-reading logic. Details/Chapters use a single
+    shared separator; detail actions remain unboxed.
+[x] Chapter controls remain permanently at the bottom. Chapter rows fill fractional
+    vertical remainder without changing item sizes; the artificial last-page tail
+    and extra vertical Resume padding are removed. Final jumps may clamp at the end.
+[x] Chapter bookmark and read/unread icons replace swipe actions beside download.
+[x] Numeric choices use direct keyboard entry and filtering rather than many pages
+    of choices. Reading-mode choices are stacked vertically. Smart update is capped
+    at 360 dp instead of occupying unnecessary width.
+[x] Shared alerts and adaptive dialogs expose a consistent X. Tabbed dialogs put X
+    in the tab row. Progress X uses existing cancel behavior or hides the indicator.
+[x] Dialog/list page controls use one top separator, not a second outer frame.
+    Viewports clip their content below headers and above navigation controls.
+[x] Extension migration keeps sorting in its title bar, without a redundant source
+    heading; the first entry of later pages is not covered by that heading.
+[x] Section headers stick below toolbars in settings, sources/extensions, history,
+    updates, upcoming lists, and expanded source-filter groups. Paged forms reuse
+    their section headings. Orphan bottom headers wait for the following page.
+    Lazy rows reserve space below their pinned header. Section metadata is cached
+    while continuing to observe state changes such as group expansion.
+[x] Device and refresh is one entry under Settings > Display. Its submenu contains
+    device detection and separate navigation/reader modes and refresh profiles;
+    the same device controls remain in guided onboarding. Settings search includes
+    the new submenu. Unknown firmware falls back to system-managed behavior.
+[x] Reader Page refresh: None, Black and white, System. System requests a firmware
+    full refresh after the selected image is decoded and drawing settles, including
+    the first image and overlapping strip sections. Preloads, repeated callbacks,
+    and menu taps do not request it. General reader refresh intervals are suspended
+    in System mode. Also accessible in reader settings and the device submenu.
+[x] Reader image padding accepts physical pixels and applies around paged images.
+[x] Analytics/crash upload dependencies and identifiers removed; manga-progress
+    integrations retained. Manual local debug information remains available.
+[x] Support/Help entries removed. About no longer offers What's new, Check for
+    updates, or social links. Version, licenses, and privacy information remain.
+[x] Source changes use focused, neutral commits so UI decisions can be reverted.
+
+Validation
+- Debug build and formatting pass.
+- 79 app tests and 15 presentation-core tests pass (94 total, no failures/skips).
+- Focused tests cover first-page decode gating, preloads, duplicate notifications,
+  released images, long-strip sections, orphan headers, and vertical spacing.
+- Brief emulator checks: Details/Resume target, chapter spacing, compact menus,
+  outside dismissal, pinned header below toolbar, phone and tablet modes.
+- Tablet mode restored after validation. Only fictional emulator reading data used.
+- Preview package/label, optimized APK build, USB installation, and preservation of
+  Mihon are verified separately in the delivered build's TESTING.txt.
+
+Limits
+- ADB/emulator checks do not establish physical ghosting or waveform quality.
+  BOOX firmware controls may still perform their own refreshes; disable automatic
+  full refreshes in its per-app settings when using the reader's System option.
+- Firmware support is capability-based, not a claim that every vendor/model has
+  been physically tested. The Go 7 is the connected installation target.
+- Earlier Mihon upstream PR work is separate from these Daihon UI changes.
