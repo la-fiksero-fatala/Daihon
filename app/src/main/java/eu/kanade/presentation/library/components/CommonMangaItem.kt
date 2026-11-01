@@ -87,6 +87,7 @@ fun MangaCompactGridItem(
     coverBadgeStart: @Composable (RowScope.() -> Unit)? = null,
     coverBadgeEnd: @Composable (RowScope.() -> Unit)? = null,
     maxWidth: Dp = Dp.Infinity,
+    titleFontScale: Float = 1f,
 ) {
     GridItemSelectable(
         modifier = if (maxWidth == Dp.Infinity) Modifier else Modifier.wrapContentWidth().widthIn(max = maxWidth),
@@ -109,6 +110,7 @@ fun MangaCompactGridItem(
                 if (title != null) {
                     CoverTextOverlay(
                         title = title,
+                        fontScale = titleFontScale,
                         onClickContinueReading = onClickContinueReading,
                     )
                 } else if (onClickContinueReading != null) {
@@ -132,6 +134,7 @@ fun MangaCompactGridItem(
 @Composable
 private fun BoxScope.CoverTextOverlay(
     title: String,
+    fontScale: Float,
     onClickContinueReading: (() -> Unit)? = null,
 ) {
     Row(
@@ -149,6 +152,7 @@ private fun BoxScope.CoverTextOverlay(
                 color = Color.Black,
             ),
             minLines = 1,
+            fontScale = fontScale,
         )
         if (onClickContinueReading != null) {
             ContinueReadingButton(
@@ -268,12 +272,13 @@ private fun GridItemTitle(
     minLines: Int,
     modifier: Modifier = Modifier,
     maxLines: Int = 2,
+    fontScale: Float = 1f,
 ) {
     Text(
         modifier = modifier,
         text = title,
-        fontSize = 14.sp,
-        lineHeight = CommonMangaItemDefaults.GridTitleLineHeight,
+        fontSize = 14.sp * fontScale,
+        lineHeight = CommonMangaItemDefaults.GridTitleLineHeight * fontScale,
         minLines = minLines,
         maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,

@@ -48,7 +48,8 @@ fun GlobalSearchCardRow(
     var anchor by rememberSaveable { mutableIntStateOf(0) }
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val arrowWidth = 48.dp.coerceAtMost(maxWidth / 3)
-        val available = (maxWidth - arrowWidth * 2).coerceAtLeast(1.dp)
+        val sideInset = CommonMangaItemDefaults.GridItemPadding
+        val available = (maxWidth - arrowWidth * 2 - sideInset * 2).coerceAtLeast(1.dp)
         val cardWidth = 88.dp.coerceAtMost(available)
         val gap = MaterialTheme.padding.extraSmall
         val coverWidth = (cardWidth - CommonMangaItemDefaults.GridItemPadding * 2).coerceAtLeast(1.dp)
@@ -72,8 +73,9 @@ fun GlobalSearchCardRow(
                 Icon(MaterialSymbols.Rounded.KeyboardArrowLeft, stringResource(MR.strings.spen_previous_page))
             }
             Row(
-                Modifier.weight(1f),
-                horizontalArrangement = if (end - start <= 1) Arrangement.Center else Arrangement.SpaceBetween,
+                // Match the covers' internal padding so visible gaps beside arrows and between covers are equal.
+                Modifier.weight(1f).padding(horizontal = sideInset),
+                horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 if (titles.isEmpty()) {
                     EmptyResultItem()
@@ -117,6 +119,7 @@ private fun MangaItem(
     Box(modifier = Modifier.width(width)) {
         MangaCompactGridItem(
             title = title,
+            titleFontScale = 0.5f,
             coverData = cover,
             coverBadgeStart = {
                 InLibraryBadge(enabled = isFavorite)
@@ -140,6 +143,6 @@ private fun EmptyResultItem() {
     )
 }
 
-/** Complete cards only; both arrow slots are excluded before computing this width. */
+/** Complete cards only; arrow slots and side insets are excluded from this width. */
 internal fun searchResultRowCapacity(width: Int, cardWidth: Int, gap: Int): Int =
     ((width + gap) / (cardWidth + gap).coerceAtLeast(1)).coerceAtLeast(1)
