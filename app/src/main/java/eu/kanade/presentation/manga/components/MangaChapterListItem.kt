@@ -55,11 +55,12 @@ fun MangaChapterListItem(
                 onClick = onClick,
                 onLongClick = onLongClick,
             )
-            .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp),
+            .padding(start = 16.dp, top = 4.dp, end = 8.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(2.dp),

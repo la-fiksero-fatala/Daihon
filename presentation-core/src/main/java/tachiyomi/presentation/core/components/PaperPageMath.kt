@@ -34,7 +34,8 @@ fun paperPageIndex(input: String, count: Int): Int? =
 /** Uniform rows keep the same positions across pages without leaving a fractional empty row. */
 fun paperRowSpacing(viewport: Int, rowHeight: Int, total: Int): Float {
     if (rowHeight <= 0 || total <= 1) return 0f
-    val rows = (viewport / rowHeight).coerceAtMost(total)
+    val rows = viewport / rowHeight
+    if (total < rows) return 0f
     return if (rows > 1) (viewport - rows * rowHeight).toFloat() / (rows - 1) else 0f
 }
 

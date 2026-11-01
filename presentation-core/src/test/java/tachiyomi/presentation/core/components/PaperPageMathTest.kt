@@ -90,6 +90,7 @@ class PaperPageMathTest {
         paperRowSpacing(650, 100, 30) shouldBe 10f
         paperRowSpacing(600, 100, 30) shouldBe 0f
         paperRowSpacing(300, 100, 3) shouldBe 0f
+        paperRowSpacing(650, 100, 3) shouldBe 0f
         paperRowSpacing(80, 100, 30) shouldBe 0f
     }
 }
