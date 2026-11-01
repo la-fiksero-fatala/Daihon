@@ -62,6 +62,17 @@ class LibraryPaginationTest {
     }
 
     @Test
+    fun `initial grid fitting accounts for the first cell remainder pixel`() {
+        libraryGridCellWidth(601, 3, 4) shouldBe 198
+        libraryGridCellWidth(602, 3, 4) shouldBe 198
+        libraryGridCellWidth(600, 1, 4) shouldBe 600
+        val width = libraryGridCellWidth(601, 3, 4)
+        val layout = libraryGridPageLayout(600, width, 3, 8, 56, 4, 48, 3)
+        layout.capacity shouldBe 9
+        (layout.itemWidth!! < width) shouldBe true
+    }
+
+    @Test
     fun `manual rows can exceed the natural auto capacity by fitting smaller covers`() {
         val auto = libraryGridPageLayout(600, 200, 3, 8, 56, 4, 48, 0)
         val manual = libraryGridPageLayout(600, 200, 3, 8, 56, 4, 48, 3)

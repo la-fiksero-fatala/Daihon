@@ -15,14 +15,19 @@ Daihon request audit — 2026-11-01
 [x] Library category selection replaces horizontal category swiping; category
     and page information occupy the title bar without a redundant Library title.
 [x] Library navigation: Hidden, Bar, Buttons. Hidden numbers remain in the title
-    bar. Numbers open page selection in Hidden and Buttons modes. Jump to top,
-    typed page entry, and scrubbing are retained.
+    bar in all three modes. Side rails contain arrows or the selected slider, with
+    no middle counter. Numbers open page selection. Jump to top, typed page entry,
+    and scrubbing are retained.
 [x] Library grid/list modes, automatic/manual columns and rows, and physical-key
     navigation retained. Incomplete pages preserve unused grid slots. Sorting
     preserves the numeric page. Rows per page follows Items per row. Vertical
     spacing is always applied where the grid has vertical space; its switch is
     removed. The obsolete Max choice is absent.
 [x] Compact cover titles use translucent overlays rather than opaque white.
+[x] Library grid fitting is calculated synchronously from the viewport, including
+    grid padding, spacing, and remainder pixels. Covers remain hidden until the
+    fitted width and capacity can be applied together; category changes do not
+    expose the initial full-size measurement layout.
 [x] Categories use the same small-corner outlined menu, compact text, 48 dp touch
     rows, and two columns when width permits. No separate Close footer; X in the
     heading. Tablet smoke check fit 24 short categories on one screen.
@@ -31,7 +36,10 @@ Daihon request audit — 2026-11-01
     existing next-unread and continue-reading logic. In single-pane layouts, the
     reading button takes two thirds of its row and a Chapters/Details button takes
     one third. Tabs are removed; top back returns to the library. The row uses one
-    outline and divider; detail actions remain unboxed. Tablet dual panes remain.
+    outline and divider; detail actions remain unboxed. Reading/view-switch actions
+    occupy a fixed screen footer in both views, with a 16 physical-pixel gap above
+    the system navigation area and no separator above them. Tablet dual panes
+    share one fixed reading footer.
 [x] Chapter navigation uses actual visible chapter numbers and the series maximum,
     including fractions. The chapter picker accepts decimal chapter numbers;
     duplicate releases and gap notices do not inflate the total. Unnumbered lists
@@ -40,7 +48,7 @@ Daihon request audit — 2026-11-01
     row remainder is filled only for full viewports; short lists are not stretched.
     Right-side controls page through complete rows. Final pages preserve white
     space instead of clamping backward to fill the viewport. Resume stays below
-    the chapter content. Narrow chapter titles may wrap to two lines so chapter
+    the chapter content in a fixed screen footer. Narrow titles may wrap so chapter
     numbers remain readable alongside their actions in tablet panes.
 [x] Chapter bookmark and read/unread icons replace swipe actions beside download.
 [x] Numeric choices use direct keyboard entry and filtering rather than many pages
@@ -78,9 +86,9 @@ Daihon request audit — 2026-11-01
 [x] Settings > Display > Page navigation has separate visibility switches for
     Details, Chapters, Browse, Updates, History, Settings, dialogs and other screens.
     Navigation sits on the right; its width is adjustable from 48 to 112 dp,
-    defaulting to 72 dp. Hidden bars retain a tappable position/page counter in
-    the existing toolbar or dialog heading, with a local fallback for menus without
-    a heading. Key/swipe paging and system insets remain. Library has a link, not
+    defaulting to 72 dp. Tappable position/page counters always occupy the toolbar
+    or dialog heading, using the same compact outlined style as the library.
+    Menus without headings retain a local top counter. Key/swipe paging and system insets remain. Library has a link, not
     a switch; it opens the library Display menu and preserves Hidden/Bar/Buttons.
     Shared width applies to library buttons and the vertical progress-bar style.
 [x] App pages have no overlap and incomplete last pages retain white space. Lazy
@@ -91,13 +99,14 @@ Daihon request audit — 2026-11-01
 
 Validation
 - Debug build and formatting pass.
-- 71 app tests and 22 presentation-core tests pass (93 total, no failures/skips).
+- 72 app tests and 22 presentation-core tests pass (94 total, no failures/skips).
 - Focused tests cover first-page decode gating, preloads, duplicate notifications,
   released images, chapter-transition cancellation, long-strip sections, orphan
   headers, vertical spacing, full-row grid boundaries, form controls, text lines,
-  repeated headings, and final-page whitespace.
+  repeated headings, final-page whitespace, and first-cell grid rounding.
 - Brief emulator checks: Details/Resume target, chapter spacing, compact menus,
-  outside dismissal, pinned header below toolbar, phone and tablet modes.
+  outside dismissal, pinned header below toolbar, phone and tablet modes;
+  fixed footer bounds across page changes and the 16-pixel bottom gap.
 - Tablet mode restored after validation. Only fictional emulator reading data used.
 - Preview package/label, optimized APK build, USB installation, and preservation of
   Mihon are verified separately in the delivered build's TESTING.txt.

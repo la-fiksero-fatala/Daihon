@@ -91,13 +91,11 @@ internal fun LibraryPaginatedContent(
 ) {
     val isList = displayMode == LibraryDisplayMode.List
     var anchorIndex by rememberSaveable(searchQuery, hasActiveFilters) { mutableIntStateOf(0) }
-    var pageSize by remember(displayMode, columns, requestedRows, buttons) { mutableIntStateOf(0) }
-    var rowsPerPage by remember { mutableIntStateOf(0) }
-    var maximumRows by remember(displayMode, columns, requestedRows, buttons) { mutableIntStateOf(1) }
-    var canStretchSpacing by remember(displayMode, columns, requestedRows, buttons) { mutableStateOf(false) }
     val density = LocalDensity.current
     var viewport by remember { mutableStateOf(IntSize.Zero) }
-    var maxItemWidth by remember(viewport, displayMode, columns, requestedRows, density) { mutableStateOf(Dp.Infinity) }
+    var listLayout by remember(viewport, displayMode, columns, requestedRows, buttons, density) {
+        mutableStateOf<LibraryPageLayout?>(null)
+    }
     val gridPadding = with(density) { 16.dp.roundToPx() }
     val columnSpacing = with(density) { CommonMangaItemDefaults.GridHorizontalSpacer.roundToPx() }
     val adaptiveColumnWidth = with(density) { 128.dp.roundToPx() }
@@ -122,54 +120,50 @@ internal fun LibraryPaginatedContent(
         }
     }
 
+    val columnCount = if (columns > 0) {
+        columns
+    } else {
+        ((viewport.width - gridPadding + columnSpacing) / (adaptiveColumnWidth + columnSpacing)).coerceAtLeast(1)
+    }
+    // Grid geometry is known from the viewport. Apply the fitted width and capacity together,
+    // before exposing any covers, rather than waiting for an unconstrained grid to draw first.
+    val gridLayout = if (!isList && viewport.width > gridPadding && viewport.height > gridPadding) {
+        libraryGridPageLayout(
+            height = viewport.height - gridPadding,
+            itemWidth = libraryGridCellWidth(viewport.width - gridPadding, columnCount, columnSpacing),
+            columns = columnCount,
+            padding = itemPadding,
+            chromeHeight = chromeHeight,
+            spacing = with(density) { CommonMangaItemDefaults.GridVerticalSpacer.roundToPx() },
+            minimumCoverHeight = minimumCoverHeight,
+            requestedRows = requestedRows,
+        )
+    } else {
+        null
+    }
+    val layout = if (isList) listLayout else gridLayout
+    val pageSize = layout?.capacity ?: 0
+    val rowsPerPage = layout?.rows ?: 0
+    val maximumRows = layout?.maxRows ?: 1
+    val canStretchSpacing = layout?.canStretchSpacing == true
+    val maxItemWidth = layout?.itemWidth?.let { with(density) { it.toDp() } } ?: Dp.Infinity
+
     LaunchedEffect(viewport, displayMode, columns, requestedRows, buttons, density) {
-        if (isList) listState.scrollToItem(0) else gridState.scrollToItem(0)
-        snapshotFlow {
-            if (isList) {
-                val info = listState.layoutInfo
-                val row = info.visibleItemsInfo.firstOrNull { it.contentType == "library_list_item" }
-                row?.takeIf { info.viewportSize == viewport }?.let {
-                    val height = info.viewportSize.height - info.beforeContentPadding - info.afterContentPadding
-                    val maximum = libraryPageCapacity(height, it.size, 0, 1, 0)
-                    val rows = when {
-                        requestedRows == 0 -> maximum
-                        requestedRows < 0 -> maximum
-                        else -> requestedRows.coerceAtMost(maximum)
-                    }
-                    LibraryPageLayout(rows, maximum, null, rows > 1 && height - rows * it.size > 1, rows)
-                }
-            } else {
-                val info = gridState.layoutInfo
-                val row = info.visibleItemsInfo.firstOrNull()
-                val columnCount = if (columns > 0) {
-                    columns
-                } else {
-                    (
-                        (info.viewportSize.width - gridPadding + columnSpacing) /
-                            (adaptiveColumnWidth + columnSpacing)
-                        ).coerceAtLeast(1)
-                }
-                row?.takeIf { info.viewportSize == viewport }?.let {
-                    val height = info.viewportSize.height - info.beforeContentPadding - info.afterContentPadding
-                    libraryGridPageLayout(
-                        height = height,
-                        itemWidth = it.size.width,
-                        columns = columnCount,
-                        padding = itemPadding,
-                        chromeHeight = chromeHeight,
-                        spacing = info.mainAxisItemSpacing,
-                        minimumCoverHeight = minimumCoverHeight,
-                        requestedRows = requestedRows,
-                    )
-                }
-            }
-        }.filterNotNull().collect { layout ->
-            pageSize = layout.capacity
-            rowsPerPage = layout.rows
-            maximumRows = layout.maxRows
-            canStretchSpacing = layout.canStretchSpacing
-            maxItemWidth = layout.itemWidth?.let { with(density) { it.toDp() } } ?: Dp.Infinity
+        if (!isList) {
+            gridState.scrollToItem(0)
+            return@LaunchedEffect
         }
+        listState.scrollToItem(0)
+        snapshotFlow {
+            val info = listState.layoutInfo
+            val row = info.visibleItemsInfo.firstOrNull { it.contentType == "library_list_item" }
+            row?.takeIf { info.viewportSize == viewport }?.let {
+                val height = info.viewportSize.height - info.beforeContentPadding - info.afterContentPadding
+                val maximum = libraryPageCapacity(height, it.size, 0, 1, 0)
+                val rows = if (requestedRows <= 0) maximum else requestedRows.coerceAtMost(maximum)
+                LibraryPageLayout(rows, maximum, null, rows > 1 && height - rows * it.size > 1, rows)
+            }
+        }.filterNotNull().collect { listLayout = it }
     }
 
     val size = pageSize.coerceAtLeast(1)
@@ -346,6 +340,12 @@ internal data class LibraryPageLayout(
     val canStretchSpacing: Boolean,
     val rows: Int,
 )
+
+/** Fixed/adaptive grids give their first cells the remainder pixel. */
+internal fun libraryGridCellWidth(available: Int, columns: Int, spacing: Int): Int {
+    val count = columns.coerceAtLeast(1)
+    return ((available - spacing * (count - 1) + count - 1) / count).coerceAtLeast(1)
+}
 
 internal fun libraryGridPageLayout(
     height: Int,
