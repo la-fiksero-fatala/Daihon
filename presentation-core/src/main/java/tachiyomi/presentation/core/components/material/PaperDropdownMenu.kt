@@ -84,7 +84,8 @@ fun PaperDropdownMenu(
             LocalPaperNavigationArea provides PaperNavigationArea.Dialogs,
         ) {
             PaperSurface(
-                modifier = modifier.paperPopupReady(indicator).widthIn(max = (configuration.screenWidthDp - 24).dp)
+                modifier = modifier.paperPopupReady(indicator)
+                    .widthIn(min = 112.dp, max = minOf(144.dp, (configuration.screenWidthDp - 24).dp))
                     .heightIn(max = (configuration.screenHeightDp * .7f).dp),
                 shape = shape,
                 color = Color.White,
