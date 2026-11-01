@@ -29,7 +29,7 @@ fun ReaderSettingsDialog(
     val tabTitles = listOf(
         stringResource(MR.strings.pref_category_reading_mode),
         stringResource(MR.strings.pref_category_general),
-        stringResource(MR.strings.custom_filter),
+        stringResource(MR.strings.reader_processing),
     )
     val pagerState = rememberPagerState { tabTitles.size }
 

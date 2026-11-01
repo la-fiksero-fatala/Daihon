@@ -159,8 +159,10 @@ Daihon request audit — 2026-11-02
     directly with AGSL while keeping the tiled decoder, crop, zoom and fit logic.
     Downscaling with image filters off uses the original draw path. Padding adds
     no resampling stage. Optional Gentle sharpening, Paper contrast and Monochrome
-    dithering default off. Controls are in global Reader settings and Custom filter.
-    Unsupported Android versions/software canvases retain system sampling. The
+    dithering default off. Controls are in global Reader settings and Processing.
+    Unsupported Android versions/software canvases retain system sampling. Below
+    Android 13, disabled in-reader choices show the effective System/None fallback.
+    The Processing tab uses the standard preference margins for its help text. The
     shader implements standard mathematical kernels under Apache-2.0; see upscaling.txt.
 [x] Optional MIT-licensed Anime4K DoG source-space enhancement is available in
     global Reader settings and the in-reader Reading mode settings. Catmull–Rom
@@ -173,7 +175,7 @@ Daihon request audit — 2026-11-02
     original fixed-2x shader. No measured battery/performance claim is made.
 [x] WebGPU retains grayscale and inverted page-image colors without filtering
     loading, error or transition controls. Both off adds no built-in color pass.
-[x] Custom filter shows the current source image resolution before cropping,
+[x] Processing shows the current source image resolution before cropping,
     splitting or fitting, followed by Cropped resolution from the actual crop
     bounds before display scaling. Preloaded pages update only their own metadata.
 [x] Exactly one selected chapter exposes Check resolution in its bottom actions.
@@ -191,6 +193,10 @@ Daihon request audit — 2026-11-02
 
 Validation
 - Debug build and formatting pass.
+- Processing follow-up: real Android 10 reader draw with saved Lanczos/Monochrome
+  preferences safely falls back to System/None, with no missing-API linkage errors;
+  both choices are disabled. Android 10/13 tab screenshots confirm the new label
+  and help text matching the preference inset.
 - Follow-up checks: overflow width reduced from 520 to 288 px at emulator density;
   source/cropped labels read 640x960 and 616x936; legacy Catmull-Rom renders normally;
   Lanczos plus monochrome produces strictly black/white image pixels; a downscaled

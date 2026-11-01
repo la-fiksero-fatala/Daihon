@@ -1147,6 +1147,7 @@
     <string name="daihon_search_all_categories">Search in all categories</string>
     <string name="daihon_all_categories">All categories</string>
     <string name="daihon_chapters_count">Chapters (%1$s)</string>
+    <string name="reader_processing">Processing</string>
     <string name="daihon_cropped_resolution">Cropped resolution</string>
     <string name="reader_image_filter">Image filter</string>
     <string name="reader_scaler_system">System (bilinear)</string>

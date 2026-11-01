@@ -16,8 +16,10 @@ Legacy sampling (Android 13+)
 - Optional Gentle sharpening, Paper contrast and Monochrome dithering filters
   default to None. Monochrome uses an ordered 4x4 pattern; Android paint dithering
   is disabled for that choice to avoid adding a second dither.
-- Settings appear in Reader > Display and the reader's Custom filter tab.
-- Earlier Android versions and software canvases retain system sampling. A
+- Settings appear in Reader > Display and the reader's Processing tab.
+- Earlier Android versions and software canvases retain system sampling. On older
+  Android, the in-reader choices are disabled and show System/None rather than
+  saved custom options that cannot run. A
   shader rejected by the graphics stack also falls back to system sampling.
 - The shader is an original Apache-2.0 implementation of standard mathematical
   reconstruction kernels; no GPL/LGPL shader or model is imported.
