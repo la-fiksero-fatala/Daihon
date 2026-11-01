@@ -234,6 +234,11 @@ class ReaderActivity : BaseActivity() {
         setComposeContent {
             val state by viewModel.state.collectAsState()
             val general by settingsViewModel.general.collectAsState()
+            val insets = when {
+                !general.fullscreen -> WindowInsets.systemBars
+                !general.drawUnderCutout -> WindowInsets.displayCutout
+                else -> WindowInsets(0)
+            }
             val showPageNumber by readerPreferences.showPageNumber.collectAsState()
             val pageRefresh by readerPreferences.pageRefresh.collectAsState()
             val colorOverlayEnabled by readerPreferences.colorFilter.collectAsState()
@@ -274,7 +279,7 @@ class ReaderActivity : BaseActivity() {
                     }
                     .then(if (general.keepScreenOn) Modifier.keepScreenOn() else Modifier),
             ) {
-                ReaderViewer()
+                ReaderViewer(insets)
 
                 if (isLoadingViewer) {
                     LoadingScreen()
@@ -288,13 +293,26 @@ class ReaderActivity : BaseActivity() {
                 )
 
                 if (!state.menuVisible && showPageNumber) {
-                    ReaderPageIndicator(
-                        currentPage = state.currentPage,
-                        totalPages = state.totalPages,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .navigationBarsPadding(),
-                    )
+                    val viewer by viewerFlow.collectAsState()
+                    val padding by readerPreferences.pagePadding.collectAsState()
+                    val paged = viewer != null && ReadingMode.isPagerType(viewModel.getMangaReadingMode())
+                    BoxWithConstraints(
+                        Modifier.fillMaxSize().windowInsetsPadding(if (paged) insets else WindowInsets(0)),
+                    ) {
+                        val pixels = if (paged) {
+                            boundedReaderPagePadding(padding, constraints.maxWidth, constraints.maxHeight)
+                        } else {
+                            0
+                        }
+                        ReaderPageIndicator(
+                            currentPage = state.currentPage,
+                            totalPages = state.totalPages,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .navigationBarsPadding()
+                                .padding(bottom = with(LocalDensity.current) { pixels.toDp() }),
+                        )
+                    }
                 }
 
                 if (pageRefresh == PageRefresh.BlackAndWhite) {
@@ -499,16 +517,11 @@ class ReaderActivity : BaseActivity() {
     }
 
     @Composable
-    private fun ReaderViewer() {
+    private fun ReaderViewer(insets: WindowInsets) {
         val viewer by viewerFlow.collectAsState()
         val general by settingsViewModel.general.collectAsState()
         val padding by readerPreferences.pagePadding.collectAsState()
         val paged = viewer != null && ReadingMode.isPagerType(viewModel.getMangaReadingMode())
-        val insets = when {
-            !general.fullscreen -> WindowInsets.systemBars
-            !general.drawUnderCutout -> WindowInsets.displayCutout
-            else -> WindowInsets(0)
-        }
         val colorFilter = remember(general.grayscale, general.invertedColors) {
             viewerColorFilter(general.grayscale, general.invertedColors)
         }
