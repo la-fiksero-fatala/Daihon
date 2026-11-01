@@ -1133,4 +1133,9 @@
     <string name="page_navigation_dialogs">Dialogs and pop-up menus</string>
     <string name="page_navigation_other">Other screens</string>
     <string name="webgpu_renderer_fallback">WebGPU is unavailable. Using the standard renderer.</string>
+    <string name="reader_upscaling_algorithm">Upscaling algorithm</string>
+    <string name="reader_upscaler_default">Catmull–Rom (default)</string>
+    <string name="reader_upscaler_anime4k">Anime4K DoG (lightweight)</string>
+    <string name="reader_upscaling_help">Used only when enlarging pages. Downscaling uses the default area filter.</string>
+    <string name="reader_upscaler_failed">This upscaler is unavailable. Using Catmull–Rom.</string>
 </resources>

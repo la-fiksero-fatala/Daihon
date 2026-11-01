@@ -10,6 +10,7 @@ import ca.mpreg.imagedecoder.ImageDecoder
 import ca.mpreg.webgpuviewer.closeTo
 import ca.mpreg.webgpuviewer.renderer.GainmapInput
 import ca.mpreg.webgpuviewer.renderer.Image
+import ca.mpreg.webgpuviewer.renderer.ImageFilterWgsl
 import ca.mpreg.webgpuviewer.transition.TransitionNone
 import ca.mpreg.webgpuviewer.viewer.ImagePage
 import ca.mpreg.webgpuviewer.viewer.ImageViewer
@@ -25,6 +26,7 @@ import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.setting.GeneralSettings
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences.TransitionAnimation
+import eu.kanade.tachiyomi.ui.reader.setting.UpscalingAlgorithm
 import eu.kanade.tachiyomi.ui.reader.viewer.LongStripSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.PagedSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView.ZoomStartPosition
@@ -34,6 +36,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.mouseWheelPaging
 import eu.kanade.tachiyomi.ui.reader.viewer.position
 import eu.kanade.tachiyomi.util.system.createReaderThemeContext
 import eu.kanade.tachiyomi.util.system.readerBackgroundColor
+import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +53,7 @@ import kotlinx.coroutines.withContext
 import logcat.LogPriority
 import mihon.app.di.appGraph
 import tachiyomi.core.common.util.system.logcat
+import tachiyomi.i18n.MR
 import java.io.FilterInputStream
 import java.lang.ref.WeakReference
 import java.util.TreeSet
@@ -838,10 +842,10 @@ open class WebGpuViewer(
                 viewerState.doubleTapGesturesEnabled = false
                 viewerState.pinchZoomEnabled = false
             }
-            if (old?.imageFilters != new.imageFilters) {
+            if (old?.imageFilters != new.imageFilters || old?.upscalingAlgorithm != new.upscalingAlgorithm) {
                 // Else an older, slower load could land last.
                 imageFiltersJob?.cancel()
-                imageFiltersJob = scope.launch { viewerState.imageFilters = loadFilters(new.imageFilters) }
+                imageFiltersJob = scope.launch { viewerState.imageFilters = loadImageFilters(new) }
             }
             if (old?.tileFilters != new.tileFilters) {
                 tileFiltersJob?.cancel()
@@ -932,6 +936,28 @@ open class WebGpuViewer(
                 logcat(LogPriority.ERROR, e) { "filter ${shader.name}" }
                 null
             }
+        }
+    }
+
+    private suspend fun loadImageFilters(settings: WebGpuSettings): List<ImageFilterWgsl> {
+        val custom = loadFilters(settings.imageFilters)
+        if (settings.upscalingAlgorithm == UpscalingAlgorithm.CatmullRom) return custom
+        return try {
+            val source = withContext(Dispatchers.IO) {
+                activity.assets.open("shaders/anime4k_dog.wgsl").bufferedReader().use { it.readText() }
+            }
+            val filter = ImageFilterWgsl(source, "Anime4K DoG")
+            filter.validate()
+            listOf(filter) + custom
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e) { "Anime4K DoG" }
+            withContext(Dispatchers.Main) {
+                activity.toast(MR.strings.reader_upscaler_failed)
+                settingsViewModel.preferences.upscalingAlgorithm.set(UpscalingAlgorithm.CatmullRom)
+            }
+            custom
         }
     }
 

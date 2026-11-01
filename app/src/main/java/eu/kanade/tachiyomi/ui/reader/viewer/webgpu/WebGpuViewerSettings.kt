@@ -33,6 +33,7 @@ import eu.kanade.domain.manga.model.readerOrientation
 import eu.kanade.domain.manga.model.readingMode
 import eu.kanade.presentation.reader.settings.PagePaddingSetting
 import eu.kanade.presentation.reader.settings.TapZonesItems
+import eu.kanade.presentation.reader.settings.UpscalingAlgorithmSetting
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsViewModel
@@ -138,6 +139,7 @@ internal fun WebGpuViewerSettings(viewModel: ReaderSettingsViewModel) {
     }
 
     HeadingItem(MR.strings.webgpu_viewer)
+    UpscalingAlgorithmSetting()
 
     // As the viewer decides it, with the activity's window in place of the viewer's size. Not the sheet's own window.
     val configuration = LocalConfiguration.current

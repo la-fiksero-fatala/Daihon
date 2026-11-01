@@ -12,6 +12,7 @@ import eu.kanade.presentation.reader.settings.PageRefreshSetting
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
+import eu.kanade.tachiyomi.ui.reader.setting.UpscalingAlgorithm
 import eu.kanade.tachiyomi.util.system.hasDisplayCutout
 import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
@@ -66,6 +67,7 @@ object SettingsReaderScreen : SearchableSettings {
     private fun getDisplayGroup(readerPreferences: ReaderPreferences): Preference.PreferenceGroup {
         val context = LocalContext.current
         val renderer = remember { context.appGraph.basePreferences.highQualityRenderer }
+        val webGpu by renderer.collectAsState()
         val fullscreen by readerPreferences.fullscreen.collectAsState()
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_display),
@@ -82,6 +84,12 @@ object SettingsReaderScreen : SearchableSettings {
                 Preference.PreferenceItem.SwitchPreference(
                     preference = renderer,
                     title = stringResource(MR.strings.pref_high_quality_renderer),
+                ),
+                Preference.PreferenceItem.ListPreference(
+                    preference = readerPreferences.upscalingAlgorithm,
+                    title = stringResource(MR.strings.reader_upscaling_algorithm),
+                    entries = UpscalingAlgorithm.entries.associateWith { stringResource(it.title) },
+                    visible = webGpu,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = readerPreferences.fullscreen,

@@ -210,6 +210,7 @@ class ReaderSettingsViewModel(
         preferences.disableDoubleTapGestures,
         preferences.imageFilters,
         preferences.tileFilters,
+        preferences.upscalingAlgorithm,
     ) {
         WebGpuPagedSettings(
             page = WebGpuPagedSettings.Page(
@@ -221,6 +222,7 @@ class ReaderSettingsViewModel(
             ),
             common = WebGpuSettings(
                 doubleTapGesturesDisabled = disableDoubleTapGestures.get(),
+                upscalingAlgorithm = upscalingAlgorithm.get(),
                 imageFilters = imageFilters.get(),
                 tileFilters = tileFilters.get(),
             ),
@@ -236,6 +238,7 @@ class ReaderSettingsViewModel(
         preferences.disableDoubleTapGestures,
         preferences.imageFilters,
         preferences.tileFilters,
+        preferences.upscalingAlgorithm,
     ) {
         WebGpuLongStripSettings(
             page = WebGpuLongStripSettings.Page(
@@ -244,6 +247,7 @@ class ReaderSettingsViewModel(
             ),
             common = WebGpuSettings(
                 doubleTapGesturesDisabled = disableDoubleTapGestures.get(),
+                upscalingAlgorithm = upscalingAlgorithm.get(),
                 imageFilters = imageFilters.get(),
                 tileFilters = tileFilters.get(),
             ),

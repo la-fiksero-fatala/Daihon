@@ -82,6 +82,8 @@ class ReaderPreferences(
 
     val imageScaleType: Preference<Int> = preferenceStore.getInt("pref_image_scale_type_key", 1)
 
+    val upscalingAlgorithm = preferenceStore.getEnum("reader_upscaling_algorithm", UpscalingAlgorithm.CatmullRom)
+
     val zoomStart: Preference<Int> = preferenceStore.getInt("pref_zoom_start_key", 1)
 
     val readerTheme: Preference<Int> = FixedPreference("readerTheme", 0)

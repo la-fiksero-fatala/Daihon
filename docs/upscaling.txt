@@ -1,0 +1,37 @@
+Daihon reader upscaling
+
+The default remains WebGPU viewer 54's Catmull-Rom interpolation. Its area/box
+downscaler is unchanged. Padding changes layout bounds before creating the
+viewer surface; it never resizes a page bitmap or adds a scaling pass.
+
+The optional Anime4K DoG preset is a WGSL adaptation of bloc97's non-CNN
+Anime4K_Upscale_DoG_x2.glsl, revision 7684e9586f8dcc738af08a1cdceb024cc184f426.
+Original file blob: 036411fa6c2e7b57c89c8db9626bc5307f221f56.
+https://github.com/bloc97/Anime4K/blob/7684e9586f8dcc738af08a1cdceb024cc184f426/glsl/Upscale/Anime4K_Upscale_DoG_x2.glsl
+https://github.com/bloc97/Anime4K/wiki/Upscale-Shaders
+
+This is the lightweight separable-Gaussian/luma-correction variant, not a CNN.
+It has no model weights, inference runtime or continuous video processing.
+The renderer caches its output per source image and scale. Actual power draw
+and visual quality depend on the device and image; no battery measurement is
+claimed. This older non-CNN variant is retained upstream but deprecated in
+favor of heavier CNN presets; it is offered here explicitly as a lightweight
+alternative for line art, with the original default preserved.
+
+Port changes:
+- Four small WGSL compute passes, with a three-source-pixel halo for block edges.
+- Operates only when both output axes enlarge the source.
+- DoG luma correction runs at the original pixel resolution, followed by the
+  renderer's Catmull-Rom sampler as the single resize to the requested viewport.
+  This avoids a fixed 2x intermediate and the renderer's whole-number-filter
+  restriction. It is a source-space adaptation, not a pixel-identical port of
+  the original 2x shader.
+- The original alpha channel is preserved during luma correction.
+- Original luma coefficients, Gaussian weights, 0.8 strength and local-range
+  clamp retained. No default sharpening or color transform is added.
+
+License: MIT, copyright 2019-2021 bloc97. The complete notice is embedded in the
+shader and included in the APK at assets/licenses/Anime4K.txt. The permissive
+MIT terms allow redistribution alongside Daihon's Apache-2.0 code while
+retaining the copyright, permission and warranty notices. App LICENSE remains
+Apache-2.0. No LGPL/GPL shader or model weights are bundled.
