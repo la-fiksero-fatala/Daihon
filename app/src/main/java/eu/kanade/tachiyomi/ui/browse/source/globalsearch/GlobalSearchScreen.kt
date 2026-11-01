@@ -14,12 +14,15 @@ import eu.kanade.presentation.browse.GlobalSearchScreen
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.screens.LoadingScreen
 
 class GlobalSearchScreen(
     val searchQuery: String = "",
     private val extensionFilter: String? = null,
 ) : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Browse
 
     @Composable
     override fun Content() {

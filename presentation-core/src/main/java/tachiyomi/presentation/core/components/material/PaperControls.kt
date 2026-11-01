@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +26,8 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import tachiyomi.presentation.core.components.LocalPaperNavigationArea
+import tachiyomi.presentation.core.components.PaperNavigationArea
 
 @Composable
 fun PaperButton(
@@ -81,25 +84,27 @@ fun PaperAlertDialog(
     tonalElevation: Dp = 0.dp,
     properties: DialogProperties = DialogProperties(),
     onCloseRequest: () -> Unit = onDismissRequest,
-) = androidx.compose.material3.AlertDialog(
-    onDismissRequest, confirmButton, modifier.border(2.dp, Color.Black, shape), dismissButton, icon,
-    {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.weight(1f)) {
-                ProvideTextStyle(MaterialTheme.typography.titleMedium) { title?.invoke() }
+) = CompositionLocalProvider(LocalPaperNavigationArea provides PaperNavigationArea.Dialogs) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest, confirmButton, modifier.border(2.dp, Color.Black, shape), dismissButton, icon,
+        {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) {
+                    ProvideTextStyle(MaterialTheme.typography.titleMedium) { title?.invoke() }
+                }
+                DialogCloseButton(onClick = onCloseRequest)
             }
-            DialogCloseButton(onClick = onCloseRequest)
-        }
-    },
-    text,
-    shape,
-    containerColor,
-    iconContentColor,
-    titleContentColor,
-    textContentColor,
-    tonalElevation,
-    properties,
-)
+        },
+        text,
+        shape,
+        containerColor,
+        iconContentColor,
+        titleContentColor,
+        textContentColor,
+        tonalElevation,
+        properties,
+    )
+}
 
 @Composable
 fun PaperSurface(

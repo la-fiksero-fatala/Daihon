@@ -26,6 +26,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
@@ -35,6 +36,8 @@ import java.util.Locale
 import kotlin.time.Instant
 
 object AboutScreen : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Settings
 
     @Composable
     override fun Content() {

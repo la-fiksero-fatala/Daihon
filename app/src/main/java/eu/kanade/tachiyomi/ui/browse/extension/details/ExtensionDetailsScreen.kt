@@ -10,12 +10,15 @@ import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.browse.ExtensionDetailsScreen
 import eu.kanade.presentation.util.Screen
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.LoadingScreen
 
 data class ExtensionDetailsScreen(
     private val pkgName: String,
 ) : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Browse
 
     @Composable
     override fun Content() {

@@ -313,6 +313,7 @@ data object LibraryTab : Tab {
                     onDismissRequest = onDismissRequest,
                     viewModel = settingsViewModel,
                     category = state.activeCategory,
+                    initialPage = dialog.page,
                 )
             }
             is LibraryViewModel.Dialog.ChangeCategory -> {
@@ -363,7 +364,7 @@ data object LibraryTab : Tab {
 
         LaunchedEffect(Unit) {
             launch { queryEvent.receiveAsFlow().collect(viewModel::search) }
-            launch { requestSettingsSheetEvent.receiveAsFlow().collectLatest { viewModel.showSettingsDialog() } }
+            launch { requestSettingsSheetEvent.receiveAsFlow().collectLatest(viewModel::showSettingsDialog) }
         }
     }
 
@@ -372,6 +373,7 @@ data object LibraryTab : Tab {
     suspend fun search(query: String) = queryEvent.send(query)
 
     // For opening settings sheet in LibraryController
-    private val requestSettingsSheetEvent = Channel<Unit>()
-    private suspend fun requestOpenSettingsSheet() = requestSettingsSheetEvent.send(Unit)
+    private val requestSettingsSheetEvent = Channel<Int>(Channel.BUFFERED)
+    private suspend fun requestOpenSettingsSheet() = requestSettingsSheetEvent.send(0)
+    suspend fun openDisplaySettings() = requestSettingsSheetEvent.send(2)
 }

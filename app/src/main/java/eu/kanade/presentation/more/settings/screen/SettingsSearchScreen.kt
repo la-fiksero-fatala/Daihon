@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.collectLatest
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Close
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
@@ -60,6 +61,8 @@ import tachiyomi.presentation.core.components.PaperLazyColumn as LazyColumn
 import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
 
 class SettingsSearchScreen : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Settings
 
     @Composable
     override fun Content() {
@@ -297,6 +300,7 @@ private fun getLocalizedBreadcrumb(path: String, node: String?, isLtr: Boolean):
 private val settingScreens = listOf(
     SettingsAppearanceScreen,
     SettingsDeviceDisplayScreen,
+    SettingsPageNavigationScreen,
     SettingsLibraryScreen,
     SettingsReaderScreen,
     SettingsDownloadScreen,

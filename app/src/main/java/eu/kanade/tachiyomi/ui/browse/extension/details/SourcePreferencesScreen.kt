@@ -63,6 +63,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
@@ -71,6 +72,8 @@ import tachiyomi.presentation.core.components.material.PaperAlertDialog as Alert
 import tachiyomi.presentation.core.components.material.PaperButton as TextButton
 
 class SourcePreferencesScreen(val sourceId: Long) : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Browse
 
     @Composable
     override fun Content() {

@@ -22,6 +22,13 @@ class UiPreferences(
     preferenceStore: PreferenceStore,
 ) {
 
+    val hiddenPageNavigation: Preference<Set<String>> = preferenceStore.getStringSet(
+        "paper_navigation_hidden",
+        emptySet(),
+    )
+
+    val pageNavigationHeight: Preference<Int> = preferenceStore.getInt("paper_navigation_height", 72)
+
     val relativeTime: Preference<Boolean> = preferenceStore.getBoolean("relative_time_v2", true)
 
     val dateFormat: Preference<String> = preferenceStore.getString("app_date_format", "")

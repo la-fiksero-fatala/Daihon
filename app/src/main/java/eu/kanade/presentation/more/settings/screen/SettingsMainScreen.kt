@@ -45,12 +45,15 @@ import mihon.icons.materialsymbols.rounded.Security
 import mihon.icons.materialsymbols.rounded.Storage
 import mihon.icons.materialsymbols.rounded.Sync
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import cafe.adriel.voyager.core.screen.Screen as VoyagerScreen
 import tachiyomi.presentation.core.components.PaperLazyColumn as LazyColumn
 
 object SettingsMainScreen : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Settings
 
     @Composable
     override fun Content() {

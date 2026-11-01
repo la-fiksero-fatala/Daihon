@@ -61,6 +61,7 @@ import mihon.feature.migration.dialog.MigrateMangaDialog
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.presentation.core.util.collectAsState
 
@@ -68,6 +69,8 @@ class MangaScreen(
     private val mangaId: Long,
     val fromSource: Boolean = false,
 ) : Screen(), AssistContentScreen {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Details
 
     private var assistUrl: String? = null
 

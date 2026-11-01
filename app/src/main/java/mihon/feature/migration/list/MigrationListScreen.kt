@@ -18,8 +18,11 @@ import mihon.feature.migration.list.components.MigrationExitDialog
 import mihon.feature.migration.list.components.MigrationMangaDialog
 import mihon.feature.migration.list.components.MigrationProgressDialog
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperNavigationArea
 
 class MigrationListScreen(private val mangaIds: Collection<Long>, private val extraSearchQuery: String?) : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Browse
 
     private var matchOverride: Pair<Long, Long>? = null
 

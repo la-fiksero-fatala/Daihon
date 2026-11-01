@@ -36,9 +36,10 @@ Daihon request audit — 2026-11-01
     including fractions. The chapter picker accepts decimal chapter numbers;
     duplicate releases and gap notices do not inflate the total. Unnumbered lists
     retain entry-based navigation.
-[x] Chapter controls remain permanently at the bottom. Chapter rows fill fractional
-    vertical remainder without changing item sizes; the artificial last-page tail
-    and extra vertical Resume padding are removed. Final jumps may clamp at the end.
+[x] Available chapter controls stay at the bottom. Chapter rows use compact spacing
+    and retain their icon touch targets. Fractional row remainder is filled only
+    for full viewports; short lists are not stretched apart. The artificial last-page
+    tail and extra Resume padding are removed. Final jumps may clamp at the end.
 [x] Chapter bookmark and read/unread icons replace swipe actions beside download.
 [x] Numeric choices use direct keyboard entry and filtering rather than many pages
     of choices. Reading-mode choices are stacked vertically. Smart update is capped
@@ -68,6 +69,14 @@ Daihon request audit — 2026-11-01
     integrations retained. Manual local debug information remains available.
 [x] Support/Help entries removed. About no longer offers What's new, Check for
     updates, or social links. Version, licenses, and privacy information remain.
+[x] Update all and similar outlined actions inherit the button content color,
+    avoiding white text on a white background.
+[x] Settings > Display > Page navigation has separate visibility switches for
+    Details, Chapters, Browse, Updates, History, Settings, dialogs and other screens.
+    Height is adjustable from 48 to 112 dp, defaulting to 72 dp. Hiding controls
+    retains key/swipe paging and system-bar insets. Library has a link, not a switch;
+    it opens the library Display menu directly and preserves Hidden/Bar/Buttons.
+    Shared height applies to the library's buttons and progress-bar style too.
 [x] Source changes use focused, neutral commits so UI decisions can be reverted.
 
 Validation

@@ -44,6 +44,10 @@ object SettingsAppearanceScreen : SearchableSettings {
                 title = stringResource(MR.strings.display_device_settings),
                 onClick = { navigator.push(SettingsDeviceDisplayScreen) },
             ),
+            Preference.PreferenceItem.TextPreference(
+                title = stringResource(MR.strings.page_navigation_settings),
+                onClick = { navigator.push(SettingsPageNavigationScreen) },
+            ),
             getDisplayGroup(uiPreferences = uiPreferences),
         )
     }

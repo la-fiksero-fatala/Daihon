@@ -68,6 +68,7 @@ import tachiyomi.domain.source.model.Source
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.Pill
 import tachiyomi.presentation.core.components.material.PaperIconButton
 import tachiyomi.presentation.core.components.material.PaperSurface
@@ -80,6 +81,8 @@ import tachiyomi.presentation.core.components.material.PaperCard as ElevatedCard
 import tachiyomi.presentation.core.components.material.PaperExtendedActionButton as SmallExtendedFloatingActionButton
 
 class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Browse
 
     constructor(mangaId: Long) : this(listOf(mangaId))
 

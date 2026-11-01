@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -56,8 +57,11 @@ fun LibrarySettingsDialog(
     viewModel: LibrarySettingsViewModel,
     category: Category?,
     maxPageRows: Int = 10,
+    initialPage: Int = 0,
 ) {
+    val pagerState = rememberPagerState(initialPage = initialPage.coerceIn(0, 2)) { 3 }
     TabbedDialog(
+        pagerState = pagerState,
         onDismissRequest = onDismissRequest,
         tabTitles = listOf(
             stringResource(MR.strings.action_filter),

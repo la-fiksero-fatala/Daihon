@@ -12,9 +12,12 @@ import eu.kanade.presentation.browse.SourcesFilterScreen
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.util.system.toast
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.screens.LoadingScreen
 
 class SourcesFilterScreen : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Browse
 
     @Composable
     override fun Content() {

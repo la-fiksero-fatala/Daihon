@@ -28,6 +28,7 @@ import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.SettingsItemsPaddings
 import tachiyomi.presentation.core.components.TriStateItem
@@ -37,6 +38,8 @@ import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.presentation.core.util.collectAsState
 
 class UpcomingScreen : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Updates
 
     @Composable
     override fun Content() {

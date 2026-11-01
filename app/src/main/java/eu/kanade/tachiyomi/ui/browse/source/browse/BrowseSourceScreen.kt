@@ -58,6 +58,7 @@ import mihon.presentation.core.util.collectAsLazyPagingItems
 import tachiyomi.core.common.Constants
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
@@ -70,6 +71,8 @@ data class BrowseSourceScreen(
     val sourceId: Long,
     private val listingQuery: String?,
 ) : Screen(), AssistContentScreen {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Browse
 
     private var assistUrl: String? = null
 

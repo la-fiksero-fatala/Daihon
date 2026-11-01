@@ -31,6 +31,7 @@ import mihon.icons.materialsymbols.automirroredrounded.ArrowForward
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
@@ -42,6 +43,8 @@ import tachiyomi.presentation.core.components.material.PaperExtendedActionButton
 data class MigrateMangaScreen(
     private val sourceId: Long,
 ) : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Browse
 
     @Composable
     override fun Content() {

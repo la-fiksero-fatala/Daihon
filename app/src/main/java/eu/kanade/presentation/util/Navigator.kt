@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
@@ -16,6 +17,8 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.transitions.ScreenTransitionContent
 import soup.compose.material.motion.animation.materialSharedAxisX
 import soup.compose.material.motion.animation.rememberSlideDistance
+import tachiyomi.presentation.core.components.LocalPaperNavigationArea
+import tachiyomi.presentation.core.components.PaperNavigationArea
 
 /**
  * For invoking back press to the parent activity
@@ -27,6 +30,8 @@ interface Tab : cafe.adriel.voyager.navigator.tab.Tab {
 }
 
 abstract class Screen : Screen {
+
+    open val pageNavigationArea: PaperNavigationArea get() = PaperNavigationArea.Other
 
     override val key: ScreenKey = uniqueScreenKey
 }
@@ -67,7 +72,14 @@ fun ScreenTransition(
         label = "transition",
     ) { screen ->
         navigator.saveableState("transition", screen) {
-            content(screen)
+            val area = if (LocalPaperNavigationArea.current == PaperNavigationArea.Dialogs) {
+                PaperNavigationArea.Dialogs
+            } else {
+                screen.paperNavigationArea()
+            }
+            CompositionLocalProvider(LocalPaperNavigationArea provides area) {
+                content(screen)
+            }
         }
     }
 

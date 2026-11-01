@@ -80,7 +80,7 @@ fun TachiyomiTheme(content: @Composable () -> Unit) {
             LocalRippleConfiguration provides null,
             LocalCursorBlinkEnabled provides false,
             LocalIndication provides PaperIndication,
-            content = content,
+            content = { PaperNavigationPreferences(content) },
         )
     }
 }

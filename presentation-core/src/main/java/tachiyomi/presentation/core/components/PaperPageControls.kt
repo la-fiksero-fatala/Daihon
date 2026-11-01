@@ -5,10 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
@@ -51,28 +54,46 @@ fun PaperPageControls(
     canJump: Boolean = true,
     showDivider: Boolean = true,
 ) {
+    val settings = LocalPaperNavigationSettings.current
+    if (!settings.visible(LocalPaperNavigationArea.current)) {
+        // Keep caller-owned system/app-bar insets even when the page controls are hidden.
+        Spacer(modifier)
+        return
+    }
+    val height = settings.height
+    val verticalPadding = ((height.value - 48f) / 2f).coerceIn(0f, 8f).dp
+    val buttonHeight = height - verticalPadding * 2
+    val buttonWidth = buttonHeight.coerceAtMost(56.dp)
     Row(
-        modifier.fillMaxWidth().drawBehind {
+        modifier.fillMaxWidth().heightIn(min = height).drawBehind {
             if (showDivider) {
                 val stroke = 1.dp.toPx()
                 drawLine(Color.Black, Offset(0f, stroke / 2), Offset(size.width, stroke / 2), strokeWidth = stroke)
             }
-        }.padding(horizontal = 32.dp, vertical = 8.dp),
+        }.padding(horizontal = 32.dp, vertical = verticalPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        PaperIconButton(onClick = onPrevious, enabled = canPrevious, modifier = Modifier.size(56.dp)) {
+        PaperIconButton(
+            onClick = onPrevious,
+            enabled = canPrevious,
+            modifier = Modifier.width(buttonWidth).height(buttonHeight),
+        ) {
             Icon(MaterialSymbols.Rounded.KeyboardArrowUp, stringResource(MR.strings.spen_previous_page))
         }
         PaperButton(
             onClick = onJump,
             enabled = canJump,
-            modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+            modifier = Modifier.weight(1f).heightIn(min = buttonHeight),
             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
         ) {
             Text(label, style = MaterialTheme.typography.bodyLarge)
         }
-        PaperIconButton(onClick = onNext, enabled = canNext, modifier = Modifier.size(56.dp)) {
+        PaperIconButton(
+            onClick = onNext,
+            enabled = canNext,
+            modifier = Modifier.width(buttonWidth).height(buttonHeight),
+        ) {
             Icon(MaterialSymbols.Rounded.KeyboardArrowDown, stringResource(MR.strings.spen_next_page))
         }
     }

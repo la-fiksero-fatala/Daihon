@@ -50,6 +50,8 @@ import mihon.app.di.appGraph
 import soup.compose.material.motion.animation.materialFadeThroughIn
 import soup.compose.material.motion.animation.materialFadeThroughOut
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.LocalPaperNavigationArea
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.i18n.pluralStringResource
 
 object HomeScreen : Screen() {
@@ -122,7 +124,14 @@ object HomeScreen : Screen() {
                         label = "tabContent",
                     ) {
                         tabNavigator.saveableState(key = "currentTab", it) {
-                            it.Content()
+                            val area = when (it) {
+                                LibraryTab -> PaperNavigationArea.Library
+                                BrowseTab -> PaperNavigationArea.Browse
+                                UpdatesTab -> PaperNavigationArea.Updates
+                                HistoryTab -> PaperNavigationArea.History
+                                else -> PaperNavigationArea.Other
+                            }
+                            CompositionLocalProvider(LocalPaperNavigationArea provides area) { it.Content() }
                         }
                     }
                 }

@@ -1151,4 +1151,10 @@
     <string name="page_refresh_flash">Black and white</string>
     <string name="page_refresh_system">System</string>
     <string name="page_refresh_system_help">System refresh cleans the panel after the first manga page and each page change. Reader menu taps do not trigger it. Disable automatic full refreshes in your device’s app settings to avoid duplicate refreshes.</string>
+    <string name="page_navigation_settings">Page navigation</string>
+    <string name="page_navigation_height">Navigation bar height</string>
+    <string name="page_navigation_dp">%1$d dp</string>
+    <string name="page_navigation_library_settings">Configure visibility and style in the library’s Display menu</string>
+    <string name="page_navigation_dialogs">Dialogs and pop-up menus</string>
+    <string name="page_navigation_other">Other screens</string>
 </resources>

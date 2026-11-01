@@ -12,8 +12,11 @@ import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchViewModel
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import mihon.feature.migration.dialog.MigrateMangaDialog
 import mihon.feature.migration.list.MigrationListScreen
+import tachiyomi.presentation.core.components.PaperNavigationArea
 
 class MigrateSearchScreen(private val mangaId: Long) : Screen() {
+
+    override val pageNavigationArea get() = PaperNavigationArea.Browse
 
     @Composable
     override fun Content() {

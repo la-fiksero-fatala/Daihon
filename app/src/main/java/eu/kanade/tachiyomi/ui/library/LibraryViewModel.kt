@@ -618,8 +618,10 @@ class LibraryViewModel(
         return state.getItemsForCategoryId(state.activeCategory?.id).randomOrNull()
     }
 
-    fun showSettingsDialog() {
-        dialog.update { Dialog.SettingsSheet }
+    fun showSettingsDialog() = showSettingsDialog(0)
+
+    fun showSettingsDialog(page: Int) {
+        dialog.update { Dialog.SettingsSheet(page) }
     }
 
     private data class LastSelection(val categoryId: Long, val mangaId: Long)
@@ -749,7 +751,7 @@ class LibraryViewModel(
     }
 
     sealed interface Dialog {
-        data object SettingsSheet : Dialog
+        data class SettingsSheet(val page: Int = 0) : Dialog
         data class ChangeCategory(
             val manga: List<Manga>,
             val initialSelection: List<CheckboxState<Category>>,

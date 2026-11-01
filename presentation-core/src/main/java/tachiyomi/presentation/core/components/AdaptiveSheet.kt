@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,45 +51,52 @@ fun AdaptiveSheet(
             usePlatformDefaultWidth = false,
         ),
     ) {
-        val window = (LocalView.current.parent as? DialogWindowProvider)?.window
-        SideEffect {
-            window?.setWindowAnimations(0)
-            window?.setDimAmount(0f)
-        }
-        Box(Modifier.fillMaxSize()) {
-            if (enableImplicitDismiss) {
-                Box(
-                    Modifier.matchParentSize().pointerInput(onDismissRequest) {
-                        detectTapGestures { onDismissRequest() }
-                    },
-                )
+        CompositionLocalProvider(LocalPaperNavigationArea provides PaperNavigationArea.Dialogs) {
+            val window = (LocalView.current.parent as? DialogWindowProvider)?.window
+            SideEffect {
+                window?.setWindowAnimations(0)
+                window?.setDimAmount(0f)
             }
-            Box(Modifier.fillMaxSize().systemBarsPadding().padding(16.dp), contentAlignment = Alignment.Center) {
-                Surface(
-                    modifier = modifier.widthIn(max = 560.dp).heightIn(max = (configuration.screenHeightDp * .9f).dp),
-                    shape = MaterialTheme.shapes.small,
-                    color = Color.White,
-                    contentColor = Color.Black,
-                    border = BorderStroke(2.dp, Color.Black),
-                ) {
-                    if (showCloseButton) {
-                        Column {
-                            Box(Modifier.fillMaxWidth().zIndex(1f), contentAlignment = Alignment.CenterEnd) {
-                                if (title != null) {
-                                    Text(
-                                        text = title,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.align(
-                                            Alignment.CenterStart,
-                                        ).padding(start = 24.dp, end = 56.dp),
+            Box(Modifier.fillMaxSize()) {
+                if (enableImplicitDismiss) {
+                    Box(
+                        Modifier.matchParentSize().pointerInput(onDismissRequest) {
+                            detectTapGestures { onDismissRequest() }
+                        },
+                    )
+                }
+                Box(Modifier.fillMaxSize().systemBarsPadding().padding(16.dp), contentAlignment = Alignment.Center) {
+                    Surface(
+                        modifier = modifier.widthIn(max = 560.dp).heightIn(
+                            max = (configuration.screenHeightDp * .9f).dp,
+                        ),
+                        shape = MaterialTheme.shapes.small,
+                        color = Color.White,
+                        contentColor = Color.Black,
+                        border = BorderStroke(2.dp, Color.Black),
+                    ) {
+                        if (showCloseButton) {
+                            Column {
+                                Box(Modifier.fillMaxWidth().zIndex(1f), contentAlignment = Alignment.CenterEnd) {
+                                    if (title != null) {
+                                        Text(
+                                            text = title,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier.align(
+                                                Alignment.CenterStart,
+                                            ).padding(start = 24.dp, end = 56.dp),
+                                        )
+                                    }
+                                    DialogCloseButton(
+                                        onClick = onDismissRequest,
+                                        modifier = Modifier.padding(end = 4.dp),
                                     )
                                 }
-                                DialogCloseButton(onClick = onDismissRequest, modifier = Modifier.padding(end = 4.dp))
+                                Box(Modifier.weight(1f, fill = false).clipToBounds()) { content() }
                             }
-                            Box(Modifier.weight(1f, fill = false).clipToBounds()) { content() }
+                        } else {
+                            content()
                         }
-                    } else {
-                        content()
                     }
                 }
             }

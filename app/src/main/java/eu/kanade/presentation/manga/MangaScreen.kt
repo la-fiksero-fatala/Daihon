@@ -38,6 +38,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -92,6 +93,8 @@ import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.LocalPaperNavigationArea
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.TwoPanelBox
 import tachiyomi.presentation.core.components.VerticalFastScroller
@@ -242,57 +245,63 @@ fun MangaScreen(
         }
     }
     val chapterPane: @Composable () -> Unit = {
-        Column(Modifier.fillMaxSize()) {
-            ChapterHeader(
-                enabled = !selected,
-                chapterCount = state.processedChapters.size,
-                missingChapterCount = state.missingChapterCount,
-                onClick = onFilterButtonClicked,
-            )
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                state = chapterState,
-                alwaysShowControls = true,
-                showControlsDivider = selected,
-                fillRowGaps = true,
-                preserveLastPageSpace = false,
-                pageLabel = chapterNumbers?.let { numbers -> { first, last -> numbers.label(first, last) } },
-                onJump = chapterNumbers?.let { { row -> jumpFromRow = row } },
-                beforeControls = {
-                    if (!selected) {
-                        MangaReadingActions(
-                            onContinueReading = onContinueReading,
-                            canContinue = state.hasUnreadChapters,
-                            showingDetails = false,
-                            onSwitchView = if (isTabletUi) {
-                                null
-                            } else {
-                                { showDetails = true }
-                            },
-                            modifier = Modifier.padding(horizontal = 32.dp),
-                        ) {
-                            Icon(MaterialSymbols.RoundedFilled.PlayArrow, null)
-                            Text(
-                                stringResource(
-                                    if (state.hasReadChapters) MR.strings.action_resume else MR.strings.action_start,
-                                ),
-                            )
-                        }
-                    }
-                },
-            ) {
-                sharedChapterItems(
-                    manga = state.manga,
-                    chapters = chapters,
-                    isAnyChapterSelected = selected,
-
-                    onChapterClicked = onChapterClicked,
-                    onDownloadChapter = onDownloadChapter,
-                    downloadProgressProvider = downloadProgressProvider,
-                    onChapterSelected = onChapterSelected,
-                    onToggleChapterRead = onToggleChapterRead,
-                    onToggleChapterBookmark = onToggleChapterBookmark,
+        CompositionLocalProvider(LocalPaperNavigationArea provides PaperNavigationArea.Chapters) {
+            Column(Modifier.fillMaxSize()) {
+                ChapterHeader(
+                    enabled = !selected,
+                    chapterCount = state.processedChapters.size,
+                    missingChapterCount = state.missingChapterCount,
+                    onClick = onFilterButtonClicked,
                 )
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    state = chapterState,
+                    alwaysShowControls = true,
+                    showControlsDivider = selected,
+                    fillRowGaps = true,
+                    preserveLastPageSpace = false,
+                    pageLabel = chapterNumbers?.let { numbers -> { first, last -> numbers.label(first, last) } },
+                    onJump = chapterNumbers?.let { { row -> jumpFromRow = row } },
+                    beforeControls = {
+                        if (!selected) {
+                            MangaReadingActions(
+                                onContinueReading = onContinueReading,
+                                canContinue = state.hasUnreadChapters,
+                                showingDetails = false,
+                                onSwitchView = if (isTabletUi) {
+                                    null
+                                } else {
+                                    { showDetails = true }
+                                },
+                                modifier = Modifier.padding(horizontal = 32.dp),
+                            ) {
+                                Icon(MaterialSymbols.RoundedFilled.PlayArrow, null)
+                                Text(
+                                    stringResource(
+                                        if (state.hasReadChapters) {
+                                            MR.strings.action_resume
+                                        } else {
+                                            MR.strings.action_start
+                                        },
+                                    ),
+                                )
+                            }
+                        }
+                    },
+                ) {
+                    sharedChapterItems(
+                        manga = state.manga,
+                        chapters = chapters,
+                        isAnyChapterSelected = selected,
+
+                        onChapterClicked = onChapterClicked,
+                        onDownloadChapter = onDownloadChapter,
+                        downloadProgressProvider = downloadProgressProvider,
+                        onChapterSelected = onChapterSelected,
+                        onToggleChapterRead = onToggleChapterRead,
+                        onToggleChapterBookmark = onToggleChapterBookmark,
+                    )
+                }
             }
         }
     }

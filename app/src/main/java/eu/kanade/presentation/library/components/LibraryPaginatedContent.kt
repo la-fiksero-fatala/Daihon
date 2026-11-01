@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -57,6 +58,9 @@ import mihon.icons.materialsymbols.rounded.KeyboardArrowUp
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryPageButtons
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.LocalPaperNavigationArea
+import tachiyomi.presentation.core.components.LocalPaperNavigationSettings
+import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.PaperPageControls
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.math.abs
@@ -257,14 +261,15 @@ internal fun LibraryPageControls(
     onPageChange: (Int) -> Unit,
     onClickPageNumber: () -> Unit,
 ) {
+    val height = LocalPaperNavigationSettings.current.height
     if (showSlider) {
         var target by remember(page, pageCount) { mutableIntStateOf(page) }
         val size = if (vertical) {
             Modifier.width(
-                72.dp,
+                height,
             ).fillMaxHeight()
         } else {
-            Modifier.fillMaxWidth().heightIn(min = 72.dp)
+            Modifier.fillMaxWidth().heightIn(min = height)
         }
         LibraryPageSlider(
             page = target,
@@ -273,21 +278,23 @@ internal fun LibraryPageControls(
             onValueChangeFinished = { onPageChange(target - page) },
             modifier = size.border(1.dp, Color.Black).padding(
                 horizontal = if (vertical) 8.dp else 32.dp,
-                vertical = if (vertical) 32.dp else 8.dp,
+                vertical = if (vertical) 32.dp else ((height.value - 48f) / 2f).coerceIn(0f, 8f).dp,
             ),
             vertical = vertical,
         )
         return
     }
-    PaperPageControls(
-        label = "${page + 1} / $pageCount",
-        canPrevious = page > 0,
-        canNext = page + 1 < pageCount,
-        onPrevious = { onPageChange(-1) },
-        onNext = { onPageChange(1) },
-        onJump = onClickPageNumber,
-        canJump = pageCount > 0,
-    )
+    CompositionLocalProvider(LocalPaperNavigationArea provides PaperNavigationArea.Library) {
+        PaperPageControls(
+            label = "${page + 1} / $pageCount",
+            canPrevious = page > 0,
+            canNext = page + 1 < pageCount,
+            onPrevious = { onPageChange(-1) },
+            onNext = { onPageChange(1) },
+            onJump = onClickPageNumber,
+            canJump = pageCount > 0,
+        )
+    }
 }
 
 @Composable
