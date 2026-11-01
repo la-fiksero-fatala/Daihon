@@ -56,6 +56,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
@@ -77,6 +78,7 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.getNameForMangaInfo
 import eu.kanade.tachiyomi.ui.manga.ChapterList
 import eu.kanade.tachiyomi.ui.manga.MangaViewModel
+import eu.kanade.tachiyomi.util.chapter.getNextUnread
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.roundedfilled.PlayArrow
@@ -151,7 +153,8 @@ fun MangaScreen(
     val context = LocalContext.current
     val chapters = state.chapterListItems
     val selected = state.isAnySelected
-    var showDetails by rememberSaveable(state.manga.id) { mutableStateOf(false) }
+    var showDetails by rememberSaveable(state.manga.id) { mutableStateOf(true) }
+    val nextChapter = remember(state.chapters, state.manga) { state.chapters.getNextUnread(state.manga) }
     val chapterState = rememberLazyListState()
     BackHandler(enabled = selected) { onAllChapterSelected(false) }
 
@@ -178,6 +181,33 @@ fun MangaScreen(
                 onEditIntervalClicked = onEditFetchIntervalClicked,
                 onEditCategory = onEditCategoryClicked,
             )
+            PaperButton(
+                onClick = onContinueReading,
+                enabled = nextChapter != null && !selected,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 8.dp),
+            ) {
+                Icon(MaterialSymbols.RoundedFilled.PlayArrow, null)
+                val chapterName = nextChapter?.let {
+                    if (it.isRecognizedNumber) {
+                        stringResource(MR.strings.display_mode_chapter, formatChapterNumber(it.chapterNumber))
+                    } else {
+                        it.name
+                    }
+                }
+                Text(
+                    text = if (chapterName.isNullOrBlank()) {
+                        stringResource(if (state.hasReadChapters) MR.strings.action_resume else MR.strings.action_start)
+                    } else {
+                        stringResource(
+                            if (state.hasReadChapters) MR.strings.action_resume_from else MR.strings.action_start_from,
+                            chapterName,
+                        )
+                    },
+                    modifier = Modifier.padding(start = 8.dp),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
             ExpandableMangaDescription(
                 defaultExpandState = true,
                 description = state.manga.description,
@@ -201,12 +231,14 @@ fun MangaScreen(
                 modifier = Modifier.weight(1f),
                 state = chapterState,
                 alwaysShowControls = true,
+                fillRowGaps = true,
+                preserveLastPageSpace = false,
                 beforeControls = {
                     if (!selected) {
                         PaperButton(
                             onClick = onContinueReading,
                             enabled = state.hasUnreadChapters,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 8.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
                         ) {
                             Icon(MaterialSymbols.RoundedFilled.PlayArrow, null)
                             Text(
