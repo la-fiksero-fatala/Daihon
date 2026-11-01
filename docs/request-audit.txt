@@ -114,6 +114,7 @@ Daihon request audit — 2026-11-01
 [x] Manga tag/category chips precede the description and default to at most two
     rows. Native More/Less chips expand or collapse overflow immediately; no extra
     toggle appears when all tags already fit. Tag search/copy actions are retained.
+    The description always renders in full, with no collapse action, arrow, or fade.
 [x] Vertical button navigation has a double-up jump-to-top above Up, disabled at
     the top. Regular views show it from the first page when three pages exist.
     Forms/library use exact counts; lazy lists inspect only the first two layouts

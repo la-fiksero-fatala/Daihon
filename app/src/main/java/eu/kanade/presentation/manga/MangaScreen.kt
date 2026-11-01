@@ -70,10 +70,10 @@ import eu.kanade.presentation.manga.components.ChapterHeader
 import eu.kanade.presentation.manga.components.ChapterNavigationButtons
 import eu.kanade.presentation.manga.components.ChapterPageJumpDialog
 import eu.kanade.presentation.manga.components.ChapterPageNumbers
-import eu.kanade.presentation.manga.components.ExpandableMangaDescription
 import eu.kanade.presentation.manga.components.MangaActionRow
 import eu.kanade.presentation.manga.components.MangaBottomActionMenu
 import eu.kanade.presentation.manga.components.MangaChapterListItem
+import eu.kanade.presentation.manga.components.MangaDescription
 import eu.kanade.presentation.manga.components.MangaInfoBox
 import eu.kanade.presentation.manga.components.MangaToolbar
 import eu.kanade.presentation.manga.components.MissingChapterCountListItem
@@ -202,8 +202,7 @@ fun MangaScreen(
                 onEditIntervalClicked = onEditFetchIntervalClicked,
                 onEditCategory = onEditCategoryClicked,
             )
-            ExpandableMangaDescription(
-                defaultExpandState = true,
+            MangaDescription(
                 description = state.manga.description,
                 tagsProvider = { state.manga.genre },
                 notes = state.manga.notes,

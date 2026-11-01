@@ -1,10 +1,5 @@
 package eu.kanade.presentation.manga.components
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.graphics.res.animatedVectorResource
-import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
-import androidx.compose.animation.graphics.vector.AnimatedImageVector
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -45,21 +39,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,7 +59,6 @@ import com.mikepenz.markdown.model.markdownAnnotator
 import com.mikepenz.markdown.model.markdownAnnotatorConfig
 import com.mikepenz.markdown.utils.getUnescapedTextInNode
 import eu.kanade.presentation.components.DropdownMenu
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.getNameForMangaInfo
 import eu.kanade.tachiyomi.source.model.SManga
@@ -107,7 +95,6 @@ import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.clickableNoIndication
 import tachiyomi.presentation.core.util.secondaryItemAlpha
-import kotlin.math.roundToInt
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -223,8 +210,7 @@ fun MangaActionRow(
 }
 
 @Composable
-fun ExpandableMangaDescription(
-    defaultExpandState: Boolean,
+fun MangaDescription(
     description: String?,
     tagsProvider: () -> List<String>?,
     notes: String,
@@ -234,9 +220,6 @@ fun ExpandableMangaDescription(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        val (expanded, onExpanded) = rememberSaveable {
-            mutableStateOf(defaultExpandState)
-        }
         val desc =
             description.takeIf { !it.isNullOrBlank() } ?: stringResource(MR.strings.description_placeholder)
 
@@ -316,13 +299,11 @@ fun ExpandableMangaDescription(
         }
         MangaSummary(
             description = desc,
-            expanded = expanded,
             notes = notes,
             onEditNotesClicked = onEditNotes,
             modifier = Modifier
                 .padding(top = 8.dp)
-                .padding(horizontal = 16.dp)
-                .clickableNoIndication { onExpanded(!expanded) },
+                .padding(horizontal = 16.dp),
         )
     }
 }
@@ -599,89 +580,28 @@ private fun descriptionAnnotator(loadImages: Boolean, linkStyle: SpanStyle) = re
 private fun MangaSummary(
     description: String,
     notes: String,
-    expanded: Boolean,
     onEditNotesClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val preferences = remember { context.appGraph.uiPreferences }
     val loadImages = remember { preferences.imagesInDescription.get() }
-    val animProgress by animateFloatAsState(
-        targetValue = if (expanded) 1f else 0f,
-        label = "summary",
-    )
-    var infoHeight by remember { mutableIntStateOf(0) }
-    Layout(
-        modifier = modifier.clipToBounds(),
-        contents = listOf(
-            {
-                Text(
-                    // Shows at least 3 lines if no notes
-                    // when there are notes show 6
-                    text = if (notes.isBlank()) "\n\n" else "\n\n\n\n\n",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            },
-            {
-                Column(
-                    modifier = Modifier.onSizeChanged { size ->
-                        infoHeight = size.height
-                    },
-                ) {
-                    MangaNotesSection(
-                        content = notes,
-                        expanded = expanded,
-                        onEditNotes = onEditNotesClicked,
-                    )
-                    SelectionContainer {
-                        MarkdownRender(
-                            content = description,
-                            modifier = Modifier.secondaryItemAlpha(),
-                            annotator = descriptionAnnotator(
-                                loadImages = loadImages,
-                                linkStyle = getMarkdownLinkStyle().toSpanStyle(),
-                            ),
-                            loadImages = loadImages,
-                        )
-                    }
-                }
-            },
-            {
-                val colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
-                Box(
-                    modifier = Modifier.background(Brush.verticalGradient(colors = colors)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    val image = AnimatedImageVector.animatedVectorResource(R.drawable.animated_caret_flip)
-                    Icon(
-                        painter = rememberAnimatedVectorPainter(image, !expanded),
-                        contentDescription = stringResource(
-                            if (expanded) MR.strings.manga_info_collapse else MR.strings.manga_info_expand,
-                        ),
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.background(Brush.radialGradient(colors = colors.asReversed())),
-                    )
-                }
-            },
-        ),
-    ) { (shrunk, actual, scrim), constraints ->
-        val shrunkHeight = shrunk.single()
-            .measure(constraints)
-            .height
-        val heightDelta = infoHeight - shrunkHeight
-        val scrimHeight = 24.dp.roundToPx()
-
-        val actualPlaceable = actual.single()
-            .measure(constraints)
-        val scrimPlaceable = scrim.single()
-            .measure(Constraints.fixed(width = constraints.maxWidth, height = scrimHeight))
-
-        val currentHeight = shrunkHeight + ((heightDelta + scrimHeight) * animProgress).roundToInt()
-        layout(constraints.maxWidth, currentHeight) {
-            actualPlaceable.place(0, 0)
-
-            val scrimY = currentHeight - scrimHeight
-            scrimPlaceable.place(0, scrimY)
+    Column(modifier = modifier) {
+        MangaNotesSection(
+            content = notes,
+            expanded = true,
+            onEditNotes = onEditNotesClicked,
+        )
+        SelectionContainer {
+            MarkdownRender(
+                content = description,
+                modifier = Modifier.secondaryItemAlpha(),
+                annotator = descriptionAnnotator(
+                    loadImages = loadImages,
+                    linkStyle = getMarkdownLinkStyle().toSpanStyle(),
+                ),
+                loadImages = loadImages,
+            )
         }
     }
 }
