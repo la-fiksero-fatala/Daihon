@@ -23,7 +23,7 @@ import tachiyomi.presentation.core.components.material.PaperSurface as Surface
 internal data class PaperIndicatorToken(val owner: Any, val label: String)
 
 @Stable
-class PaperPageIndicatorState(header: Boolean = false) {
+class PaperPageIndicatorState(header: Boolean = false, val navigationUi: Boolean = true) {
     var hasHeader by mutableStateOf(header)
     private data class Content(val label: String, val paged: Boolean, val ready: Boolean, val visible: Boolean)
     private class Entry(content: Content, val click: () -> Unit, val order: Long) {
@@ -46,6 +46,7 @@ class PaperPageIndicatorState(header: Boolean = false) {
 
     internal val headerToken: PaperIndicatorToken?
         get() {
+            if (!navigationUi) return null
             val owner = PaperNavigation.activeOwner?.takeIf { entries[it]?.content?.visible == true }
                 ?: entries.filterValues { it.content.visible }.maxByOrNull { it.value.order }?.key
                 ?: return null

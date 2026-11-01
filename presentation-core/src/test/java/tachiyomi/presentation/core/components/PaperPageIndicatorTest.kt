@@ -48,4 +48,12 @@ class PaperPageIndicatorTest {
         state.remove(owner)
         state.headerToken shouldBe null
     }
+
+    @Test
+    fun `corner context menus do not expose position chrome`() {
+        val state = PaperPageIndicatorState(navigationUi = false)
+        state.register(Any(), "1 / 3", paged = true, ready = true, visible = true) {}
+        state.headerToken shouldBe null
+        state.revealIfReady() shouldBe true
+    }
 }

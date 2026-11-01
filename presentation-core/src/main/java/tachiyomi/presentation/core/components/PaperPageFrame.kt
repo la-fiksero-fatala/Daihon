@@ -36,8 +36,9 @@ internal fun PaperPageFrame(
 ) {
     val settings = LocalPaperNavigationSettings.current
     val area = LocalPaperNavigationArea.current
-    val visibleBar = settings.visible(area)
     val host = LocalPaperPageIndicator.current
+    val navigationUi = host?.navigationUi != false
+    val visibleBar = settings.visible(area) && navigationUi
     val currentJump by rememberUpdatedState(onJump)
     var visible by remember { mutableStateOf(false) }
     val publish = area != PaperNavigationArea.Library
@@ -47,7 +48,7 @@ internal fun PaperPageFrame(
     }
     SideEffect { if (publish) host?.update(owner, label, paged, ready, visible) }
     Column(modifier.onGloballyPositioned { visible = !it.boundsInWindow().isEmpty }) {
-        if (paged && ready && host?.hasHeader != true) {
+        if (paged && ready && navigationUi && host?.hasHeader != true) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                 PaperPageNumber(label, onJump)
             }

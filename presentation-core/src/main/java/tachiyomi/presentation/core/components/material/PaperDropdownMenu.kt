@@ -78,7 +78,7 @@ fun PaperDropdownMenu(
     Popup(position, onDismissRequest, properties) {
         val focus = remember { FocusRequester() }
         LaunchedEffect(Unit) { focus.requestFocus() }
-        val indicator = remember { PaperPageIndicatorState() }
+        val indicator = remember { PaperPageIndicatorState(navigationUi = false) }
         CompositionLocalProvider(
             LocalPaperPageIndicator provides indicator,
             LocalPaperNavigationArea provides PaperNavigationArea.Dialogs,
