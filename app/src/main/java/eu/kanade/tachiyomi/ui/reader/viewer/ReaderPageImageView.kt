@@ -41,6 +41,7 @@ import eu.kanade.tachiyomi.data.coil.ImageDecoder
 import eu.kanade.tachiyomi.data.coil.cropBorders
 import eu.kanade.tachiyomi.data.coil.webtoonStrips
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonStripImageView
+import eu.kanade.tachiyomi.util.image.ImageDimensions
 import eu.kanade.tachiyomi.util.system.animatorDurationScale
 import eu.kanade.tachiyomi.util.view.isVisibleOnScreen
 import okio.BufferedSource
@@ -90,6 +91,12 @@ open class ReaderPageImageView @JvmOverloads constructor(
     private var stripRequest: Disposable? = null
 
     private var config: Config? = null
+
+    /** Decoded source pixels after the region decoder's crop, independent of view scaling. */
+    val croppedImageDimensions: ImageDimensions?
+        get() = (pageView as? SubsamplingScaleImageView)?.takeIf { it.isReady }?.let {
+            ImageDimensions(it.sWidth, it.sHeight)
+        }
 
     var onImageLoaded: (() -> Unit)? = null
     var onImageLoadError: ((Throwable?) -> Unit)? = null

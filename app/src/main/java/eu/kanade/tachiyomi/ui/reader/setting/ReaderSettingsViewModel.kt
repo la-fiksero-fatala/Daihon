@@ -42,10 +42,16 @@ class ReaderSettingsViewModel(
     private val basePreferences: BasePreferences,
 ) : ViewModel() {
 
-    val sourceDimensions = readerViewModel.state
+    private val currentPage = readerViewModel.state
         .map { it.currentChapter?.pages?.getOrNull(it.currentPage - 1) }
         .distinctUntilChanged()
+
+    val sourceDimensions = currentPage
         .flatMapLatest { it?.sourceDimensions ?: flowOf(null) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val croppedDimensions = currentPage
+        .flatMapLatest { it?.croppedDimensions ?: flowOf(null) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     val mangaFlow = readerViewModel.state

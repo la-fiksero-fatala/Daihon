@@ -29,6 +29,11 @@ internal fun ColumnScope.ColorFilterPage(viewModel: ReaderSettingsViewModel) {
         title = stringResource(MR.strings.daihon_source_resolution),
         subtitle = resolution?.let { "$it px" } ?: "—",
     )
+    val cropped by viewModel.croppedDimensions.collectAsStateWithLifecycle()
+    TextPreferenceWidget(
+        title = stringResource(MR.strings.daihon_cropped_resolution),
+        subtitle = cropped?.let { "$it px" } ?: "—",
+    )
     val customBrightness by viewModel.preferences.customBrightness.collectAsState()
     CheckboxItem(
         label = stringResource(MR.strings.pref_custom_brightness),

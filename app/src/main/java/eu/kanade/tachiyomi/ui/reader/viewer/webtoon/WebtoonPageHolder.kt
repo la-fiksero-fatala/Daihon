@@ -192,6 +192,8 @@ class WebtoonPageHolder(
             // Splitting and merging decode the image, which is CPU work
             val (source, isAnimated) = withContext(Dispatchers.Default) {
                 val source = viewer.simpleLongStrip.page.processStripImage(buffer)
+                // Read before strip sampling; these are image pixels, not decoded bitmap/view pixels.
+                sourcePage.croppedDimensions.value = readImageDimensions(source)
                 val isAnimated = ImageUtil.isAnimatedAndSupported(source)
                 Pair(source, isAnimated)
             }

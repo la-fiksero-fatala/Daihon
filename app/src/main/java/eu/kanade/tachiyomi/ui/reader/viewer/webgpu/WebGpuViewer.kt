@@ -916,6 +916,7 @@ open class WebGpuViewer(
             watchJobs.values.forEach { it.cancel() }
             watchJobs.clear()
             pageCache.values.forEach {
+                (it as? ViewerReaderPage)?.page?.croppedDimensions?.value = null
                 it.state = PageState.IDLE
                 (it as? ViewerReaderPage)?.spreadPage?.let(::cleanupImage)
                 cleanupImage(it.imagePage)
@@ -987,6 +988,7 @@ open class WebGpuViewer(
             // Nothing can still be animating, so the pin has nothing left to protect.
             pinnedFromPage = null
             pageCache.values.forEach {
+                (it as? ViewerReaderPage)?.page?.croppedDimensions?.value = null
                 it.state = PageState.IDLE
                 (it as? ViewerReaderPage)?.spreadPage?.cleanup()
                 it.imagePage.cleanup()
@@ -1472,6 +1474,7 @@ open class WebGpuViewer(
                 }
                 if (pageInCache(page)) page.state = PageState.IDLE
                 target?.also {
+                    page.page.croppedDimensions.value = ImageDimensions(it.trimWidth, it.trimHeight)
                     noteIfLone(page)
                     viewerState.invalidate()
                     activity.window.decorView.post {

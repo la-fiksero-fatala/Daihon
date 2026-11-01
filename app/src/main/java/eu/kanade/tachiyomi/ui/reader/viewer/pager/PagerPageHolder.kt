@@ -145,6 +145,7 @@ class PagerPageHolder(
         val streamFn = page.stream ?: return
 
         try {
+            page.croppedDimensions.value = null
             val buffer = withContext(Dispatchers.IO) { streamFn().use { Buffer().readFrom(it) } }
             page.sourceDimensions.value = withContext(Dispatchers.IO) { readImageDimensions(buffer) }
             // Splitting, merging and sampling the background decode the image, which is CPU work
@@ -153,6 +154,8 @@ class PagerPageHolder(
                     viewer.onPageSplit(item, it)
                 }
                 val isAnimated = ImageUtil.isAnimatedAndSupported(source)
+                // Animated pages bypass the region cropper; retain their processed source size.
+                if (isAnimated) page.croppedDimensions.value = readImageDimensions(source)
                 val background = if (!isAnimated && viewer.general.automaticBackground) {
                     ImageUtil.chooseBackground(context, source.peek().inputStream())
                 } else {
@@ -195,6 +198,7 @@ class PagerPageHolder(
 
     override fun onImageLoaded() {
         super.onImageLoaded()
+        croppedImageDimensions?.let { page.croppedDimensions.value = it }
         viewer.activity.onReaderPageDecoded(page)
         progressIndicator?.hide()
     }
