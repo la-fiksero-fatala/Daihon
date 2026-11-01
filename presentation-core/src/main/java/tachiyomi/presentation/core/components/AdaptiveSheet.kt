@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -42,6 +44,7 @@ fun AdaptiveSheet(
     title: String? = null,
     content: @Composable () -> Unit,
 ) {
+    val indicator = remember { PaperPageIndicatorState(showCloseButton) }
     val configuration = LocalConfiguration.current
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -51,7 +54,10 @@ fun AdaptiveSheet(
             usePlatformDefaultWidth = false,
         ),
     ) {
-        CompositionLocalProvider(LocalPaperNavigationArea provides PaperNavigationArea.Dialogs) {
+        CompositionLocalProvider(
+            LocalPaperNavigationArea provides PaperNavigationArea.Dialogs,
+            LocalPaperPageIndicator provides indicator,
+        ) {
             val window = (LocalView.current.parent as? DialogWindowProvider)?.window
             SideEffect {
                 window?.setWindowAnimations(0)
@@ -77,20 +83,15 @@ fun AdaptiveSheet(
                     ) {
                         if (showCloseButton) {
                             Column {
-                                Box(Modifier.fillMaxWidth().zIndex(1f), contentAlignment = Alignment.CenterEnd) {
-                                    if (title != null) {
-                                        Text(
-                                            text = title,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            modifier = Modifier.align(
-                                                Alignment.CenterStart,
-                                            ).padding(start = 24.dp, end = 56.dp),
-                                        )
+                                Row(
+                                    Modifier.fillMaxWidth().zIndex(1f),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Box(Modifier.weight(1f).padding(start = 24.dp)) {
+                                        if (title != null) Text(title, style = MaterialTheme.typography.titleMedium)
                                     }
-                                    DialogCloseButton(
-                                        onClick = onDismissRequest,
-                                        modifier = Modifier.padding(end = 4.dp),
-                                    )
+                                    indicator.Indicator()
+                                    DialogCloseButton(onDismissRequest, Modifier.padding(end = 4.dp))
                                 }
                                 Box(Modifier.weight(1f, fill = false).clipToBounds()) { content() }
                             }

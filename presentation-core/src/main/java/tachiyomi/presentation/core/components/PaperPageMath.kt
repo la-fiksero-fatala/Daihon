@@ -4,25 +4,30 @@ data class PaperItem(val index: Int, val offset: Int, val size: Int)
 
 data class PaperAnchor(val index: Int, val offset: Int = 0)
 
-/** First unshown row, or an overlapping slice when one item is taller than the viewport. */
+/** First unshown complete row; oversized content advances by one full usable viewport. */
 fun nextPaperAnchor(
     items: List<PaperItem>,
     first: PaperAnchor,
     viewportEnd: Int,
     total: Int,
+    viewportStart: Int = 0,
 ): PaperAnchor? {
-    if (total <= 0 || viewportEnd <= 0) return null
-    val visible = items.filter { it.index < total && it.offset < viewportEnd }
-    val leading = visible.firstOrNull() ?: return null
-    if (leading.index == first.index && leading.size > viewportEnd && leading.offset + leading.size > viewportEnd) {
-        return PaperAnchor(first.index, first.offset + paperPageStep(viewportEnd))
+    if (total <= 0 || viewportEnd <= viewportStart) return null
+    val visible = items.filter { it.index < total && it.offset < viewportEnd && it.offset + it.size > viewportStart }
+    val rows = visible.groupBy { it.offset }.toSortedMap().values
+    val leading = rows.firstOrNull() ?: return null
+    val leadingEnd = leading.maxOf { it.offset + it.size }
+    if (leading.minOf { it.index } == first.index && leadingEnd > viewportEnd &&
+        leading.maxOf { it.size } > viewportEnd - viewportStart
+    ) {
+        return PaperAnchor(first.index, first.offset + viewportEnd - viewportStart)
     }
-    val partial = visible.firstOrNull { it.offset + it.size > viewportEnd }
-    val next = partial?.index ?: ((visible.lastOrNull()?.index ?: return null) + 1)
+    val partial = rows.firstOrNull { row -> row.any { it.offset + it.size > viewportEnd } }
+    val next = partial?.minOf { it.index } ?: (visible.maxOf { it.index } + 1)
     return next.takeIf { it > first.index && it < total }?.let(::PaperAnchor)
 }
 
-fun paperPageStep(viewport: Int): Int = (viewport * .8f).toInt().coerceAtLeast(1)
+fun paperPageStep(viewport: Int): Int = viewport.coerceAtLeast(1)
 
 fun paperPageCount(maximumOffset: Int, step: Int): Int =
     ((maximumOffset.coerceAtLeast(0).toLong() + step.coerceAtLeast(1) - 1) / step.coerceAtLeast(1) + 1)
@@ -36,7 +41,7 @@ fun paperRowSpacing(viewport: Int, rowHeight: Int, total: Int): Float {
     if (rowHeight <= 0 || total <= 1) return 0f
     val rows = viewport / rowHeight
     if (total < rows) return 0f
-    return if (rows > 1) (viewport - rows * rowHeight).toFloat() / (rows - 1) else 0f
+    return if (rows > 1) ((viewport - rows * rowHeight) / (rows - 1)).toFloat() else 0f
 }
 
 /** Defer a section heading when none of its following rows fits on this page. */

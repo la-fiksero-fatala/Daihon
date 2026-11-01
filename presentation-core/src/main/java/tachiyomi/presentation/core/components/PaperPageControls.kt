@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.KeyboardArrowDown
@@ -53,11 +55,35 @@ fun PaperPageControls(
     modifier: Modifier = Modifier,
     canJump: Boolean = true,
     showDivider: Boolean = true,
+    vertical: Boolean = false,
 ) {
     val settings = LocalPaperNavigationSettings.current
     if (!settings.visible(LocalPaperNavigationArea.current)) {
         // Keep caller-owned system/app-bar insets even when the page controls are hidden.
         Spacer(modifier)
+        return
+    }
+    if (vertical) {
+        Column(
+            modifier.width(settings.height).fillMaxHeight().drawBehind {
+                if (showDivider) drawLine(Color.Black, Offset(0f, 0f), Offset(0f, size.height), 1.dp.toPx())
+            }.padding(horizontal = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            PaperIconButton(onPrevious, Modifier.fillMaxWidth().weight(1f), enabled = canPrevious) {
+                Icon(MaterialSymbols.Rounded.KeyboardArrowUp, stringResource(MR.strings.spen_previous_page))
+            }
+            PaperButton(
+                onJump,
+                Modifier.fillMaxWidth().weight(1f),
+                enabled = canJump,
+                border = null,
+                contentPadding = PaddingValues(2.dp),
+            ) { Text(label, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center) }
+            PaperIconButton(onNext, Modifier.fillMaxWidth().weight(1f), enabled = canNext) {
+                Icon(MaterialSymbols.Rounded.KeyboardArrowDown, stringResource(MR.strings.spen_next_page))
+            }
+        }
         return
     }
     val height = settings.height

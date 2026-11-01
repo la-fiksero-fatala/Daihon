@@ -54,7 +54,7 @@ class LibraryPreferences(
 
     val stretchPageSpacing: Preference<Boolean> = FixedPreference("stretchPageSpacing", true)
 
-    val pageButtons: Preference<LibraryPageButtons> = FixedPreference("pageButtons", LibraryPageButtons.Bottom)
+    val pageButtons: Preference<LibraryPageButtons> = FixedPreference("pageButtons", LibraryPageButtons.Right)
 
     val pageNavigation: Preference<LibraryNavigationMode> = preferenceStore.getEnum(
         "library_page_navigation",

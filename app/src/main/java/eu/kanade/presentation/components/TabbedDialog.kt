@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +30,7 @@ import kotlinx.coroutines.launch
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.MoreVert
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.LocalPaperPageIndicator
 import tachiyomi.presentation.core.components.material.DialogCloseButton
 import tachiyomi.presentation.core.components.material.TabText
 import tachiyomi.presentation.core.components.paperHorizontalPaging
@@ -55,6 +57,8 @@ fun TabbedDialog(
         showCloseButton = false,
     ) {
         val scope = rememberCoroutineScope()
+        val indicator = LocalPaperPageIndicator.current
+        SideEffect { indicator?.hasHeader = true }
 
         Column {
             Row(Modifier.zIndex(1f), verticalAlignment = Alignment.CenterVertically) {
@@ -73,6 +77,7 @@ fun TabbedDialog(
                     }
                 }
 
+                indicator?.Indicator()
                 tabOverflowMenuContent?.let { MoreMenu(it) }
                 DialogCloseButton(onClick = onDismissRequest)
             }

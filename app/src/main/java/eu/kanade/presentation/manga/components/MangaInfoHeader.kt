@@ -103,6 +103,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.TextButton
 import tachiyomi.presentation.core.components.material.padding
+import tachiyomi.presentation.core.components.paperPageItem
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.clickableNoIndication
@@ -287,7 +288,7 @@ fun ExpandableMangaDescription(
                 ) {
                     tags.forEach {
                         TagsChip(
-                            modifier = DefaultTagChipModifier,
+                            modifier = DefaultTagChipModifier.paperPageItem(),
                             text = it,
                             onClick = {
                                 tagSelected = it

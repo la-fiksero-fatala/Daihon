@@ -1129,7 +1129,7 @@
     <string name="page_refresh_system_help">Requests a BOOX screen refresh after the first manga page and each page change. Reader menu taps do not trigger it. Disable automatic full refreshes in the device’s app settings to avoid duplicate refreshes. Requires BOOX firmware.</string>
     <string name="page_refresh_failed">BOOX refresh could not be requested.</string>
     <string name="page_navigation_settings">Page navigation</string>
-    <string name="page_navigation_height">Navigation bar height</string>
+    <string name="page_navigation_height">Navigation bar width</string>
     <string name="page_navigation_dp">%1$d dp</string>
     <string name="page_navigation_library_settings">Configure visibility and style in the library’s Display menu</string>
     <string name="page_navigation_dialogs">Dialogs and pop-up menus</string>

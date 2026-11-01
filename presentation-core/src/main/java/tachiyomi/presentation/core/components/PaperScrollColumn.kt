@@ -3,7 +3,6 @@ package tachiyomi.presentation.core.components
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -17,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,7 +35,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-/** Static form/text pages with overlap; the finger never moves the content. */
+/** Complete control/text-line pages; no overlap, scrolling animation, or final-page backfill. */
 @Composable
 fun PaperScrollColumn(
     modifier: Modifier = Modifier,
@@ -49,83 +49,93 @@ fun PaperScrollColumn(
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     val owner = remember { Any() }
-    var viewport by remember { mutableIntStateOf(1) }
+    var viewport by remember { mutableIntStateOf(0) }
+    var blocks by remember { mutableStateOf(emptyList<PaperSpan>()) }
     var showJump by remember { mutableStateOf(false) }
     val sections = remember(state) { PaperSections { state.value } }
-    val headings = sections.headings.values.toList()
-    val pinned = headings.filter { it.top < state.value }.maxByOrNull { it.top }
-    val headerSpace = headings.maxOfOrNull { it.height } ?: 0
-    val step = paperPageStep((viewport - headerSpace).coerceAtLeast(1))
-    val orphan = headings.firstOrNull {
-        it.top > state.value && it.top < state.value + viewport && it.top + it.height >= state.value + viewport
-    }
-    val maximum = state.maxValue.takeUnless { it == Int.MAX_VALUE } ?: 0
-    val count = paperPageCount(maximum, step)
-    val page = ((state.value + step - 1) / step).coerceIn(0, count - 1)
+    val breaks = remember(state) { PaperContentBreaks { state.value } }
+    val headings = sections.headings.values.filter { it.top != Int.MAX_VALUE }
+    val pages = paperFormPages(
+        blocks,
+        breaks.pieces.values.flatten(),
+        headings.map { PaperSpan(it.top, it.top + it.height) },
+        viewport,
+    )
+    val page = pages.indexOfLast { it.start <= state.value }.coerceAtLeast(0)
+    val slice = pages[page]
+    val pinned = if (slice.headerHeight > 0) headings.filter { it.top <= slice.start }.maxByOrNull { it.top } else null
+    val contentEnd = blocks.maxOfOrNull { it.bottom } ?: 0
     val navigate: (Int) -> Unit = { direction ->
         PaperNavigation.activate(owner)
-        scope.launch { state.scrollTo(((page + direction).coerceIn(0, count - 1) * step).coerceAtMost(state.maxValue)) }
+        scope.launch { state.scrollTo(pages[(page + direction).coerceIn(pages.indices)].start) }
+    }
+    LaunchedEffect(pages, state.value) {
+        if (state.value != slice.start) state.scrollTo(slice.start)
     }
     val fallback = (LocalConfiguration.current.screenHeightDp * .75f).dp
     BoxWithConstraints(modifier) {
         val limit = if (constraints.hasBoundedHeight) maxHeight else fallback
         val fill = constraints.minHeight > 0
-        Column(Modifier.heightIn(min = with(density) { constraints.minHeight.toDp() }, max = limit).fillMaxWidth()) {
+        PaperPageFrame(
+            owner, "${page + 1} / ${pages.size}", pages.size > 1,
+            page > 0, page < pages.lastIndex, { navigate(-1) }, { navigate(1) }, { showJump = true },
+            Modifier.heightIn(min = with(density) { constraints.minHeight.toDp() }, max = limit)
+                .fillMaxWidth().navigationBarsPadding(),
+            fill = fill,
+        ) {
             Box(
                 Modifier.weight(1f, fill = fill).clipToBounds().onSizeChanged { viewport = it.height.coerceAtLeast(1) }
-                    .onGloballyPositioned {
-                        sections.viewport = it
-                        sections.headings.values.forEach(sections::position)
-                    }
                     .then(paperInput(owner, enabled && !showJump, navigate, atTop = page == 0)),
                 propagateMinConstraints = fill,
             ) {
-                CompositionLocalProvider(LocalPaperSections provides sections) {
-                    Column(
-                        Modifier.fillMaxWidth().verticalScroll(
-                            state,
-                            enabled = false,
-                            reverseScrolling = reverseScrolling,
-                        ),
-                        verticalArrangement = verticalArrangement,
-                        horizontalAlignment = horizontalAlignment,
-                        content = content,
-                    )
-                }
-                pinned?.let { heading ->
+                Column {
+                    pinned?.let { heading ->
+                        Box(Modifier.fillMaxWidth().background(Color.White)) { heading.content() }
+                    }
                     Box(
-                        Modifier.align(Alignment.TopCenter).fillMaxWidth().background(Color.White)
-                            .pointerInput(Unit) { detectTapGestures {} },
+                        Modifier.weight(1f, fill = fill).clipToBounds().onGloballyPositioned {
+                            sections.viewport = it
+                            sections.headings.values.forEach(sections::position)
+                            breaks.viewport = it
+                            breaks.refresh()
+                        },
                     ) {
-                        heading.content()
+                        CompositionLocalProvider(
+                            LocalPaperSections provides sections,
+                            LocalPaperContentBreaks provides breaks,
+                        ) {
+                            PaperFormColumn(
+                                Modifier.fillMaxWidth().verticalScroll(
+                                    state,
+                                    enabled = false,
+                                    reverseScrolling = reverseScrolling,
+                                ),
+                                tail = if (pages.size > 1 || contentEnd > viewport) viewport else 0,
+                                arrangement = verticalArrangement,
+                                alignment = horizontalAlignment,
+                                onMeasured = { if (blocks != it) blocks = it },
+                                content = content,
+                            )
+                        }
+                        val used = (slice.end - slice.start).coerceAtLeast(0)
+                        val blank = (viewport - slice.headerHeight - used).coerceAtLeast(0)
+                        if (blank > 0 && pages.size > 1) {
+                            Box(
+                                Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                                    .height(with(density) { blank.toDp() }).background(Color.White)
+                                    .pointerInput(Unit) { detectTapGestures {} },
+                            )
+                        }
                     }
                 }
-                orphan?.let { heading ->
-                    Box(
-                        Modifier.align(Alignment.BottomCenter).fillMaxWidth()
-                            .height(with(density) { (state.value + viewport - heading.top).toDp() })
-                            .background(Color.White).pointerInput(Unit) { detectTapGestures {} },
-                    )
-                }
-            }
-            if (count > 1) {
-                PaperPageControls(
-                    "${page + 1} / $count",
-                    page > 0,
-                    page + 1 < count,
-                    { navigate(-1) },
-                    { navigate(1) },
-                    { showJump = true },
-                    Modifier.navigationBarsPadding(),
-                )
             }
         }
     }
     if (showJump) {
         PaperJumpDialog(
             page,
-            count,
-            { index -> scope.launch { state.scrollTo(index * step) } },
+            pages.size,
+            { index -> scope.launch { state.scrollTo(pages[index].start) } },
             onDismissRequest = { showJump = false },
         )
     }

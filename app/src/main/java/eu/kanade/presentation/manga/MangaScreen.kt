@@ -257,9 +257,7 @@ fun MangaScreen(
                     modifier = Modifier.weight(1f),
                     state = chapterState,
                     alwaysShowControls = true,
-                    showControlsDivider = selected,
                     fillRowGaps = true,
-                    preserveLastPageSpace = false,
                     pageLabel = chapterNumbers?.let { numbers -> { first, last -> numbers.label(first, last) } },
                     onJump = chapterNumbers?.let { { row -> jumpFromRow = row } },
                     beforeControls = {

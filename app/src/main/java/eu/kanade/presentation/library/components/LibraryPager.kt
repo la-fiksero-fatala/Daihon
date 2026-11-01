@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,7 +77,7 @@ fun LibraryPager(
         val items = getItemsForCategory(category)
 
         if (items.isEmpty()) {
-            Column(
+            Row(
                 Modifier.fillMaxSize().padding(
                     contentPadding,
                 ).consumeWindowInsets(contentPadding).navigationBarsPadding(),
@@ -90,7 +91,7 @@ fun LibraryPager(
                     )
                 }
                 if (pageButtons != LibraryPageButtons.Hidden) {
-                    LibraryPageControls(-1, 0, false, pageSlider, {}, {})
+                    LibraryPageControls(-1, 0, true, pageSlider, {}, {})
                 }
             }
             return@HorizontalPager

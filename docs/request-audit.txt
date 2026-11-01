@@ -36,18 +36,20 @@ Daihon request audit — 2026-11-01
     including fractions. The chapter picker accepts decimal chapter numbers;
     duplicate releases and gap notices do not inflate the total. Unnumbered lists
     retain entry-based navigation.
-[x] Available chapter controls stay at the bottom. Chapter rows use compact spacing
-    and retain their icon touch targets. Fractional row remainder is filled only
-    for full viewports; short lists are not stretched apart. The artificial last-page
-    tail and extra Resume padding are removed. Final jumps may clamp at the end.
+[x] Chapter rows use compact spacing and retain their icon touch targets. Fractional
+    row remainder is filled only for full viewports; short lists are not stretched.
+    Right-side controls page through complete rows. Final pages preserve white
+    space instead of clamping backward to fill the viewport. Resume stays below
+    the chapter content.
 [x] Chapter bookmark and read/unread icons replace swipe actions beside download.
 [x] Numeric choices use direct keyboard entry and filtering rather than many pages
     of choices. Reading-mode choices are stacked vertically. Smart update is capped
     at 360 dp instead of occupying unnecessary width.
 [x] Shared alerts and adaptive dialogs expose a consistent X. Tabbed dialogs put X
     in the tab row. Progress X uses existing cancel behavior or hides the indicator.
-[x] Dialog/list page controls use one top separator, not a second outer frame.
-    Viewports clip their content below headers and above navigation controls.
+[x] Dialog/list page controls use one side separator, not a second outer frame.
+    Viewports clip below headers and beside navigation controls. Whole grid rows,
+    form controls, and description text lines determine page boundaries.
 [x] Extension migration keeps sorting in its title bar, without a redundant source
     heading; the first entry of later pages is not covered by that heading.
 [x] Section headers stick below toolbars in settings, sources/extensions, history,
@@ -55,15 +57,16 @@ Daihon request audit — 2026-11-01
     their section headings. Orphan bottom headers wait for the following page.
     Lazy rows reserve space below their pinned header. Section metadata is cached
     while continuing to observe state changes such as group expansion.
-[x] Device and refresh is one entry under Settings > Display. Its submenu contains
-    device detection and separate navigation/reader modes and refresh profiles;
-    the same device controls remain in guided onboarding. Settings search includes
-    the new submenu. Unknown firmware falls back to system-managed behavior.
-[x] Reader Page refresh: None, Black and white, System. System requests a firmware
-    full refresh after the selected image is decoded and drawing settles, including
-    the first image and overlapping strip sections. Preloads, repeated callbacks,
-    and menu taps do not request it. General reader refresh intervals are suspended
-    in System mode. Also accessible in reader settings and the device submenu.
+[x] Latest hardware request supersedes the earlier device-profile requirements:
+    vendor detection, display-mode overrides, refresh cadence, device onboarding,
+    the device submenu, and navigation refresh hooks are removed entirely.
+[x] Reader Page refresh: None, Black and white, BOOX refresh. BOOX refresh remains
+    selectable on every device, with no manufacturer or capability check. It calls
+    the BOOX refresh command directly after the selected image is decoded and
+    drawing settles, including the first image and overlapping strip sections.
+    Preloads, duplicate callbacks, menus, and chapter transitions do not trigger it.
+    A failed command shows a message once per reader session. Existing System
+    preference values remain compatible with the renamed BOOX refresh option.
 [x] Reader image padding accepts physical pixels and applies around paged images.
 [x] Analytics/crash upload dependencies and identifiers removed; manga-progress
     integrations retained. Manual local debug information remains available.
@@ -73,18 +76,25 @@ Daihon request audit — 2026-11-01
     avoiding white text on a white background.
 [x] Settings > Display > Page navigation has separate visibility switches for
     Details, Chapters, Browse, Updates, History, Settings, dialogs and other screens.
-    Height is adjustable from 48 to 112 dp, defaulting to 72 dp. Hiding controls
-    retains key/swipe paging and system-bar insets. Library has a link, not a switch;
-    it opens the library Display menu directly and preserves Hidden/Bar/Buttons.
-    Shared height applies to the library's buttons and progress-bar style too.
+    Navigation sits on the right; its width is adjustable from 48 to 112 dp,
+    defaulting to 72 dp. Hidden bars retain a tappable position/page counter in
+    the existing toolbar or dialog heading, with a local fallback for menus without
+    a heading. Key/swipe paging and system insets remain. Library has a link, not
+    a switch; it opens the library Display menu and preserves Hidden/Bar/Buttons.
+    Shared width applies to library buttons and the vertical progress-bar style.
+[x] App pages have no overlap and incomplete last pages retain white space. Lazy
+    lists/grids stay lazy; only visible row geometry is needed. Long forms defer
+    complete controls and break long descriptions at measured text lines. The
+    reader's long-strip overlap is unchanged, as explicitly requested.
 [x] Source changes use focused, neutral commits so UI decisions can be reverted.
 
 Validation
 - Debug build and formatting pass.
-- 83 app tests and 15 presentation-core tests pass (98 total, no failures/skips).
+- 71 app tests and 22 presentation-core tests pass (93 total, no failures/skips).
 - Focused tests cover first-page decode gating, preloads, duplicate notifications,
   released images, chapter-transition cancellation, long-strip sections, orphan
-  headers, and vertical spacing.
+  headers, vertical spacing, full-row grid boundaries, form controls, text lines,
+  repeated headings, and final-page whitespace.
 - Brief emulator checks: Details/Resume target, chapter spacing, compact menus,
   outside dismissal, pinned header below toolbar, phone and tablet modes.
 - Tablet mode restored after validation. Only fictional emulator reading data used.
@@ -94,7 +104,8 @@ Validation
 Limits
 - ADB/emulator checks do not establish physical ghosting or waveform quality.
   BOOX firmware controls may still perform their own refreshes; disable automatic
-  full refreshes in its per-app settings when using the reader's System option.
-- Firmware support is capability-based, not a claim that every vendor/model has
-  been physically tested. The Go 7 is the connected installation target.
+  full refreshes in its per-app settings when using the reader's BOOX refresh option.
+- BOOX refresh command success and physical panel behavior depend on firmware;
+  availability is not prefiltered. No vendor modes are detected or modified.
+  The Go 7 is the connected installation target.
 - Earlier Mihon upstream PR work is separate from these Daihon UI changes.

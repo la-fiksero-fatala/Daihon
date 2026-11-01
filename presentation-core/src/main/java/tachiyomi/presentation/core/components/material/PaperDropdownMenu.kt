@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -29,7 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+import tachiyomi.presentation.core.components.LocalPaperPageIndicator
 import tachiyomi.presentation.core.components.PaperNavigation
+import tachiyomi.presentation.core.components.PaperPageIndicatorState
 import tachiyomi.presentation.core.components.PaperScrollColumn
 
 /** Stationary, paginated menu that stays within the available window. */
@@ -72,20 +75,23 @@ fun PaperDropdownMenu(
     Popup(position, onDismissRequest, properties) {
         val focus = remember { FocusRequester() }
         LaunchedEffect(Unit) { focus.requestFocus() }
-        PaperSurface(
-            modifier = modifier.widthIn(max = (configuration.screenWidthDp - 24).dp)
-                .heightIn(max = (configuration.screenHeightDp * .7f).dp),
-            shape = shape,
-            color = Color.White,
-            contentColor = Color.Black,
-            border = border,
-        ) {
-            PaperScrollColumn(
-                modifier = Modifier.onPreviewKeyEvent { PaperNavigation.dispatchKeyEvent(it.nativeKeyEvent) }
-                    .focusRequester(focus).focusable(),
-                state = scrollState,
-                content = content,
-            )
+        val indicator = remember { PaperPageIndicatorState() }
+        CompositionLocalProvider(LocalPaperPageIndicator provides indicator) {
+            PaperSurface(
+                modifier = modifier.widthIn(max = (configuration.screenWidthDp - 24).dp)
+                    .heightIn(max = (configuration.screenHeightDp * .7f).dp),
+                shape = shape,
+                color = Color.White,
+                contentColor = Color.Black,
+                border = border,
+            ) {
+                PaperScrollColumn(
+                    modifier = Modifier.onPreviewKeyEvent { PaperNavigation.dispatchKeyEvent(it.nativeKeyEvent) }
+                        .focusRequester(focus).focusable(),
+                    state = scrollState,
+                    content = content,
+                )
+            }
         }
     }
 }

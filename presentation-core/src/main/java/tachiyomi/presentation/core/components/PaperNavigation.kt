@@ -29,7 +29,8 @@ import kotlin.math.abs
 object PaperNavigation {
     private data class Handler(val enabled: () -> Boolean, val navigate: (Int) -> Unit)
     private val handlers = linkedMapOf<Any, Handler>()
-    private var active: Any? = null
+    private var active by mutableStateOf<Any?>(null)
+    internal val activeOwner get() = active
     private data class WindowBinding(val original: Window.Callback, val callback: Window.Callback, var users: Int)
     private val windows = mutableMapOf<Window, WindowBinding>()
 

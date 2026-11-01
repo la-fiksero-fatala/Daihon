@@ -85,6 +85,11 @@ fun PaperLazyVerticalGrid(
     val paged = total > 0 && (hasPrevious || next != null)
     val partial = visible.firstOrNull { it.offset.y > 0 && it.offset.y + it.size.height > end }
     val mask = partial?.let { (viewport - info.beforeContentPadding - it.offset.y).coerceAtLeast(0) } ?: 0
+    LaunchedEffect(first, end) {
+        val rowHeight = visible.filter { it.offset.y == visible.minOfOrNull { item -> item.offset.y } }
+            .maxOfOrNull { it.size.height } ?: 0
+        if (first.offset > 0 && rowHeight <= end) state.scrollToItem(first.index)
+    }
     val navigate: (Int) -> Unit = { step ->
         PaperNavigation.activate(owner)
         scope.launch {
@@ -110,7 +115,16 @@ fun PaperLazyVerticalGrid(
     val fallback = (LocalConfiguration.current.screenHeightDp * .75f).dp
     BoxWithConstraints(modifier) {
         val limit = if (constraints.hasBoundedHeight) maxHeight else fallback
-        Column(Modifier.heightIn(max = limit).fillMaxWidth()) {
+        val shownLast = visible.lastOrNull { it.offset.y + it.size.height <= end }?.index ?: first.index
+        PaperPageFrame(
+            owner, "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}",
+            paged, hasPrevious, next != null, { navigate(-1) }, { navigate(1) }, { showJump = true },
+            Modifier.heightIn(max = limit).fillMaxWidth().padding(
+                top = contentPadding.calculateTopPadding(),
+                bottom = contentPadding.calculateBottomPadding(),
+            ).consumeWindowInsets(contentPadding).navigationBarsPadding(),
+            fill = constraints.minHeight > 0,
+        ) {
             Box(
                 Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }
                     .then(paperInput(owner, !showJump, navigate, atTop = !hasPrevious)),
@@ -120,7 +134,6 @@ fun PaperLazyVerticalGrid(
                     state = state,
                     contentPadding = PaddingValues(
                         start = contentPadding.calculateStartPadding(direction),
-                        top = contentPadding.calculateTopPadding(),
                         end = contentPadding.calculateEndPadding(direction),
                     ),
                     reverseLayout = reverseLayout,
@@ -133,14 +146,6 @@ fun PaperLazyVerticalGrid(
                         Spacer(Modifier.height(if (paged) with(density) { viewport.toDp() } else 0.dp))
                     }
                 }
-                // Native lazy layouts draw cached preceding rows into their leading padding.
-                // Keep that margin blank when a new page starts.
-                if (hasPrevious && contentPadding.calculateTopPadding() > 0.dp) {
-                    Box(
-                        Modifier.align(Alignment.TopCenter).fillMaxWidth()
-                            .height(contentPadding.calculateTopPadding()).background(Color.White),
-                    )
-                }
                 if (mask > 0) {
                     Box(
                         Modifier.align(Alignment.BottomCenter).fillMaxWidth()
@@ -148,19 +153,6 @@ fun PaperLazyVerticalGrid(
                             .pointerInput(Unit) { detectTapGestures(onTap = {}) },
                     )
                 }
-            }
-            if (paged) {
-                val shownLast = visible.lastOrNull { it.offset.y + it.size.height <= end }?.index ?: first.index
-                PaperPageControls(
-                    "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}",
-                    hasPrevious,
-                    next != null,
-                    { navigate(-1) },
-                    { navigate(1) },
-                    { showJump = true },
-                    Modifier.padding(bottom = contentPadding.calculateBottomPadding())
-                        .consumeWindowInsets(contentPadding).navigationBarsPadding(),
-                )
             }
         }
     }

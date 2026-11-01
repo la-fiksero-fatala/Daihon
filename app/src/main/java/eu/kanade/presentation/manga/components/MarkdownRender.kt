@@ -17,13 +17,17 @@ import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.mikepenz.markdown.annotator.annotatorSettings
+import com.mikepenz.markdown.annotator.buildMarkdownAnnotatedString
 import com.mikepenz.markdown.coil3.Coil3ImageTransformerImpl
 import com.mikepenz.markdown.compose.LocalBulletListHandler
+import com.mikepenz.markdown.compose.LocalMarkdownExtendedSpans
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.compose.components.markdownComponents
 import com.mikepenz.markdown.compose.elements.MarkdownBulletList
@@ -67,6 +71,7 @@ import org.intellij.markdown.parser.markerblocks.providers.HorizontalRuleProvide
 import org.intellij.markdown.parser.markerblocks.providers.ListMarkerProvider
 import org.intellij.markdown.parser.markerblocks.providers.SetextHeaderProvider
 import tachiyomi.presentation.core.components.material.padding
+import tachiyomi.presentation.core.components.rememberPaperTextBreaks
 
 const val MARKDOWN_INLINE_IMAGE_TAG = "MARKDOWN_INLINE_IMAGE"
 
@@ -160,6 +165,24 @@ private val markdownPadding = object : MarkdownPadding {
 }
 
 private val markdownComponents = markdownComponents(
+    paragraph = { model ->
+        val breaks = rememberPaperTextBreaks()
+        val settings = annotatorSettings()
+        val text = buildAnnotatedString {
+            pushStyle(model.typography.paragraph.toSpanStyle())
+            buildMarkdownAnnotatedString(content = model.content, node = model.node, annotatorSettings = settings)
+            pop()
+        }
+        MarkdownText(
+            content = text,
+            node = model.node,
+            style = model.typography.paragraph,
+            modifier = breaks.modifier,
+            sourceContent = model.content,
+            extendedSpans = LocalMarkdownExtendedSpans.current.extendedSpans?.invoke(),
+            onTextLayout = { result, _ -> breaks.onTextLayout(result) },
+        )
+    },
     horizontalRule = {
         MarkdownDivider(
             modifier = Modifier

@@ -114,7 +114,7 @@ data object LibraryTab : Tab {
         val pageButtons = if (pageNavigation == LibraryNavigationMode.Hidden) {
             LibraryPageButtons.Hidden
         } else {
-            pagePosition.takeUnless { it == LibraryPageButtons.Hidden } ?: LibraryPageButtons.Bottom
+            pagePosition.takeUnless { it == LibraryPageButtons.Hidden } ?: LibraryPageButtons.Right
         }
         val tabNavigator = LocalTabNavigator.current
         val lifecycle = LocalLifecycleOwner.current.lifecycle

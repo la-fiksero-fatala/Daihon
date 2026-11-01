@@ -30,9 +30,31 @@ class PaperPageMathTest {
     }
 
     @Test
-    fun `one oversized item advances by overlapping sections`() {
-        nextPaperAnchor(listOf(PaperItem(0, 0, 1600)), PaperAnchor(0), 600, 2) shouldBe PaperAnchor(0, 480)
-        nextPaperAnchor(listOf(PaperItem(0, -480, 1600)), PaperAnchor(0, 480), 600, 2) shouldBe PaperAnchor(0, 960)
+    fun `one oversized item advances by full non-overlapping sections`() {
+        nextPaperAnchor(listOf(PaperItem(0, 0, 1600)), PaperAnchor(0), 600, 2) shouldBe PaperAnchor(0, 600)
+        nextPaperAnchor(listOf(PaperItem(0, -600, 1600)), PaperAnchor(0, 600), 600, 2) shouldBe PaperAnchor(0, 1200)
+    }
+
+    @Test
+    fun `a grid row is deferred as a whole when only one cell is too tall`() {
+        nextPaperAnchor(
+            listOf(PaperItem(0, 0, 100), PaperItem(1, 0, 100), PaperItem(2, 100, 100), PaperItem(3, 100, 180)),
+            PaperAnchor(0),
+            250,
+            8,
+        ) shouldBe PaperAnchor(2)
+    }
+
+    @Test
+    fun `a pinned heading reduces the usable section without skipping content`() {
+        nextPaperAnchor(
+            listOf(PaperItem(3, 40, 1600)),
+            PaperAnchor(3),
+            600,
+            8,
+            viewportStart = 40,
+        ) shouldBe PaperAnchor(3, 560)
+        paperPageStep(600) shouldBe 600
     }
 
     @Test
@@ -88,6 +110,7 @@ class PaperPageMathTest {
     @Test
     fun `vertical spacing fills fractional row remainder without enlarging short lists`() {
         paperRowSpacing(650, 100, 30) shouldBe 10f
+        paperRowSpacing(1224, 112, 80) shouldBe 11f
         paperRowSpacing(600, 100, 30) shouldBe 0f
         paperRowSpacing(300, 100, 3) shouldBe 0f
         paperRowSpacing(650, 100, 3) shouldBe 0f

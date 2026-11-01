@@ -58,9 +58,7 @@ fun PaperLazyColumn(
     flingBehavior: FlingBehavior = ScrollableDefaults.flingBehavior(),
     userScrollEnabled: Boolean = true,
     alwaysShowControls: Boolean = false,
-    showControlsDivider: Boolean = true,
     fillRowGaps: Boolean = false,
-    preserveLastPageSpace: Boolean = true,
     beforeControls: @Composable (() -> Unit)? = null,
     hasMoreItems: Boolean = false,
     pageLabel: ((first: Int, last: Int) -> String?)? = null,
@@ -88,7 +86,10 @@ fun PaperLazyColumn(
     val visible = info.visibleItemsInfo.filter { it.index < total }.sortedBy { it.index }
     val headerSizes = remember(sections) { mutableMapOf<Int, Int>() }
     visible.filter { it.index in sections.headers }.forEach { headerSizes[it.index] = it.size }
-    val first = PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+    val pinnedHeight = visible.lastOrNull { it.index in sections.headers && it.offset <= 0 }?.size ?: 0
+    val leading = visible.firstOrNull { it.index !in sections.headers && it.offset + it.size > pinnedHeight }
+    val first = leading?.let { PaperAnchor(it.index, (pinnedHeight - it.offset).coerceAtLeast(0)) }
+        ?: PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
     val end = info.viewportEndOffset - info.afterContentPadding
     val pageItems = visible.map { PaperItem(it.index, it.offset, it.size) }
     val orphan = paperOrphanHeader(pageItems, sections.headers, first, end)
@@ -97,11 +98,12 @@ fun PaperLazyColumn(
         first,
         end,
         total,
+        pinnedHeight,
     )
     val rowHeight = visible.maxOfOrNull { it.size } ?: 0
     val spacing = paperRowSpacing((end - info.beforeContentPadding).coerceAtLeast(0), rowHeight, total)
     val arrangement = if (fillRowGaps) Arrangement.spacedBy(with(density) { spacing.toDp() }) else verticalArrangement
-    val hasPrevious = first.index > 0 || first.offset > 0
+    val hasPrevious = state.firstVisibleItemIndex > 0 || state.firstVisibleItemScrollOffset > 0
     val paged = total > 0 && (hasPrevious || next != null)
     val partial = visible.firstOrNull { it.index > first.index && it.offset + it.size > end }
     val mask =
@@ -120,8 +122,14 @@ fun PaperLazyColumn(
             state.scrollToItem(header)
             height = state.layoutInfo.visibleItemsInfo.firstOrNull { it.index == header }?.size ?: 0
         }
-        val reserve = if (target.index in sections.headers || target.offset > 0) 0 else height
+        val reserve = if (target.index in sections.headers) 0 else height
         state.scrollToItem(target.index, target.offset - reserve)
+    }
+    // External item jumps and viewport changes must not leave a normal row under its sticky header.
+    LaunchedEffect(first, pinnedHeight, end) {
+        if (first.offset > 0 && leading != null && leading.size <= end - pinnedHeight) {
+            jumpTo(PaperAnchor(first.index))
+        }
     }
     val navigate: (Int) -> Unit = { step ->
         PaperNavigation.activate(owner)
@@ -148,7 +156,30 @@ fun PaperLazyColumn(
     val fallback = (LocalConfiguration.current.screenHeightDp * .75f).dp
     BoxWithConstraints(modifier) {
         val limit = if (constraints.hasBoundedHeight) maxHeight else fallback
-        Column(Modifier.heightIn(max = limit).fillMaxWidth().padding(top = contentPadding.calculateTopPadding())) {
+        val shownLast = visible.lastOrNull { it.index !in sections.headers && it.offset + it.size <= end }?.index
+            ?: first.index
+        val label = pageLabel?.invoke(first.index, shownLast) ?: if (total == 0) {
+            "0 / 0"
+        } else {
+            "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}"
+        }
+        PaperPageFrame(
+            owner, label, paged || alwaysShowControls, hasPrevious, next != null,
+            { navigate(-1) }, { navigate(1) },
+            {
+                if (onJump != null) {
+                    history.clear()
+                    onJump(first.index)
+                } else {
+                    showJump = true
+                }
+            },
+            Modifier.heightIn(max = limit).fillMaxWidth().padding(
+                top = contentPadding.calculateTopPadding(),
+                bottom = contentPadding.calculateBottomPadding(),
+            ).consumeWindowInsets(contentPadding).navigationBarsPadding(),
+            fill = constraints.minHeight > 0, canJump = total > 0,
+        ) {
             Box(
                 Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }
                     .then(paperInput(owner, !showJump, navigate, atTop = !hasPrevious)),
@@ -168,13 +199,7 @@ fun PaperLazyColumn(
                     item(key = "__daihon_page_end", contentType = "__daihon_page_end") {
                         Spacer(
                             Modifier.height(
-                                if (paged &&
-                                    preserveLastPageSpace
-                                ) {
-                                    with(density) { viewport.toDp() }
-                                } else {
-                                    0.dp
-                                },
+                                if (paged) with(density) { viewport.toDp() } else 0.dp,
                             ),
                         )
                     }
@@ -188,32 +213,6 @@ fun PaperLazyColumn(
                 }
             }
             beforeControls?.invoke()
-            if (paged || alwaysShowControls) {
-                val shownLast = visible.lastOrNull { it.offset + it.size <= end }?.index ?: first.index
-                PaperPageControls(
-                    pageLabel?.invoke(first.index, shownLast) ?: if (total == 0) {
-                        "0 / 0"
-                    } else {
-                        "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}"
-                    },
-                    hasPrevious,
-                    next != null,
-                    { navigate(-1) },
-                    { navigate(1) },
-                    {
-                        if (onJump != null) {
-                            history.clear()
-                            onJump(first.index)
-                        } else {
-                            showJump = true
-                        }
-                    },
-                    Modifier.padding(bottom = contentPadding.calculateBottomPadding())
-                        .consumeWindowInsets(contentPadding).navigationBarsPadding(),
-                    canJump = total > 0,
-                    showDivider = showControlsDivider,
-                )
-            }
         }
     }
     if (showJump) {

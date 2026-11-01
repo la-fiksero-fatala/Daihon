@@ -293,6 +293,7 @@ internal fun LibraryPageControls(
             onNext = { onPageChange(1) },
             onJump = onClickPageNumber,
             canJump = pageCount > 0,
+            vertical = vertical,
         )
     }
 }
