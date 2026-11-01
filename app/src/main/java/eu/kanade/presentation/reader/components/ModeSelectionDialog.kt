@@ -3,12 +3,12 @@ package eu.kanade.presentation.reader.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,13 +23,14 @@ import tachiyomi.presentation.core.components.SettingsItemsPaddings
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.components.material.PaperButton as FilledTonalButton
+import tachiyomi.presentation.core.components.material.PaperButton as OutlinedButton
 import tachiyomi.presentation.core.components.material.PaperSurface as Surface
 
 @Composable
 fun ModeSelectionDialog(
     onApply: () -> Unit,
     onUseDefault: (() -> Unit)? = null,
-    content: @Composable () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(modifier = Modifier.padding(vertical = 16.dp)) {
         Column {
