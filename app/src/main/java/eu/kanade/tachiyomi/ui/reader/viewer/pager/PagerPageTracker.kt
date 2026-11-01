@@ -138,6 +138,7 @@ class PagerPageTracker(
      * preload of the destination chapter of the transition.
      */
     private fun onTransitionSelected(transition: ChapterTransition) {
+        activity.onReaderTransitionSelected()
         logcat { "onTransitionSelected: $transition" }
         val toChapter = transition.to
         if (toChapter != null) {

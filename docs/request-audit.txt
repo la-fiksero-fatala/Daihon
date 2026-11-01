@@ -66,9 +66,10 @@ Daihon request audit — 2026-11-01
 
 Validation
 - Debug build and formatting pass.
-- 79 app tests and 15 presentation-core tests pass (94 total, no failures/skips).
+- 80 app tests and 15 presentation-core tests pass (95 total, no failures/skips).
 - Focused tests cover first-page decode gating, preloads, duplicate notifications,
-  released images, long-strip sections, orphan headers, and vertical spacing.
+  released images, chapter-transition cancellation, long-strip sections, orphan
+  headers, and vertical spacing.
 - Brief emulator checks: Details/Resume target, chapter spacing, compact menus,
   outside dismissal, pinned header below toolbar, phone and tablet modes.
 - Tablet mode restored after validation. Only fictional emulator reading data used.

@@ -28,6 +28,11 @@ internal class ReaderPageRefreshSession(
         view.invalidate()
     }
 
+    fun clearSelection() {
+        gate.clearSelection()
+        view.removeCallbacks(settled)
+    }
+
     fun decoded(page: ReaderPage) {
         gate.decoded(page)
         view.invalidate()

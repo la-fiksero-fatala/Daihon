@@ -54,4 +54,16 @@ class ReaderPageRefreshGateTest {
         gate.takeReady() shouldBe page
         gate.takeReady() shouldBe null
     }
+
+    @Test
+    fun `chapter transitions cancel pending refresh even if old image finishes decoding`() {
+        val gate = ReaderPageRefreshGate<Any>()
+        val page = Any()
+        gate.select(page)
+        gate.clearSelection()
+        gate.decoded(page)
+        gate.takeReady() shouldBe null
+        gate.select(page)
+        gate.takeReady() shouldBe page
+    }
 }

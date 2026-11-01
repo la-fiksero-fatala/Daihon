@@ -16,6 +16,11 @@ internal class ReaderPageRefreshGate<T : Any> {
         }
     }
 
+    fun clearSelection() {
+        selected = null
+        pending = false
+    }
+
     fun decoded(page: T) {
         decoded[page] = true
     }

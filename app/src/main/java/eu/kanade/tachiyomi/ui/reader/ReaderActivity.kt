@@ -154,6 +154,10 @@ class ReaderActivity : BaseActivity() {
         pageRefreshSession?.selected(page, sectionChanged = true)
     }
 
+    fun onReaderTransitionSelected() {
+        pageRefreshSession?.clearSelection()
+    }
+
     fun onReaderPageDecoded(page: ReaderPage) {
         pageRefreshSession?.decoded(page)
     }
