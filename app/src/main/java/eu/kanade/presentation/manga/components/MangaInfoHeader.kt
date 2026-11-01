@@ -1,8 +1,6 @@
 package eu.kanade.presentation.manga.components
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
@@ -12,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowOverflow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -241,23 +240,12 @@ fun ExpandableMangaDescription(
         val desc =
             description.takeIf { !it.isNullOrBlank() } ?: stringResource(MR.strings.description_placeholder)
 
-        MangaSummary(
-            description = desc,
-            expanded = expanded,
-            notes = notes,
-            onEditNotesClicked = onEditNotes,
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .padding(horizontal = 16.dp)
-                .clickableNoIndication { onExpanded(!expanded) },
-        )
         val tags = tagsProvider()
         if (!tags.isNullOrEmpty()) {
+            var tagsExpanded by rememberSaveable(tags) { mutableStateOf(false) }
             Box(
                 modifier = Modifier
-                    .padding(top = 8.dp)
-                    .padding(vertical = 12.dp)
-                    .animateContentSize(animationSpec = spring())
+                    .padding(vertical = 8.dp)
                     .fillMaxWidth(),
             ) {
                 var showMenu by remember { mutableStateOf(false) }
@@ -283,12 +271,39 @@ fun ExpandableMangaDescription(
                 }
 
                 FlowRow(
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                        .then(if (tagsExpanded) Modifier else Modifier.paperPageItem()),
                     horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
+                    maxLines = if (tagsExpanded) Int.MAX_VALUE else 2,
+                    overflow = FlowRowOverflow.expandOrCollapseIndicator(
+                        expandIndicator = {
+                            TagsChip(
+                                text = stringResource(MR.strings.manga_info_expand),
+                                modifier = DefaultTagChipModifier,
+                                onClick = { tagsExpanded = true },
+                            )
+                        },
+                        collapseIndicator = {
+                            TagsChip(
+                                text = stringResource(MR.strings.manga_info_collapse),
+                                modifier = if (tagsExpanded) {
+                                    DefaultTagChipModifier.paperPageItem()
+                                } else {
+                                    DefaultTagChipModifier
+                                },
+                                onClick = { tagsExpanded = false },
+                            )
+                        },
+                        minRowsToShowCollapse = 3,
+                    ),
                 ) {
                     tags.forEach {
                         TagsChip(
-                            modifier = DefaultTagChipModifier.paperPageItem(),
+                            modifier = if (tagsExpanded) {
+                                DefaultTagChipModifier.paperPageItem()
+                            } else {
+                                DefaultTagChipModifier
+                            },
                             text = it,
                             onClick = {
                                 tagSelected = it
@@ -299,6 +314,16 @@ fun ExpandableMangaDescription(
                 }
             }
         }
+        MangaSummary(
+            description = desc,
+            expanded = expanded,
+            notes = notes,
+            onEditNotesClicked = onEditNotes,
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .padding(horizontal = 16.dp)
+                .clickableNoIndication { onExpanded(!expanded) },
+        )
     }
 }
 

@@ -95,41 +95,50 @@ Daihon request audit — 2026-11-01
     Shared width applies to library buttons and the vertical progress-bar style.
     Counters sit before action icons. Popups wait for measured content and the
     matching counter before their first visible frame, without timed delays.
-    Single-page content has no counter or navigation. Corner context menus are
-    plain lists of actions, without counters or navigation chrome.
+    Single-page content has no counter. Regular single-page navigation is hidden;
+    dynamic search/migration results keep all three controls visible, including
+    loading and empty states. Corner context menus remain plain action lists.
 [x] App pages have no overlap and incomplete last pages retain white space. Lazy
-    lists/grids stay lazy; only visible row geometry is needed. Long forms defer
+    lists/grids stay lazy; their initial check measures at most two layouts. Long forms defer
     complete controls and break long descriptions at measured text lines. The
     reader's long-strip overlap is unchanged, as explicitly requested. Descriptions
     use the remaining first-page space at measured line boundaries, even when the
     whole paragraph would fit on a fresh page. List entries remain indivisible.
 [x] Search and migration restore stacked source sections, paged vertically as
-    complete sections. Each source's results form an 88 dp card row with independent
-    immediate horizontal paging. Left/right buttons remain visible at both ends,
-    including disabled ends and short rows; no per-row position numbering is used.
-    The original source links, filters, progress states, migration source marker,
-    and manga click/long-click behavior remain.
-[x] Vertical button navigation has a double-up jump-to-top above Up for views with
-    more than two pages, disabled at the top. Forms and the library use their exact
-    counts. Lazy lists confirm a third page from visited boundaries instead of
-    measuring every item up front, then retain the control when returning to top.
+    complete sections. Each source uses compact-grid 88 dp cards with title overlays
+    and independent horizontal paging. Permanent left/right buttons are outlined
+    and match the visible cover height. Cards spread across the available width;
+    short final rows also distribute their spacing. No per-row numbering is used.
+    Source links, filters, progress states, migration source markers, and manga
+    click/long-click behavior remain.
+[x] Manga tag/category chips precede the description and default to at most two
+    rows. Native More/Less chips expand or collapse overflow immediately; no extra
+    toggle appears when all tags already fit. Tag search/copy actions are retained.
+[x] Vertical button navigation has a double-up jump-to-top above Up, disabled at
+    the top. Regular views show it from the first page when three pages exist.
+    Forms/library use exact counts; lazy lists inspect only the first two layouts
+    before drawing and restore the original position, including after cancellation.
+    Migration, global search, and individual source search always keep all three
+    controls while navigation is enabled, regardless of changing result counts.
 [x] Source changes use focused, neutral commits so UI decisions can be reverted.
 
 Validation
 - Debug build and formatting pass.
-- 74 app tests and 29 presentation-core tests pass (103 total, no failures/skips).
+- 74 app tests and 30 presentation-core tests pass (104 total, no failures/skips).
 - Focused tests cover first-page decode gating, preloads, duplicate notifications,
   released images, chapter-transition cancellation, long-strip sections, orphan
   headers, vertical spacing, full-row grid boundaries, form controls, text lines,
   repeated headings, final-page whitespace, first-cell grid rounding, popup
   readiness, single-page/context-menu hiding, description breaks, horizontal card
-  capacity, and confirmation of a third page.
+  capacity, and an initial third-page check with position restoration.
 - Brief emulator checks: Details/Resume target, chapter spacing, compact menus,
   outside dismissal, pinned header below toolbar, phone and tablet modes;
   fixed footer bounds across page changes and the 16-pixel bottom gap; counter
   placement before icons; single/multipage popups; stacked search and migration;
   independent horizontal card paging; descriptions using the first page; and
-  conditional jump-to-top behavior. Offline fixture code was removed before delivery.
+  first-page jump-to-top in lists/grids, permanent controls in dynamic result
+  views, compact rows with outlined arrows, and two-row tags above descriptions.
+  Offline fixture code was removed before delivery.
 - Tablet mode restored after validation. Only fictional emulator reading data used.
 - Preview package/label, optimized APK build, USB installation, and preservation of
   Mihon are verified separately in the delivered build's TESTING.txt.
