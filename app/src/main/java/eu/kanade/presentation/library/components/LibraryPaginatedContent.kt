@@ -1,6 +1,5 @@
 package eu.kanade.presentation.library.components
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
@@ -39,6 +38,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -193,6 +194,7 @@ internal fun LibraryPaginatedContent(
             if (navigation.onPageChange === handler) {
                 navigation.onPageChange = null
                 navigation.pageInfo = null
+                navigation.previewPage = null
             }
         }
     }
@@ -204,11 +206,11 @@ internal fun LibraryPaginatedContent(
         }
         Row(Modifier.weight(1f)) {
             if (buttons == LibraryPageButtons.Left) {
-                LibraryPageControls(page, pageCount, true, showSlider, onPageChange)
+                LibraryPageControls(page, pageCount, true, showSlider, onPageChange, navigation)
             }
             Column(Modifier.weight(1f).fillMaxHeight()) {
                 if (buttons == LibraryPageButtons.Top) {
-                    LibraryPageControls(page, pageCount, false, showSlider, onPageChange)
+                    LibraryPageControls(page, pageCount, false, showSlider, onPageChange, navigation)
                 }
                 Box(
                     Modifier.weight(1f)
@@ -237,11 +239,11 @@ internal fun LibraryPaginatedContent(
                     )
                 }
                 if (buttons == LibraryPageButtons.Bottom) {
-                    LibraryPageControls(page, pageCount, false, showSlider, onPageChange)
+                    LibraryPageControls(page, pageCount, false, showSlider, onPageChange, navigation)
                 }
             }
             if (buttons == LibraryPageButtons.Right) {
-                LibraryPageControls(page, pageCount, true, showSlider, onPageChange)
+                LibraryPageControls(page, pageCount, true, showSlider, onPageChange, navigation)
             }
         }
     }
@@ -254,6 +256,7 @@ internal fun LibraryPageControls(
     vertical: Boolean,
     showSlider: Boolean,
     onPageChange: (Int) -> Unit,
+    navigation: LibraryNavigation,
 ) {
     val height = LocalPaperNavigationSettings.current.height
     if (pageCount <= 1) {
@@ -263,6 +266,9 @@ internal fun LibraryPageControls(
     }
     if (showSlider) {
         var target by remember(page, pageCount) { mutableIntStateOf(page) }
+        DisposableEffect(navigation, page, pageCount) {
+            onDispose { navigation.previewPage = null }
+        }
         val size = if (vertical) {
             Modifier.width(
                 height,
@@ -273,9 +279,18 @@ internal fun LibraryPageControls(
         LibraryPageSlider(
             page = target,
             pageCount = pageCount,
-            onValueChange = { target = it },
-            onValueChangeFinished = { onPageChange(target - page) },
-            modifier = size.border(1.dp, Color.Black).padding(
+            onValueChange = {
+                target = it
+                navigation.previewPage = it
+            },
+            onValueChangeFinished = {
+                onPageChange(target - page)
+                if (target == page) navigation.previewPage = null
+            },
+            modifier = size.drawBehind {
+                val end = if (vertical) Offset(0f, this.size.height) else Offset(this.size.width, 0f)
+                drawLine(Color.Black, Offset.Zero, end, 1.dp.toPx())
+            }.padding(
                 horizontal = if (vertical) 8.dp else 32.dp,
                 vertical = if (vertical) 32.dp else ((height.value - 48f) / 2f).coerceIn(0f, 8f).dp,
             ),

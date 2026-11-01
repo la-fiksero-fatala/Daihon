@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,8 +37,10 @@ import eu.kanade.presentation.library.DeleteLibraryMangaDialog
 import eu.kanade.presentation.library.LibrarySettingsDialog
 import eu.kanade.presentation.library.components.LibraryContent
 import eu.kanade.presentation.library.components.LibraryPageJumpDialog
+import eu.kanade.presentation.library.components.LibrarySearchActions
 import eu.kanade.presentation.library.components.LibraryTabs
 import eu.kanade.presentation.library.components.LibraryToolbar
+import eu.kanade.presentation.library.components.LocalLibrarySearchActions
 import eu.kanade.presentation.manga.components.LibraryBottomActionMenu
 import eu.kanade.presentation.more.onboarding.GETTING_STARTED_URL
 import eu.kanade.presentation.util.Tab
@@ -168,14 +171,18 @@ data object LibraryTab : Tab {
                 )
                 LibraryToolbar(
                     onClickPageNumber = { libraryNavigation.showPageDialog = true },
-                    pagination = libraryNavigation.pageInfo?.takeIf {
+                    pagination = libraryNavigation.displayedPageInfo?.takeIf {
                         paginated && it.count > 1
                     },
                     searchInteractionSource = searchInteractionSource,
                     hasActiveFilters = state.hasActiveFilters,
                     selectedCount = state.selection.size,
-                    title = title,
-                    categorySelector = if (state.displayedCategories.isEmpty()) {
+                    title = if (state.searchingAllCategories) {
+                        title.copy(text = stringResource(MR.strings.daihon_all_categories))
+                    } else {
+                        title
+                    },
+                    categorySelector = if (state.searchingAllCategories || state.displayedCategories.isEmpty()) {
                         null
                     } else {
                         { iconOnly ->
@@ -248,48 +255,58 @@ data object LibraryTab : Tab {
                     )
                 }
                 else -> {
-                    LibraryContent(
-                        navigation = libraryNavigation,
-                        paginated = paginated,
-                        pageRows = pageRows,
-                        stretchPageSpacing = stretchPageSpacing,
-                        onPageRowsChange = settingsViewModel.libraryPreferences.pageRows::set,
-                        pageButtons = pageButtons,
-                        pageSlider = pageNavigation == LibraryNavigationMode.Bar,
-                        categories = state.displayedCategories,
-                        searchQuery = state.searchQuery,
-                        selection = state.selection,
-                        contentPadding = contentPadding,
-                        currentPage = state.coercedActiveCategoryIndex,
-                        hasActiveFilters = state.hasActiveFilters,
-                        onChangeCurrentPage = viewModel::updateActiveCategoryIndex,
-                        onClickManga = { navigator.push(MangaScreen(it)) },
-                        onContinueReadingClicked = { it: LibraryManga ->
-                            scope.launch {
-                                val chapter = viewModel.getNextUnreadChapter(it.manga)
-                                if (chapter != null) {
-                                    context.startActivity(
-                                        ReaderActivity.newIntent(context, chapter.mangaId, chapter.id),
-                                    )
-                                } else {
-                                    snackbarHostState.showSnackbar(context.stringResource(MR.strings.no_next_chapter))
+                    val allCategoriesLabel = stringResource(MR.strings.daihon_all_categories)
+                    CompositionLocalProvider(
+                        LocalLibrarySearchActions provides LibrarySearchActions(
+                            allCategories = { viewModel.searchAllCategories(allCategoriesLabel) },
+                            searchingAll = state.searchingAllCategories,
+                        ),
+                    ) {
+                        LibraryContent(
+                            navigation = libraryNavigation,
+                            paginated = paginated,
+                            pageRows = pageRows,
+                            stretchPageSpacing = stretchPageSpacing,
+                            onPageRowsChange = settingsViewModel.libraryPreferences.pageRows::set,
+                            pageButtons = pageButtons,
+                            pageSlider = pageNavigation == LibraryNavigationMode.Bar,
+                            categories = state.displayedCategories,
+                            searchQuery = state.searchQuery,
+                            selection = state.selection,
+                            contentPadding = contentPadding,
+                            currentPage = state.coercedActiveCategoryIndex,
+                            hasActiveFilters = state.hasActiveFilters,
+                            onChangeCurrentPage = viewModel::updateActiveCategoryIndex,
+                            onClickManga = { navigator.push(MangaScreen(it)) },
+                            onContinueReadingClicked = { it: LibraryManga ->
+                                scope.launch {
+                                    val chapter = viewModel.getNextUnreadChapter(it.manga)
+                                    if (chapter != null) {
+                                        context.startActivity(
+                                            ReaderActivity.newIntent(context, chapter.mangaId, chapter.id),
+                                        )
+                                    } else {
+                                        snackbarHostState.showSnackbar(
+                                            context.stringResource(MR.strings.no_next_chapter),
+                                        )
+                                    }
                                 }
-                            }
-                            Unit
-                        }.takeIf { state.showMangaContinueButton },
-                        onToggleSelection = viewModel::toggleSelection,
-                        onToggleRangeSelection = { category, manga ->
-                            viewModel.toggleRangeSelection(category, manga)
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        },
-                        onRefresh = { onClickRefresh(state.activeCategory) },
-                        onGlobalSearchClicked = {
-                            navigator.push(GlobalSearchScreen(viewModel.state.value.searchQuery ?: ""))
-                        },
-                        getDisplayMode = { viewModel.getDisplayMode() },
-                        getColumnsForOrientation = { viewModel.getColumnsForOrientation(it) },
-                        getItemsForCategory = { state.getItemsForCategory(it) },
-                    )
+                                Unit
+                            }.takeIf { state.showMangaContinueButton },
+                            onToggleSelection = viewModel::toggleSelection,
+                            onToggleRangeSelection = { category, manga ->
+                                viewModel.toggleRangeSelection(category, manga)
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            },
+                            onRefresh = { onClickRefresh(state.activeCategory) },
+                            onGlobalSearchClicked = {
+                                navigator.push(GlobalSearchScreen(viewModel.state.value.searchQuery ?: ""))
+                            },
+                            getDisplayMode = { viewModel.getDisplayMode() },
+                            getColumnsForOrientation = { viewModel.getColumnsForOrientation(it) },
+                            getItemsForCategory = { state.getItemsForCategory(it) },
+                        )
+                    }
                 }
             }
         }

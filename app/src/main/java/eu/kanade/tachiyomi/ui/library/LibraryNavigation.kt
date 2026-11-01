@@ -10,6 +10,11 @@ class LibraryNavigation {
 
     var pageInfo: LibraryPageInfo? by mutableStateOf(null)
 
+    var previewPage: Int? by mutableStateOf(null)
+
+    val displayedPageInfo: LibraryPageInfo?
+        get() = pageInfo?.let { it.copy(index = previewPage?.coerceIn(0, it.count - 1) ?: it.index) }
+
     var showPageDialog by mutableStateOf(false)
 
     fun goToPage(page: Int) {

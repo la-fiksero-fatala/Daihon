@@ -752,7 +752,7 @@
     <string name="last_used_source">Last used</string>
     <string name="pinned_sources">Pinned</string>
     <string name="action_global_search_hint">Global search…</string>
-    <string name="action_global_search_query">Search for \"%1$s\" globally</string>
+    <string name="action_global_search_query">Search for \"%1$s\" in sources</string>
     <string name="latest">Latest</string>
     <string name="popular">Popular</string>
     <string name="browse">Browse</string>
@@ -1144,4 +1144,6 @@
     <string name="daihon_median_resolution">Median resolution: %1$s px</string>
     <string name="daihon_resolution_failed">Could not read image dimensions.</string>
     <string name="daihon_resolution_partial">Could not inspect %1$d pages. The median uses the remaining pages.</string>
+    <string name="daihon_search_all_categories">Search in all categories</string>
+    <string name="daihon_all_categories">All categories</string>
 </resources>

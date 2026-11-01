@@ -9,9 +9,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import eu.kanade.presentation.util.formatChapterNumber
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperJumpActions
 import tachiyomi.presentation.core.components.TextValuePicker
 import tachiyomi.presentation.core.components.material.PaperAlertDialog
-import tachiyomi.presentation.core.components.material.PaperButton
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
@@ -36,16 +36,18 @@ internal fun ChapterPageJumpDialog(
             )
         },
         confirmButton = {
-            PaperButton(enabled = valid, onClick = {
-                onSelectRow(numbers.rowForNumber(numbers.choices[selected]))
-                onDismissRequest()
-            }) { Text(stringResource(MR.strings.action_ok)) }
-        },
-        dismissButton = {
-            PaperButton(onClick = {
-                onSelectRow(0)
-                onDismissRequest()
-            }) { Text(stringResource(MR.strings.library_jump_to_top)) }
+            PaperJumpActions(
+                onTop = {
+                    onSelectRow(0)
+                    onDismissRequest()
+                },
+                onCancel = onDismissRequest,
+                onConfirm = {
+                    onSelectRow(numbers.rowForNumber(numbers.choices[selected]))
+                    onDismissRequest()
+                },
+                confirmEnabled = valid,
+            )
         },
     )
 }

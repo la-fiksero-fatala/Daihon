@@ -128,7 +128,7 @@ fun PaperJumpDialog(
         mutableStateOf(TextFieldValue((index + 1).toString(), TextRange(0, (index + 1).toString().length)))
     }
     val selected = paperPageIndex(input.text, count)
-    val confirm = {
+    val confirm: () -> Unit = {
         selected?.let {
             onSelect(it)
             onDismissRequest()
@@ -159,20 +159,24 @@ fun PaperJumpDialog(
             )
         },
         confirmButton = {
-            PaperButton(onClick = {
-                confirm()
-            }, enabled = selected != null) { Text(stringResource(MR.strings.action_ok)) }
-        },
-        dismissButton = {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PaperButton(onClick = {
+            PaperJumpActions(
+                onTop = {
                     onSelect(0)
                     onDismissRequest()
-                }) {
-                    Text(stringResource(MR.strings.library_jump_to_top))
-                }
-                PaperButton(onClick = onDismissRequest) { Text(stringResource(MR.strings.action_cancel)) }
-            }
+                },
+                onCancel = onDismissRequest,
+                onConfirm = confirm,
+                confirmEnabled = selected != null,
+            )
         },
     )
+}
+
+@Composable
+fun PaperJumpActions(onTop: () -> Unit, onCancel: () -> Unit, onConfirm: () -> Unit, confirmEnabled: Boolean) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        PaperButton(onClick = onTop) { Text(stringResource(MR.strings.library_jump_to_top)) }
+        PaperButton(onClick = onCancel) { Text(stringResource(MR.strings.action_cancel)) }
+        PaperButton(onClick = onConfirm, enabled = confirmEnabled) { Text(stringResource(MR.strings.action_ok)) }
+    }
 }

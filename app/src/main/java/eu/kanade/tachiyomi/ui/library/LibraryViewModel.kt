@@ -104,6 +104,8 @@ class LibraryViewModel(
 
     private val searchQuery = MutableStateFlow<String?>(null)
 
+    private val searchCategory = MutableStateFlow<Category?>(null)
+
     private val selection = MutableStateFlow(emptySet</* Manga */ Long>())
 
     private val dialog = MutableStateFlow<Dialog?>(null)
@@ -185,14 +187,27 @@ class LibraryViewModel(
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope + subscriberGate, SharingStarted.Eagerly, null)
 
+    private val searchLibrary = combine(library, searchCategory) { library, category ->
+        if (library == null || category == null) {
+            library
+        } else {
+            library.copy(
+                groupedFavorites = mapOf(category to library.data.favorites.map { it.id }.distinct())
+                    .applySort(library.data.favoritesById, library.data.tracksMap, library.data.loggedInTrackerIds),
+                searchingAllCategories = true,
+            )
+        }
+    }.flowOn(Dispatchers.Default)
+
     val state: StateFlow<State> = combine(
-        library,
+        searchLibrary,
         combine(searchQuery, selection, dialog, ::Triple),
         combine(activeCategoryIndex, displayPreferences, hasActiveFilters, ::Triple),
     ) { library, (searchQuery, selection, dialog), (activeCategoryIndex, display, hasActiveFilters) ->
         State(
             isLoading = library == null,
             searchQuery = searchQuery,
+            searchingAllCategories = library?.searchingAllCategories == true,
             selection = selection,
             hasActiveFilters = hasActiveFilters,
             showCategoryTabs = display.showCategoryTabs,
@@ -215,6 +230,7 @@ class LibraryViewModel(
     private data class Library(
         val data: LibraryData,
         val groupedFavorites: Map<Category, List</* LibraryItem */ Long>>,
+        val searchingAllCategories: Boolean = false,
     )
 
     private fun List<LibraryItem>.applyFilters(
@@ -707,10 +723,18 @@ class LibraryViewModel(
     }
 
     fun search(query: String?) {
+        if (query.isNullOrEmpty()) searchCategory.value = null
         searchQuery.update { query }
     }
 
+    fun searchAllCategories(label: String) {
+        if (searchQuery.value.isNullOrEmpty()) return
+        val category = state.value.activeCategory ?: return
+        searchCategory.value = category.copy(name = label)
+    }
+
     fun updateActiveCategoryIndex(index: Int) {
+        if (searchCategory.value != null) return
         activeCategoryIndex.update { index }
         // Coerce here rather than reading it back off [state], which is derived asynchronously
         // and would still hold the previous index at this point.
@@ -724,7 +748,7 @@ class LibraryViewModel(
             val mangaList = selectedManga
 
             // Hide the default category because it has a different behavior than the ones from db.
-            val categories = state.value.displayedCategories.filter { it.id != 0L }
+            val categories = state.value.libraryData.categories.filter { it.id != 0L }
 
             val mangaCategoryIds = mangaList.map { getCategoryIds(it) }
             val common = mangaCategoryIds.reduceOrNull { set1, set2 -> set1 intersect set2 }.orEmpty()
@@ -794,6 +818,7 @@ class LibraryViewModel(
         val isInitialized: Boolean = false,
         val isLoading: Boolean = true,
         val searchQuery: String? = null,
+        val searchingAllCategories: Boolean = false,
         val selection: Set</* Manga */ Long> = setOf(),
         val hasActiveFilters: Boolean = false,
         val showCategoryTabs: Boolean = false,

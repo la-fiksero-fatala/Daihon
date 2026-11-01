@@ -1,7 +1,6 @@
 package eu.kanade.presentation.library.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,9 +17,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperJumpActions
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.components.material.PaperAlertDialog as AlertDialog
-import tachiyomi.presentation.core.components.material.PaperButton as TextButton
 
 @Composable
 internal fun LibraryPageJumpDialog(
@@ -64,20 +63,15 @@ internal fun LibraryPageJumpDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onConfirm, enabled = selectedPage != null) {
-                Text(stringResource(MR.strings.action_ok))
-            }
-        },
-        dismissButton = {
-            Row {
-                TextButton(onClick = {
+            PaperJumpActions(
+                onTop = {
                     onSelectPage(0)
                     onDismissRequest()
-                }) {
-                    Text(stringResource(MR.strings.library_jump_to_top))
-                }
-                TextButton(onClick = onDismissRequest) { Text(stringResource(MR.strings.action_cancel)) }
-            }
+                },
+                onCancel = onDismissRequest,
+                onConfirm = onConfirm,
+                confirmEnabled = selectedPage != null,
+            )
         },
     )
 }
