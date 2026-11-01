@@ -1116,30 +1116,6 @@
     <string name="daihon_support_upstream">Support Mihon</string>
     <string name="daihon_support_explanation">Daihon is based on Mihon. These links support the upstream Mihon team.</string>
 
-    <!-- Device-specific display control -->
-    <string name="display_device_settings">Device and refresh</string>
-    <string name="display_device">Your device</string>
-    <string name="display_device_profile">Device profile</string>
-    <string name="display_device_detected">Device: %1$s\nRefresh interface: %2$s</string>
-    <string name="display_automatic">Detect automatically</string>
-    <string name="display_other_device">Other / system managed</string>
-    <string name="display_api_unavailable">No supported display-control interface was detected. Your device manages refreshes and display modes through its system settings.</string>
-    <string name="display_api_detected">Available controls are detected from the device firmware. Choosing a profile does not enable controls that the device does not provide.</string>
-    <string name="display_profile_navigation">Navigation display</string>
-    <string name="display_profile_reader">Reader display</string>
-    <string name="display_mode">Display mode</string>
-    <string name="display_full_refresh">Full screen refresh</string>
-    <string name="display_system_managed">System managed</string>
-    <string name="display_refresh_each_update">Every screen update</string>
-    <string name="display_refresh_interval">Every %1$d screen updates</string>
-    <string name="display_refresh_now">Refresh screen now</string>
-    <string name="display_profile_help">Full refreshes are counted after content finishes drawing. Faster display modes may leave more residual images. You can change these choices at any time in Settings → Display → Device and refresh.</string>
-    <string name="display_mode_quality">Quality (normal)</string>
-    <string name="display_mode_balanced">Balanced (DU)</string>
-    <string name="display_mode_regal">Text (Regal)</string>
-    <string name="display_mode_fast">Fast (A2)</string>
-    <string name="display_mode_fastest">Fastest (X)</string>
-    <string name="display_apply_failed">The device could not apply this display setting. Try System managed.</string>
     <string name="daihon_decrease_value">Decrease value</string>
     <string name="daihon_increase_value">Increase value</string>
     <string name="daihon_valid_value">Enter a supported value</string>
@@ -1149,8 +1125,9 @@
     <string name="page_refresh">Page refresh</string>
     <string name="page_refresh_none">None</string>
     <string name="page_refresh_flash">Black and white</string>
-    <string name="page_refresh_system">System</string>
-    <string name="page_refresh_system_help">System refresh cleans the panel after the first manga page and each page change. Reader menu taps do not trigger it. Disable automatic full refreshes in your device’s app settings to avoid duplicate refreshes.</string>
+    <string name="page_refresh_system">BOOX refresh</string>
+    <string name="page_refresh_system_help">Requests a BOOX screen refresh after the first manga page and each page change. Reader menu taps do not trigger it. Disable automatic full refreshes in the device’s app settings to avoid duplicate refreshes. Requires BOOX firmware.</string>
+    <string name="page_refresh_failed">BOOX refresh could not be requested.</string>
     <string name="page_navigation_settings">Page navigation</string>
     <string name="page_navigation_height">Navigation bar height</string>
     <string name="page_navigation_dp">%1$d dp</string>

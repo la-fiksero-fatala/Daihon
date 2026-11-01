@@ -8,7 +8,6 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageErrorView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.reader.viewer.processPagedImage
-import eu.kanade.tachiyomi.util.view.isVisibleOnScreen
 import eu.kanade.tachiyomi.widget.ViewPagerAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -196,7 +195,6 @@ class PagerPageHolder(
         super.onImageLoaded()
         viewer.activity.onReaderPageDecoded(page)
         progressIndicator?.hide()
-        if (isVisibleOnScreen()) viewer.activity.onDisplayContentChanged()
     }
 
     /**

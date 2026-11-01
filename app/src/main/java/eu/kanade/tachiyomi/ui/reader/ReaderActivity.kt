@@ -100,7 +100,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.Action
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.NavigationRegion
 import eu.kanade.tachiyomi.ui.reader.viewer.boundedReaderPagePadding
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
-import eu.kanade.tachiyomi.util.display.DisplayHardwareProbe
+import eu.kanade.tachiyomi.util.display.BooxPageRefresh
 import eu.kanade.tachiyomi.util.display.ReaderPageRefreshSession
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.readerBackgroundColor
@@ -118,7 +118,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import logcat.LogPriority
 import mihon.app.di.AppGraph
-import mihon.app.di.appGraph
 import mihon.core.metro.metroGraph
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.stringResource
@@ -131,8 +130,8 @@ import tachiyomi.presentation.core.components.material.PaperAlertDialog as Alert
 
 class ReaderActivity : BaseActivity() {
 
-    override val pageRefreshOnly get() = readerPreferences.pageRefresh.changes().map { it == PageRefresh.System }
     private var pageRefreshSession: ReaderPageRefreshSession? = null
+    private var refreshFailureReported = false
 
     private fun initPageRefresh() {
         pageRefreshSession = ReaderPageRefreshSession(
@@ -143,9 +142,10 @@ class ReaderActivity : BaseActivity() {
                     !viewModel.state.value.menuVisible && viewModel.state.value.dialog == null
             },
             refresh = {
-                // Re-probe if the user changed their device profile while the reader was open.
-                val current = DisplayHardwareProbe().detect(this, appGraph.deviceDisplayPreferences.device.get())
-                if (current.canRefresh && !current.refresh(window.decorView)) toast(MR.strings.display_apply_failed)
+                if (!BooxPageRefresh.refresh() && !refreshFailureReported) {
+                    refreshFailureReported = true
+                    toast(MR.strings.page_refresh_failed)
+                }
             },
         )
     }
@@ -164,8 +164,6 @@ class ReaderActivity : BaseActivity() {
     fun onReaderPageReleased(page: ReaderPage) {
         pageRefreshSession?.released(page)
     }
-
-    override val readerDisplayProfile = true
 
     private val graph: AppGraph by lazy { metroGraph() }
 
@@ -528,7 +526,6 @@ class ReaderActivity : BaseActivity() {
                     0
                 }
                 val margin = with(LocalDensity.current) { pixels.toDp() }
-                LaunchedEffect(viewer, pixels) { onDisplayContentChanged() }
                 key(viewer) {
                     viewer?.Content(modifier = Modifier.fillMaxSize().padding(margin))
                 }
@@ -815,7 +812,6 @@ class ReaderActivity : BaseActivity() {
     fun onPageSelected(page: ReaderPage) {
         pageRefreshSession?.selected(page)
         viewModel.onPageSelected(page)
-        onDisplayContentChanged()
     }
 
     /**

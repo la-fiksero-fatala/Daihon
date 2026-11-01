@@ -12,7 +12,6 @@ import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.domain.track.service.DelayedTrackingUpdateWorker
 import eu.kanade.domain.track.service.TrackPreferences
-import eu.kanade.domain.ui.DeviceDisplayPreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.tachiyomi.App
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
@@ -82,7 +81,6 @@ interface AppGraph : ViewModelGraph {
     val viewModelFactory: MetroViewModelFactory
 
     val basePreferences: BasePreferences
-    val deviceDisplayPreferences: DeviceDisplayPreferences
     val uiPreferences: UiPreferences
     val readerPreferences: ReaderPreferences
     val networkPreferences: NetworkPreferences

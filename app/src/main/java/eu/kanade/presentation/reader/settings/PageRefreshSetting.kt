@@ -19,7 +19,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.tachiyomi.ui.reader.setting.PageRefresh
-import eu.kanade.tachiyomi.util.display.DisplayHardwareProbe
 import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.PaperAlertDialog
@@ -31,8 +30,6 @@ internal fun PageRefreshSetting() {
     val context = LocalContext.current
     val preference = remember { context.appGraph.readerPreferences.pageRefresh }
     val selected by preference.collectAsState()
-    val device by context.appGraph.deviceDisplayPreferences.device.collectAsState()
-    val hardware = remember(device) { DisplayHardwareProbe().detect(context, device) }
     var open by remember { mutableStateOf(false) }
     val title = stringResource(MR.strings.page_refresh)
     TextPreferenceWidget(title = title, subtitle = stringResource(selected.title), onPreferenceClick = { open = true })
@@ -43,28 +40,19 @@ internal fun PageRefreshSetting() {
             text = {
                 androidx.compose.foundation.layout.Column {
                     PageRefresh.entries.forEach { mode ->
-                        val enabled = mode != PageRefresh.System || hardware.canRefresh
                         Row(
                             Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                .selectable(selected == mode, enabled = enabled, role = Role.RadioButton) {
+                                .selectable(selected == mode, role = Role.RadioButton) {
                                     preference.set(mode)
                                     open = false
                                 },
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            RadioButton(selected == mode, onClick = null, enabled = enabled)
+                            RadioButton(selected == mode, onClick = null)
                             Text(stringResource(mode.title), Modifier.padding(start = 12.dp))
                         }
                     }
-                    Text(
-                        stringResource(
-                            if (hardware.canRefresh) {
-                                MR.strings.page_refresh_system_help
-                            } else {
-                                MR.strings.display_api_unavailable
-                            },
-                        ),
-                    )
+                    Text(stringResource(MR.strings.page_refresh_system_help))
                 }
             },
             confirmButton = {},
