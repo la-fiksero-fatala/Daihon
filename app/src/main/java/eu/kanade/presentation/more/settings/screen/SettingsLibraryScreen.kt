@@ -217,34 +217,6 @@ object SettingsLibraryScreen : SearchableSettings {
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_behavior),
             preferenceItems = listOf(
-                Preference.PreferenceItem.ListPreference(
-                    preference = libraryPreferences.swipeToStartAction,
-                    entries = mapOf(
-                        LibraryPreferences.ChapterSwipeAction.Disabled to
-                            stringResource(MR.strings.disabled),
-                        LibraryPreferences.ChapterSwipeAction.ToggleBookmark to
-                            stringResource(MR.strings.action_bookmark),
-                        LibraryPreferences.ChapterSwipeAction.ToggleRead to
-                            stringResource(MR.strings.action_mark_as_read),
-                        LibraryPreferences.ChapterSwipeAction.Download to
-                            stringResource(MR.strings.action_download),
-                    ),
-                    title = stringResource(MR.strings.pref_chapter_swipe_start),
-                ),
-                Preference.PreferenceItem.ListPreference(
-                    preference = libraryPreferences.swipeToEndAction,
-                    entries = mapOf(
-                        LibraryPreferences.ChapterSwipeAction.Disabled to
-                            stringResource(MR.strings.disabled),
-                        LibraryPreferences.ChapterSwipeAction.ToggleBookmark to
-                            stringResource(MR.strings.action_bookmark),
-                        LibraryPreferences.ChapterSwipeAction.ToggleRead to
-                            stringResource(MR.strings.action_mark_as_read),
-                        LibraryPreferences.ChapterSwipeAction.Download to
-                            stringResource(MR.strings.action_download),
-                    ),
-                    title = stringResource(MR.strings.pref_chapter_swipe_end),
-                ),
                 Preference.PreferenceItem.MultiSelectListPreference(
                     preference = libraryPreferences.markDuplicateReadChapterAsRead,
                     entries = mapOf(

@@ -223,17 +223,7 @@ class LibraryPreferences(
     )
     // endregion
 
-    // region Swipe Actions
-
-    val swipeToStartAction: Preference<ChapterSwipeAction> = preferenceStore.getEnum(
-        "pref_chapter_swipe_end_action",
-        ChapterSwipeAction.ToggleBookmark,
-    )
-
-    val swipeToEndAction: Preference<ChapterSwipeAction> = preferenceStore.getEnum(
-        "pref_chapter_swipe_start_action",
-        ChapterSwipeAction.ToggleRead,
-    )
+    // region File names
 
     val updateMangaTitles: Preference<Boolean> = preferenceStore.getBoolean("pref_update_library_manga_titles", false)
 
@@ -247,13 +237,6 @@ class LibraryPreferences(
     )
 
     // endregion
-
-    enum class ChapterSwipeAction {
-        ToggleRead,
-        ToggleBookmark,
-        Download,
-        Disabled,
-    }
 
     companion object {
         const val DEVICE_ONLY_ON_WIFI = "wifi"

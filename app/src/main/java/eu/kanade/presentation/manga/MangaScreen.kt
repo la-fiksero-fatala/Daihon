@@ -71,7 +71,6 @@ import eu.kanade.tachiyomi.util.system.copyToClipboard
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.roundedfilled.PlayArrow
 import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
@@ -95,8 +94,7 @@ fun MangaScreen(
     snackbarHostState: SnackbarHostState,
     nextUpdate: Instant?,
     isTabletUi: Boolean,
-    chapterSwipeStartAction: LibraryPreferences.ChapterSwipeAction,
-    chapterSwipeEndAction: LibraryPreferences.ChapterSwipeAction,
+
     navigateUp: () -> Unit,
     onChapterClicked: (Chapter) -> Unit,
     onDownloadChapter: ((List<ChapterList.Item>, ChapterDownloadAction) -> Unit)?,
@@ -132,7 +130,8 @@ fun MangaScreen(
     onMultiDeleteClicked: (List<Chapter>) -> Unit,
 
     // For chapter swipe
-    onChapterSwipe: (ChapterList.Item, LibraryPreferences.ChapterSwipeAction) -> Unit,
+    onToggleChapterRead: (ChapterList.Item) -> Unit,
+    onToggleChapterBookmark: (ChapterList.Item) -> Unit,
 
     // Chapter selection
     onChapterSelected: (ChapterList.Item, Boolean, Boolean) -> Unit,
@@ -213,13 +212,13 @@ fun MangaScreen(
                     manga = state.manga,
                     chapters = chapters,
                     isAnyChapterSelected = selected,
-                    chapterSwipeStartAction = chapterSwipeStartAction,
-                    chapterSwipeEndAction = chapterSwipeEndAction,
+
                     onChapterClicked = onChapterClicked,
                     onDownloadChapter = onDownloadChapter,
                     downloadProgressProvider = downloadProgressProvider,
                     onChapterSelected = onChapterSelected,
-                    onChapterSwipe = onChapterSwipe,
+                    onToggleChapterRead = onToggleChapterRead,
+                    onToggleChapterBookmark = onToggleChapterBookmark,
                 )
             }
         }
@@ -331,13 +330,13 @@ private fun LazyListScope.sharedChapterItems(
     manga: Manga,
     chapters: List<ChapterList>,
     isAnyChapterSelected: Boolean,
-    chapterSwipeStartAction: LibraryPreferences.ChapterSwipeAction,
-    chapterSwipeEndAction: LibraryPreferences.ChapterSwipeAction,
+
     onChapterClicked: (Chapter) -> Unit,
     onDownloadChapter: ((List<ChapterList.Item>, ChapterDownloadAction) -> Unit)?,
     downloadProgressProvider: (chapterId: Long) -> Int,
     onChapterSelected: (ChapterList.Item, Boolean, Boolean) -> Unit,
-    onChapterSwipe: (ChapterList.Item, LibraryPreferences.ChapterSwipeAction) -> Unit,
+    onToggleChapterRead: (ChapterList.Item) -> Unit,
+    onToggleChapterBookmark: (ChapterList.Item) -> Unit,
 ) {
     items(
         items = chapters,
@@ -378,11 +377,11 @@ private fun LazyListScope.sharedChapterItems(
                     read = item.chapter.read,
                     bookmark = item.chapter.bookmark,
                     selected = item.selected,
+                    actionsEnabled = !isAnyChapterSelected,
                     downloadIndicatorEnabled = !isAnyChapterSelected && !manga.isLocal(),
                     downloadStateProvider = { item.downloadState },
                     downloadProgressProvider = { downloadProgressProvider(item.id) },
-                    chapterSwipeStartAction = chapterSwipeStartAction,
-                    chapterSwipeEndAction = chapterSwipeEndAction,
+
                     onLongClick = {
                         onChapterSelected(item, !item.selected, true)
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -400,9 +399,8 @@ private fun LazyListScope.sharedChapterItems(
                     } else {
                         null
                     },
-                    onChapterSwipe = {
-                        onChapterSwipe(item, it)
-                    },
+                    onToggleRead = { onToggleChapterRead(item) },
+                    onToggleBookmark = { onToggleChapterBookmark(item) },
                 )
             }
         }

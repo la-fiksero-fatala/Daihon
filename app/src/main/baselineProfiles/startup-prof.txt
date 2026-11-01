@@ -25683,10 +25683,6 @@ HSPLtachiyomi/domain/library/service/LibraryPreferences;->getNewShowUpdatesCount
 HSPLtachiyomi/domain/library/service/LibraryPreferences;->getNewUpdatesCount()Ltachiyomi/core/common/preference/Preference;
 HSPLtachiyomi/domain/library/service/LibraryPreferences;->getShowContinueReadingButton()Ltachiyomi/core/common/preference/Preference;
 HSPLtachiyomi/domain/library/service/LibraryPreferences;->getUnreadBadge()Ltachiyomi/core/common/preference/Preference;
-Ltachiyomi/domain/library/service/LibraryPreferences$ChapterSwipeAction;
-HSPLtachiyomi/domain/library/service/LibraryPreferences$ChapterSwipeAction;->$values()[Ltachiyomi/domain/library/service/LibraryPreferences$ChapterSwipeAction;
-HSPLtachiyomi/domain/library/service/LibraryPreferences$ChapterSwipeAction;-><clinit>()V
-HSPLtachiyomi/domain/library/service/LibraryPreferences$ChapterSwipeAction;-><init>(Ljava/lang/String;I)V
 Ltachiyomi/domain/library/service/LibraryPreferences$Companion;
 HSPLtachiyomi/domain/library/service/LibraryPreferences$Companion;-><init>()V
 HSPLtachiyomi/domain/library/service/LibraryPreferences$Companion;-><init>(Lkotlin/jvm/internal/DefaultConstructorMarker;)V
