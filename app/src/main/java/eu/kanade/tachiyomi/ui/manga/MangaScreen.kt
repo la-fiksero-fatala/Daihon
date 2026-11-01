@@ -30,6 +30,7 @@ import eu.kanade.presentation.manga.ChapterSettingsDialog
 import eu.kanade.presentation.manga.DuplicateMangaDialog
 import eu.kanade.presentation.manga.EditCoverAction
 import eu.kanade.presentation.manga.MangaScreen
+import eu.kanade.presentation.manga.components.ChapterResolutionDialog
 import eu.kanade.presentation.manga.components.DeleteChaptersDialog
 import eu.kanade.presentation.manga.components.MangaCoverDialog
 import eu.kanade.presentation.manga.components.ScanlatorFilterDialog
@@ -109,8 +110,14 @@ class MangaScreen(
             }
         }
 
+        var resolutionChapter by remember { mutableStateOf<Chapter?>(null) }
+        resolutionChapter?.let { chapter ->
+            ChapterResolutionDialog(chapter, viewModel, onDismissRequest = { resolutionChapter = null })
+        }
+
         MangaScreen(
             state = successState,
+            onCheckResolution = { resolutionChapter = it },
             snackbarHostState = viewModel.snackbarHostState,
             nextUpdate = successState.manga.expectedNextUpdate,
             isTabletUi = isTabletUi(),

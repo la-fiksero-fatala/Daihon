@@ -14,6 +14,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageErrorView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.reader.viewer.processStripImage
+import eu.kanade.tachiyomi.util.image.readImageDimensions
 import eu.kanade.tachiyomi.util.system.dpToPx
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -182,10 +183,12 @@ class WebtoonPageHolder(
     private suspend fun setImage() {
         progressIndicator.setProgress(0)
 
-        val streamFn = page?.stream ?: return
+        val sourcePage = page ?: return
+        val streamFn = sourcePage.stream ?: return
 
         try {
             val buffer = withContext(Dispatchers.IO) { streamFn().use { Buffer().readFrom(it) } }
+            sourcePage.sourceDimensions.value = withContext(Dispatchers.IO) { readImageDimensions(buffer) }
             // Splitting and merging decode the image, which is CPU work
             val (source, isAnimated) = withContext(Dispatchers.Default) {
                 val source = viewer.simpleLongStrip.page.processStripImage(buffer)

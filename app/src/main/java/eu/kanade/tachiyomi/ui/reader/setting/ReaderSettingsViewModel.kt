@@ -42,6 +42,12 @@ class ReaderSettingsViewModel(
     private val basePreferences: BasePreferences,
 ) : ViewModel() {
 
+    val sourceDimensions = readerViewModel.state
+        .map { it.currentChapter?.pages?.getOrNull(it.currentPage - 1) }
+        .distinctUntilChanged()
+        .flatMapLatest { it?.sourceDimensions ?: flowOf(null) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
     val mangaFlow = readerViewModel.state
         .map { it.manga }
         .distinctUntilChanged()

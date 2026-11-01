@@ -1138,4 +1138,10 @@
     <string name="reader_upscaler_anime4k">Anime4K DoG (lightweight)</string>
     <string name="reader_upscaling_help">Used only when enlarging pages. Downscaling uses the default area filter.</string>
     <string name="reader_upscaler_failed">This upscaler is unavailable. Using Catmull–Rom.</string>
+    <string name="daihon_source_resolution">Source resolution</string>
+    <string name="daihon_check_resolution">Check resolution</string>
+    <string name="daihon_resolution_progress">Pages checked: %1$d / %2$d</string>
+    <string name="daihon_median_resolution">Median resolution: %1$s px</string>
+    <string name="daihon_resolution_failed">Could not read image dimensions.</string>
+    <string name="daihon_resolution_partial">Could not inspect %1$d pages. The median uses the remaining pages.</string>
 </resources>

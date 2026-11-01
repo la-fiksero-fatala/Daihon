@@ -139,7 +139,13 @@ class MangaViewModel(
     private val sourceManager: SourceManager,
     private val refreshTracks: RefreshTracks,
     private val coverCache: CoverCache,
+    private val resolutionChecker: ChapterResolutionChecker,
 ) : ViewModel() {
+
+    internal suspend fun checkChapterResolution(chapter: Chapter, onProgress: (ChapterResolutionProgress) -> Unit) {
+        val current = state.value as? State.Success ?: return
+        resolutionChecker.check(current.manga, chapter, current.source, onProgress)
+    }
 
     private val subscriberGate = SubscriberGate()
 

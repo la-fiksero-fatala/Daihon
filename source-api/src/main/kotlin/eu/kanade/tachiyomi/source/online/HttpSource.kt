@@ -404,6 +404,17 @@ abstract class HttpSource : CatalogueSource {
     )
     protected open fun imageUrlParse(response: Response): String = throw UnsupportedOperationException()
 
+    /** A caller may stop after reading dimensions instead of downloading the image body. */
+    fun newImageProbeCall(page: Page, range: Boolean = true): okhttp3.Call {
+        val request = imageRequest(page)
+        val probe = if (range && request.method == "GET") {
+            request.newBuilder().header("Range", "bytes=0-65535").build()
+        } else {
+            request
+        }
+        return client.newCall(probe)
+    }
+
     suspend fun getImage(page: Page, existingSize: Long = 0L): Response {
         return client.newCachelessCallWithProgress(imageRequest(page), page, existingSize)
             .awaitSuccess()

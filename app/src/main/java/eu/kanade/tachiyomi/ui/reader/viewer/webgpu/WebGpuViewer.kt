@@ -34,6 +34,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.collectChanges
 import eu.kanade.tachiyomi.ui.reader.viewer.mouseWheelPaging
 import eu.kanade.tachiyomi.ui.reader.viewer.position
+import eu.kanade.tachiyomi.util.image.ImageDimensions
 import eu.kanade.tachiyomi.util.system.createReaderThemeContext
 import eu.kanade.tachiyomi.util.system.readerBackgroundColor
 import eu.kanade.tachiyomi.util.system.toast
@@ -1275,6 +1276,7 @@ open class WebGpuViewer(
         streaming: Boolean,
         feed: () -> Boolean,
     ) {
+        page.page.sourceDimensions.value = ImageDimensions(dec.width, dec.height)
         // The decoder hands the map over unapplied - see ImageDecoder.Gainmap - because how
         // much of it to use depends on the display, so the viewer applies it.
         fun ImageDecoder.Gainmap.toInput() = let {

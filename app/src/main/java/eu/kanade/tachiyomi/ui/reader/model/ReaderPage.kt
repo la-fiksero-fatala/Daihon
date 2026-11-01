@@ -1,6 +1,8 @@
 package eu.kanade.tachiyomi.ui.reader.model
 
 import eu.kanade.tachiyomi.source.model.Page
+import eu.kanade.tachiyomi.util.image.ImageDimensions
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.InputStream
 
 open class ReaderPage(
@@ -9,6 +11,8 @@ open class ReaderPage(
     imageUrl: String? = null,
     var stream: (() -> InputStream)? = null,
 ) : Page(index, url, imageUrl, null) {
+
+    val sourceDimensions = MutableStateFlow<ImageDimensions?>(null)
 
     open lateinit var chapter: ReaderChapter
 

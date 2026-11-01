@@ -149,6 +149,7 @@ fun MangaScreen(
     onMultiBookmarkClicked: (List<Chapter>, bookmarked: Boolean) -> Unit,
     onMultiMarkAsReadClicked: (List<Chapter>, markAsRead: Boolean) -> Unit,
     onMarkPreviousAsReadClicked: (Chapter) -> Unit,
+    onCheckResolution: (Chapter) -> Unit,
     onMultiDeleteClicked: (List<Chapter>) -> Unit,
 
     // For chapter swipe
@@ -274,6 +275,7 @@ fun MangaScreen(
                     onMultiBookmarkClicked = onMultiBookmarkClicked,
                     onMultiMarkAsReadClicked = onMultiMarkAsReadClicked,
                     onMarkPreviousAsReadClicked = onMarkPreviousAsReadClicked,
+                    onCheckResolution = onCheckResolution,
                     onDownloadChapter = onDownloadChapter,
                     onMultiDeleteClicked = onMultiDeleteClicked,
                     fillFraction = 1f,
@@ -402,6 +404,7 @@ private fun SharedMangaBottomActionMenu(
     onMultiBookmarkClicked: (List<Chapter>, bookmarked: Boolean) -> Unit,
     onMultiMarkAsReadClicked: (List<Chapter>, markAsRead: Boolean) -> Unit,
     onMarkPreviousAsReadClicked: (Chapter) -> Unit,
+    onCheckResolution: (Chapter) -> Unit,
     onDownloadChapter: ((List<ChapterList.Item>, ChapterDownloadAction) -> Unit)?,
     onMultiDeleteClicked: (List<Chapter>) -> Unit,
     fillFraction: Float,
@@ -430,6 +433,7 @@ private fun SharedMangaBottomActionMenu(
         }.takeIf {
             onDownloadChapter != null && selected.fastAny { it.downloadState != Download.State.DOWNLOADED }
         },
+        onCheckResolution = { onCheckResolution(selected.single().chapter) }.takeIf { selected.size == 1 },
         onDeleteClicked = {
             onMultiDeleteClicked(selected.fastMap { it.chapter })
         }.takeIf {

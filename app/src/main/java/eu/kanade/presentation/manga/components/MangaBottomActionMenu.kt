@@ -58,6 +58,7 @@ import mihon.icons.materialsymbols.rounded.BookmarkRemove
 import mihon.icons.materialsymbols.rounded.Delete
 import mihon.icons.materialsymbols.rounded.DoneAll
 import mihon.icons.materialsymbols.rounded.Download
+import mihon.icons.materialsymbols.rounded.Image
 import mihon.icons.materialsymbols.rounded.MoreVert
 import mihon.icons.materialsymbols.rounded.RemoveDone
 import mihon.icons.materialsymbols.rounded.SwapCalls
@@ -77,6 +78,7 @@ fun MangaBottomActionMenu(
     onMarkPreviousAsReadClicked: (() -> Unit)? = null,
     onDownloadClicked: (() -> Unit)? = null,
     onDeleteClicked: (() -> Unit)? = null,
+    onCheckResolution: (() -> Unit)? = null,
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -162,6 +164,15 @@ fun MangaBottomActionMenu(
                         toConfirm = confirm[5],
                         onLongClick = { onLongClickItem(5) },
                         onClick = onDownloadClicked,
+                    )
+                }
+                if (onCheckResolution != null) {
+                    Button(
+                        title = stringResource(MR.strings.daihon_check_resolution),
+                        icon = MaterialSymbols.Rounded.Image,
+                        toConfirm = false,
+                        onLongClick = {},
+                        onClick = onCheckResolution,
                     )
                 }
                 if (onDeleteClicked != null) {

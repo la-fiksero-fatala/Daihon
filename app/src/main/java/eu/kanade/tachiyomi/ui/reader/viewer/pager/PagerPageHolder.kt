@@ -8,6 +8,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageErrorView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.reader.viewer.processPagedImage
+import eu.kanade.tachiyomi.util.image.readImageDimensions
 import eu.kanade.tachiyomi.widget.ViewPagerAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -145,6 +146,7 @@ class PagerPageHolder(
 
         try {
             val buffer = withContext(Dispatchers.IO) { streamFn().use { Buffer().readFrom(it) } }
+            page.sourceDimensions.value = withContext(Dispatchers.IO) { readImageDimensions(buffer) }
             // Splitting, merging and sampling the background decode the image, which is CPU work
             val (source, isAnimated, background) = withContext(Dispatchers.Default) {
                 val source = viewer.simplePaged.processPagedImage(item, buffer, viewer is L2RPagerViewer) {

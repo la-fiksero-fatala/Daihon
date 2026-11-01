@@ -9,6 +9,8 @@ import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences.Companion.ColorFilterMode
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsViewModel
 import tachiyomi.core.common.preference.getAndSet
@@ -22,6 +24,11 @@ import tachiyomi.presentation.core.components.material.PaperFilterChip as Filter
 
 @Composable
 internal fun ColumnScope.ColorFilterPage(viewModel: ReaderSettingsViewModel) {
+    val resolution by viewModel.sourceDimensions.collectAsStateWithLifecycle()
+    TextPreferenceWidget(
+        title = stringResource(MR.strings.daihon_source_resolution),
+        subtitle = resolution?.let { "$it px" } ?: "—",
+    )
     val customBrightness by viewModel.preferences.customBrightness.collectAsState()
     CheckboxItem(
         label = stringResource(MR.strings.pref_custom_brightness),
