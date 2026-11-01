@@ -40,8 +40,6 @@ class BasePreferences(
 
     val highQualityRenderer: Preference<Boolean> = FixedPreference("highQualityRenderer", false)
 
-    val installationId: Preference<String> = preferenceStore.getString(Preference.appStateKey("installation_id"), "")
-
     val donationCampaignShown: Preference<Boolean> = preferenceStore.getBoolean(
         Preference.appStateKey("donation_campaign_shown"),
         false,

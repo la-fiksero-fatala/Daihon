@@ -19,13 +19,13 @@ websites retain their own behavior.
   Category, download, and migration ordering use explicit controls.
 
 Mihon's source, extension, tracking, and backup formats are retained. Existing tracker callback
-schemes remain supported. Telemetry is excluded, and update links target this repository.
+schemes remain supported. Analytics and remote crash reporting are absent from every build. Update links target this repository.
 
 ## Building
 
 Open this Android Studio project using JDK 21 and an installed Android SDK.
-Run `./gradlew spotlessCheck testDebugUnitTest :data:verifySqlDelightMigration :app:assembleDebug -Pdist=local`.
-For a separately installable preview, run `./gradlew :app:assembleNightly -Pdist=local`.
+Run `./gradlew spotlessCheck testDebugUnitTest :data:verifySqlDelightMigration :app:assembleDebug`.
+For a separately installable preview, run `./gradlew :app:assembleNightly`.
 
 The application ID is `app.daihon`; Preview builds use `app.daihon.debug` and the launcher label
 **Daihon Preview**. Debug builds use `app.daihon.dev`. The build workflow produces a universal

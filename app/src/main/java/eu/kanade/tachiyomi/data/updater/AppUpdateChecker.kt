@@ -2,7 +2,6 @@ package eu.kanade.tachiyomi.data.updater
 
 import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.BuildConfig
-import eu.kanade.tachiyomi.util.system.isFossBuildType
 import eu.kanade.tachiyomi.util.system.isNightlyBuildType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,7 +21,7 @@ class AppUpdateChecker(
         return withContext(Dispatchers.IO) {
             val result = getApplicationRelease.await(
                 GetApplicationRelease.Arguments(
-                    isFossBuildType,
+                    isFoss = false,
                     isNightlyBuildType,
                     BuildConfig.COMMIT_COUNT.toInt(),
                     BuildConfig.VERSION_NAME,

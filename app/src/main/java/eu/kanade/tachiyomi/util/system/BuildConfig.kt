@@ -4,11 +4,8 @@ package eu.kanade.tachiyomi.util.system
 
 import eu.kanade.tachiyomi.BuildConfig
 
-val telemetryIncluded: Boolean
-    inline get() = BuildConfig.TELEMETRY_INCLUDED
-
 val updaterEnabled: Boolean
-    inline get() = BuildConfig.UPDATER_ENABLED
+    inline get() = !BuildConfig.DEBUG && !isBenchmarkBuildType
 
 val isDebugBuildType: Boolean
     inline get() = BuildConfig.BUILD_TYPE == "debug"
@@ -18,9 +15,6 @@ val isNightlyBuildType: Boolean
 
 val isReleaseBuildType: Boolean
     inline get() = BuildConfig.BUILD_TYPE == "release"
-
-val isFossBuildType: Boolean
-    inline get() = BuildConfig.BUILD_TYPE == "foss"
 
 val isBenchmarkBuildType: Boolean
     inline get() = BuildConfig.BUILD_TYPE.contains("nonMinified") || BuildConfig.BUILD_TYPE.contains("benchmark")

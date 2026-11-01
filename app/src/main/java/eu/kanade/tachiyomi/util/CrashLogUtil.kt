@@ -30,7 +30,7 @@ class CrashLogUtil(
 
     suspend fun dumpLogs(exception: Throwable? = null) = withContext(Dispatchers.IO) {
         try {
-            val file = context.createFileInCacheDir("mihon_crash_logs.txt")
+            val file = context.createFileInCacheDir("daihon_crash_logs.txt")
 
             file.appendText(getDebugInfo() + "\n\n")
             getExtensionsInfo()?.let { file.appendText("$it\n\n") }
@@ -52,7 +52,6 @@ class CrashLogUtil(
         return """
             App ID: ${BuildConfig.APPLICATION_ID}
             App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE}, ${BuildConfig.BUILD_TIME})
-            Installation ID: ${preferences.installationId.get()}
             Skipped app update: ${preferences.skippedAppUpdate.get().ifEmpty { "None" }}
             Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT}; build ${Build.DISPLAY})
             Device brand: ${Build.BRAND}
