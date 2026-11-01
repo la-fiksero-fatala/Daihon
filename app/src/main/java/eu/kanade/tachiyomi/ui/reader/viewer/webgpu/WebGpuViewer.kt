@@ -46,6 +46,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.takeWhile
@@ -843,14 +844,21 @@ open class WebGpuViewer(
                 viewerState.doubleTapGesturesEnabled = false
                 viewerState.pinchZoomEnabled = false
             }
-            if (old?.imageFilters != new.imageFilters || old?.upscalingAlgorithm != new.upscalingAlgorithm) {
-                // Else an older, slower load could land last.
-                imageFiltersJob?.cancel()
-                imageFiltersJob = scope.launch { viewerState.imageFilters = loadImageFilters(new) }
-            }
             if (old?.tileFilters != new.tileFilters) {
                 tileFiltersJob?.cancel()
                 tileFiltersJob = scope.launch { viewerState.tileFilters = loadFilters(new.tileFilters) }
+            }
+        }
+        combine(
+            common,
+            settingsViewModel.general.map { it.grayscale to it.invertedColors },
+            ::Pair,
+        ).distinctUntilChanged().collectChanges(scope) { _, (settings, colors) ->
+            imageFiltersJob?.cancel()
+            imageFiltersJob = scope.launch {
+                viewerState.imageFilters = loadImageFilters(settings) + listOfNotNull(
+                    paperImageColorFilter(colors.first, colors.second),
+                )
             }
         }
         settingsViewModel.paged.collectChanges(scope) { old, new ->
