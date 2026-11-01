@@ -137,7 +137,7 @@ private fun BoxScope.CoverTextOverlay(
     Row(
         modifier = Modifier.align(
             Alignment.BottomStart,
-        ).fillMaxWidth().background(Color.White).border(1.dp, Color.Black),
+        ).fillMaxWidth().background(Color.White),
         verticalAlignment = Alignment.Bottom,
     ) {
         GridItemTitle(
@@ -315,7 +315,7 @@ private fun GridItemSelectable(
 private fun Modifier.selectedOutline(
     isSelected: Boolean,
     color: Color,
-) = border(if (isSelected) 3.dp else 1.dp, color, RoundedCornerShape(4.dp))
+) = if (isSelected) border(3.dp, color, RoundedCornerShape(4.dp)) else this
 
 /**
  * Layout of list item.
@@ -334,7 +334,7 @@ fun MangaListItem(
     Row(
         modifier = Modifier
             .selectedBackground(isSelected)
-            .border(if (isSelected) 3.dp else 1.dp, Color.Black)
+            .selectedOutline(isSelected, Color.Black)
             .height(56.dp)
             .combinedClickable(
                 onClick = onClick,
@@ -385,7 +385,7 @@ private fun ContinueReadingButton(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.primaryContainer),
             ),
-            modifier = Modifier.size(size).border(1.dp, Color.Black, MaterialTheme.shapes.small),
+            modifier = Modifier.size(size),
         ) {
             Icon(
                 imageVector = MaterialSymbols.RoundedFilled.PlayArrow,

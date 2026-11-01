@@ -1,6 +1,5 @@
 package tachiyomi.presentation.core.components.material
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,7 +38,7 @@ fun IconToggleButton(
             checkedContentColor = Color.Black,
         ),
         modifier = modifier
-            .height(48.dp).border(if (checked) 2.dp else 1.dp, Color.Black),
+            .height(48.dp),
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),

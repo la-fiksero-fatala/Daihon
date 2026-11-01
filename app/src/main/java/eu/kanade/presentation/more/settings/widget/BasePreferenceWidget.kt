@@ -27,8 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,7 +52,6 @@ internal fun BasePreferenceWidget(
     Row(
         modifier = modifier
             .highlightBackground(highlighted)
-            .drawBehind { drawLine(Color.Black, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
             .sizeIn(minHeight = minHeight)
             .clickable(enabled = enabled && onClick != null, onClick = { onClick?.invoke() })
             .fillMaxWidth(),

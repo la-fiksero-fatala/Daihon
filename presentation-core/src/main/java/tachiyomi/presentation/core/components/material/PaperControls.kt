@@ -52,7 +52,7 @@ fun PaperIconButton(
     content: @Composable () -> Unit,
 ) = androidx.compose.material3.IconButton(
     onClick = onClick,
-    modifier = modifier.border(1.dp, Color.Black, RoundedCornerShape(4.dp)),
+    modifier = modifier,
     enabled = enabled,
     colors = colors,
     interactionSource = interactionSource,
