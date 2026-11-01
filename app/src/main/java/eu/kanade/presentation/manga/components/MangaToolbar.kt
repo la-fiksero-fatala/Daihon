@@ -20,6 +20,7 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Download
 import mihon.icons.materialsymbols.rounded.FilterList
 import mihon.icons.materialsymbols.rounded.FlipToBack
+import mihon.icons.materialsymbols.rounded.Refresh
 import mihon.icons.materialsymbols.rounded.SelectAll
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -30,7 +31,7 @@ fun MangaToolbar(
     title: String,
     hasFilters: Boolean,
     navigateUp: () -> Unit,
-    onClickFilter: () -> Unit,
+    onClickFilter: (() -> Unit)?,
     onClickShare: (() -> Unit)?,
     onClickDownload: ((DownloadAction) -> Unit)?,
     onClickEditCategory: (() -> Unit)?,
@@ -102,17 +103,20 @@ fun MangaToolbar(
                             ),
                         )
                     }
+                    if (onClickFilter != null) {
+                        add(
+                            AppBar.Action(
+                                title = stringResource(MR.strings.action_filter),
+                                icon = MaterialSymbols.Rounded.FilterList,
+                                iconTint = filterTint,
+                                onClick = onClickFilter,
+                            ),
+                        )
+                    }
                     add(
                         AppBar.Action(
-                            title = stringResource(MR.strings.action_filter),
-                            icon = MaterialSymbols.Rounded.FilterList,
-                            iconTint = filterTint,
-                            onClick = onClickFilter,
-                        ),
-                    )
-                    add(
-                        AppBar.OverflowAction(
                             title = stringResource(MR.strings.action_webview_refresh),
+                            icon = MaterialSymbols.Rounded.Refresh,
                             onClick = onClickRefresh,
                         ),
                     )

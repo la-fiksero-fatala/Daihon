@@ -251,7 +251,7 @@ fun MangaScreen(
                 title = state.manga.title,
                 hasFilters = state.filterActive,
                 navigateUp = navigateUp,
-                onClickFilter = onFilterButtonClicked,
+                onClickFilter = onFilterButtonClicked.takeIf { !showDetails || isTabletUi },
                 onClickShare = onShareClicked,
                 onClickDownload = onDownloadActionClicked,
                 onClickEditCategory = onEditCategoryClicked,
@@ -285,6 +285,8 @@ fun MangaScreen(
                     onContinueReading = onContinueReading,
                     canContinue = nextChapter != null,
                     showingDetails = showDetails,
+                    lastChapter = state.chapters.maxOfOrNull { it.chapter.chapterNumber }
+                        ?.takeIf { it.isFinite() && it >= 0 }?.let(::formatChapterNumber) ?: "-",
                     onSwitchView = if (isTabletUi) {
                         null
                     } else {
@@ -356,6 +358,7 @@ private fun MangaReadingActions(
     onContinueReading: () -> Unit,
     canContinue: Boolean,
     showingDetails: Boolean,
+    lastChapter: String,
     onSwitchView: (() -> Unit)?,
     modifier: Modifier = Modifier,
     readingLabel: @Composable RowScope.() -> Unit,
@@ -368,7 +371,7 @@ private fun MangaReadingActions(
         PaperButton(
             onClick = onContinueReading,
             enabled = canContinue,
-            modifier = Modifier.weight(if (onSwitchView == null) 1f else 2f).fillMaxHeight(),
+            modifier = Modifier.weight(if (onSwitchView == null) 1f else 1.5f).fillMaxHeight(),
             shape = RectangleShape,
             border = null,
             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
@@ -388,7 +391,11 @@ private fun MangaReadingActions(
                     null,
                 )
                 Text(
-                    stringResource(if (showingDetails) MR.strings.chapters else MR.strings.daihon_details),
+                    if (showingDetails) {
+                        stringResource(MR.strings.daihon_chapters_count, lastChapter)
+                    } else {
+                        stringResource(MR.strings.daihon_details)
+                    },
                     Modifier.padding(start = 6.dp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

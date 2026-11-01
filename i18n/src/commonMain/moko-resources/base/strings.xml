@@ -1146,4 +1146,5 @@
     <string name="daihon_resolution_partial">Could not inspect %1$d pages. The median uses the remaining pages.</string>
     <string name="daihon_search_all_categories">Search in all categories</string>
     <string name="daihon_all_categories">All categories</string>
+    <string name="daihon_chapters_count">Chapters (%1$s)</string>
 </resources>
