@@ -90,10 +90,18 @@ fun PaperLazyVerticalGrid(
             .maxOfOrNull { it.size.height } ?: 0
         if (first.offset > 0 && rowHeight <= end) state.scrollToItem(first.index)
     }
+    var startedAtTop by remember(total, viewport) { mutableStateOf(false) }
+    var hasThirdPage by remember(total, viewport) { mutableStateOf(false) }
+    LaunchedEffect(first, next, history.size) {
+        if (history.lastOrNull() != first && paperHasThirdPage(startedAtTop, history.size, next != null)) {
+            hasThirdPage = true
+        }
+    }
     val navigate: (Int) -> Unit = { step ->
         PaperNavigation.activate(owner)
         scope.launch {
             if (step > 0 && next != null) {
+                if (history.isEmpty()) startedAtTop = !hasPrevious
                 history.add(first)
                 state.scrollToItem(next.index, next.offset)
             } else if (step < 0 && hasPrevious) {
@@ -124,6 +132,12 @@ fun PaperLazyVerticalGrid(
                 bottom = contentPadding.calculateBottomPadding(),
             ).consumeWindowInsets(contentPadding).navigationBarsPadding(),
             fill = constraints.minHeight > 0, ready = info.totalItemsCount > 0,
+            showJumpToTop = hasThirdPage,
+            onJumpToTop = {
+                PaperNavigation.activate(owner)
+                history.clear()
+                scope.launch { state.scrollToItem(0) }
+            },
         ) {
             Box(
                 Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }

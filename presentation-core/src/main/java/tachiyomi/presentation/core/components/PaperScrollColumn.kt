@@ -83,6 +83,11 @@ fun PaperScrollColumn(
             Modifier.heightIn(min = with(density) { constraints.minHeight.toDp() }, max = limit)
                 .fillMaxWidth().navigationBarsPadding(),
             fill = fill, ready = measured && viewport > 0,
+            showJumpToTop = pages.size > 2,
+            onJumpToTop = {
+                PaperNavigation.activate(owner)
+                scope.launch { state.scrollTo(0) }
+            },
         ) {
             Box(
                 Modifier.weight(1f, fill = fill).clipToBounds().onSizeChanged { viewport = it.height.coerceAtLeast(1) }

@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.KeyboardArrowDown
 import mihon.icons.materialsymbols.rounded.KeyboardArrowUp
+import mihon.icons.materialsymbols.rounded.KeyboardDoubleArrowUp
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.PaperAlertDialog
 import tachiyomi.presentation.core.components.material.PaperButton
@@ -53,6 +54,8 @@ fun PaperPageControls(
     modifier: Modifier = Modifier,
     showDivider: Boolean = true,
     vertical: Boolean = false,
+    showJumpToTop: Boolean = false,
+    onJumpToTop: () -> Unit = {},
 ) {
     val settings = LocalPaperNavigationSettings.current
     if (!settings.visible(LocalPaperNavigationArea.current)) {
@@ -67,6 +70,11 @@ fun PaperPageControls(
             }.padding(horizontal = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            if (showJumpToTop) {
+                PaperIconButton(onJumpToTop, Modifier.fillMaxWidth().weight(1f), enabled = canPrevious) {
+                    Icon(MaterialSymbols.Rounded.KeyboardDoubleArrowUp, stringResource(MR.strings.library_jump_to_top))
+                }
+            }
             PaperIconButton(onPrevious, Modifier.fillMaxWidth().weight(1f), enabled = canPrevious) {
                 Icon(MaterialSymbols.Rounded.KeyboardArrowUp, stringResource(MR.strings.spen_previous_page))
             }

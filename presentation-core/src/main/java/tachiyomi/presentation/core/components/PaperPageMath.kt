@@ -50,3 +50,7 @@ fun paperOrphanHeader(items: List<PaperItem>, headers: List<Int>, first: PaperAn
         item.index in headers && item.index > first.index && item.offset < end &&
             items.none { it.index > item.index && it.index !in headers && it.offset + it.size <= end }
     }
+
+/** A lazy list confirms the third page from real boundaries, without measuring every item. */
+fun paperHasThirdPage(startedAtTop: Boolean, previousPages: Int, hasNext: Boolean): Boolean =
+    startedAtTop && (previousPages >= 2 || (previousPages == 1 && hasNext))

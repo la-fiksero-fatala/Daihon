@@ -291,6 +291,8 @@ internal fun LibraryPageControls(
             onPrevious = { onPageChange(-1) },
             onNext = { onPageChange(1) },
             vertical = vertical,
+            showJumpToTop = pageCount > 2,
+            onJumpToTop = { onPageChange(-page) },
         )
     }
 }

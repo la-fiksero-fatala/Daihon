@@ -32,6 +32,8 @@ internal fun PaperPageFrame(
     modifier: Modifier = Modifier,
     fill: Boolean = false,
     ready: Boolean = true,
+    showJumpToTop: Boolean = false,
+    onJumpToTop: () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val settings = LocalPaperNavigationSettings.current
@@ -62,6 +64,8 @@ internal fun PaperPageFrame(
                     onPrevious,
                     onNext,
                     vertical = true,
+                    showJumpToTop = showJumpToTop,
+                    onJumpToTop = onJumpToTop,
                 )
             }
         }
