@@ -311,6 +311,17 @@ private fun ColumnScope.DisplayPage(
     )
 
     HeadingItem(MR.strings.daihon_page_layout)
+    val navigation by viewModel.libraryPreferences.pageNavigation.collectAsState()
+    SelectItem(
+        label = stringResource(MR.strings.pref_reader_navigation),
+        options = arrayOf(
+            stringResource(MR.strings.library_page_buttons_hidden),
+            stringResource(MR.strings.library_page_indicator_bar),
+            stringResource(MR.strings.library_page_buttons),
+        ),
+        selectedIndex = LibraryNavigationMode.entries.indexOf(navigation),
+        onSelect = { viewModel.libraryPreferences.pageNavigation.set(LibraryNavigationMode.entries[it]) },
+    )
     val rows by viewModel.libraryPreferences.pageRows.collectAsState()
     val maximum = maxPageRows.coerceAtLeast(1)
     val rowValue = rows.coerceIn(0, maximum)

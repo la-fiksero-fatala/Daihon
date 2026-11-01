@@ -32,7 +32,6 @@ import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.library.model.LibraryPageButtons
 import tachiyomi.i18n.MR
-import tachiyomi.presentation.core.components.PaperPageControls
 import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.paperHorizontalPaging
 import tachiyomi.presentation.core.screens.EmptyScreen
@@ -90,7 +89,9 @@ fun LibraryPager(
                         onGlobalSearchClicked = onGlobalSearchClicked,
                     )
                 }
-                PaperPageControls("0 / 0", false, false, {}, {}, {}, canJump = false)
+                if (pageButtons != LibraryPageButtons.Hidden) {
+                    LibraryPageControls(-1, 0, false, pageSlider, {}, {})
+                }
             }
             return@HorizontalPager
         }

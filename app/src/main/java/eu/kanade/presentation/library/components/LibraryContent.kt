@@ -2,7 +2,6 @@ package eu.kanade.presentation.library.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
@@ -14,10 +13,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.dp
 import eu.kanade.core.preference.PreferenceMutableState
 import eu.kanade.tachiyomi.ui.library.LibraryItem
 import eu.kanade.tachiyomi.ui.library.LibraryNavigation
@@ -45,7 +42,6 @@ fun LibraryContent(
     contentPadding: PaddingValues,
     currentPage: Int,
     hasActiveFilters: Boolean,
-    showPageTabs: Boolean,
     onChangeCurrentPage: (Int) -> Unit,
     onClickManga: (Long) -> Unit,
     onContinueReadingClicked: ((LibraryManga) -> Unit)?,
@@ -53,7 +49,6 @@ fun LibraryContent(
     onToggleRangeSelection: (Category, LibraryManga) -> Unit,
     onRefresh: suspend () -> Boolean,
     onGlobalSearchClicked: () -> Unit,
-    getItemCountForCategory: (Category) -> Int?,
     getDisplayMode: (Int) -> PreferenceMutableState<LibraryDisplayMode>,
     getColumnsForOrientation: (Boolean) -> PreferenceMutableState<Int>,
     getItemsForCategory: (Category) -> List<LibraryItem>,
@@ -70,36 +65,8 @@ fun LibraryContent(
         val scope = rememberCoroutineScope()
         var isRefreshing by remember(pagerState.currentPage) { mutableStateOf(false) }
 
-        if (showPageTabs) {
-            LaunchedEffect(categories) {
-                if (categories.size <= pagerState.currentPage) {
-                    pagerState.scrollToPage(categories.size - 1)
-                }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                LibraryTabs(
-                    modifier = Modifier.weight(1f),
-                    categories = categories,
-                    pagerState = pagerState,
-                    getItemCountForCategory = getItemCountForCategory,
-                    onTabItemClick = {
-                        scope.launch {
-                            if (paginated) pagerState.scrollToPage(it) else pagerState.scrollToPage(it)
-                        }
-                    },
-                )
-                if (paginated && pageButtons == LibraryPageButtons.Hidden) {
-                    navigation.pageInfo?.let {
-                        LibraryPageNumber(
-                            it.index,
-                            it.count,
-                            compact = true,
-                            onClick = { navigation.showPageDialog = true },
-                            modifier = Modifier.padding(horizontal = 8.dp),
-                        )
-                    }
-                }
-            }
+        LaunchedEffect(currentPage, categories.size) {
+            if (categories.isNotEmpty()) pagerState.scrollToPage(currentPage.coerceIn(categories.indices))
         }
 
         PullRefresh(

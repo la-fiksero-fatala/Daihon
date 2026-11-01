@@ -1,5 +1,6 @@
 package eu.kanade.presentation.library.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -35,6 +37,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -246,7 +249,7 @@ internal fun LibraryPaginatedContent(
 }
 
 @Composable
-private fun LibraryPageControls(
+internal fun LibraryPageControls(
     page: Int,
     pageCount: Int,
     vertical: Boolean,
@@ -254,6 +257,28 @@ private fun LibraryPageControls(
     onPageChange: (Int) -> Unit,
     onClickPageNumber: () -> Unit,
 ) {
+    if (showSlider) {
+        var target by remember(page, pageCount) { mutableIntStateOf(page) }
+        val size = if (vertical) {
+            Modifier.width(
+                72.dp,
+            ).fillMaxHeight()
+        } else {
+            Modifier.fillMaxWidth().heightIn(min = 72.dp)
+        }
+        LibraryPageSlider(
+            page = target,
+            pageCount = pageCount,
+            onValueChange = { target = it },
+            onValueChangeFinished = { onPageChange(target - page) },
+            modifier = size.border(1.dp, Color.Black).padding(
+                horizontal = if (vertical) 8.dp else 32.dp,
+                vertical = if (vertical) 32.dp else 8.dp,
+            ),
+            vertical = vertical,
+        )
+        return
+    }
     PaperPageControls(
         label = "${page + 1} / $pageCount",
         canPrevious = page > 0,
@@ -261,6 +286,7 @@ private fun LibraryPageControls(
         onPrevious = { onPageChange(-1) },
         onNext = { onPageChange(1) },
         onJump = onClickPageNumber,
+        canJump = pageCount > 0,
     )
 }
 

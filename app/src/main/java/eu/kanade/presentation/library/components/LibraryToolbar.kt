@@ -2,6 +2,7 @@ package eu.kanade.presentation.library.components
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +45,7 @@ fun LibraryToolbar(
     searchInteractionSource: MutableInteractionSource,
     onClickPageNumber: () -> Unit,
     pagination: LibraryPageInfo? = null,
+    categorySelector: (@Composable (Boolean) -> Unit)? = null,
 ) = when {
     selectedCount > 0 -> LibrarySelectionToolbar(
         selectedCount = selectedCount,
@@ -55,6 +57,7 @@ fun LibraryToolbar(
     )
     else -> LibraryRegularToolbar(
         title = title,
+        categorySelector = categorySelector,
         hasFilters = hasActiveFilters,
         searchQuery = searchQuery,
         onSearchQueryChange = onSearchQueryChange,
@@ -72,6 +75,7 @@ fun LibraryToolbar(
 @Composable
 private fun LibraryRegularToolbar(
     title: LibraryToolbarTitle,
+    categorySelector: (@Composable (Boolean) -> Unit)?,
     hasFilters: Boolean,
     searchQuery: String?,
     onSearchQueryChange: (String?) -> Unit,
@@ -89,18 +93,22 @@ private fun LibraryRegularToolbar(
         interactionSource = searchInteractionSource,
         titleContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = title.text,
-                    maxLines = 1,
-                    modifier = Modifier.weight(1f, false),
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (title.numberOfManga != null) {
-                    Pill(
-                        text = "${title.numberOfManga}",
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = pillAlpha),
-                        fontSize = 14.sp,
+                if (categorySelector != null) {
+                    Box(Modifier.weight(1f)) { categorySelector(false) }
+                } else {
+                    Text(
+                        text = title.text,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f, false),
+                        overflow = TextOverflow.Ellipsis,
                     )
+                    if (title.numberOfManga != null) {
+                        Pill(
+                            text = "${title.numberOfManga}",
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = pillAlpha),
+                            fontSize = 14.sp,
+                        )
+                    }
                 }
                 pagination?.let { LibraryPageNumber(it.index, it.count, compact = true, onClick = onClickPageNumber) }
             }
@@ -109,6 +117,7 @@ private fun LibraryRegularToolbar(
         onChangeSearchQuery = onSearchQueryChange,
         actions = {
             if (searchQuery != null) {
+                categorySelector?.invoke(true)
                 pagination?.let { LibraryPageNumber(it.index, it.count, compact = true, onClick = onClickPageNumber) }
             }
             val filterTint = if (hasFilters) MaterialTheme.colorScheme.active else LocalContentColor.current

@@ -4,8 +4,26 @@ import android.view.KeyEvent
 import eu.kanade.tachiyomi.ui.library.libraryPageDirection
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import tachiyomi.core.common.preference.InMemoryPreferenceStore
+import tachiyomi.core.common.preference.InMemoryPreferenceStore.InMemoryPreference
+import tachiyomi.domain.library.model.LibraryNavigationMode
+import tachiyomi.domain.library.service.LibraryPreferences
 
 class LibraryNavigationTest {
+
+    @Test
+    fun `navigation style is saved and restored for every mode`() {
+        val preference = LibraryPreferences(InMemoryPreferenceStore()).pageNavigation
+        preference.get() shouldBe LibraryNavigationMode.Buttons
+        LibraryNavigationMode.entries.forEach { mode ->
+            preference.set(mode)
+            preference.get() shouldBe mode
+            val restored = InMemoryPreferenceStore(
+                sequenceOf(InMemoryPreference(preference.key(), mode, LibraryNavigationMode.Buttons)),
+            )
+            LibraryPreferences(restored).pageNavigation.get() shouldBe mode
+        }
+    }
 
     @Test
     fun `page keys work with volume navigation disabled`() {

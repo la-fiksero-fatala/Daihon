@@ -56,8 +56,10 @@ class LibraryPreferences(
 
     val pageButtons: Preference<LibraryPageButtons> = FixedPreference("pageButtons", LibraryPageButtons.Bottom)
 
-    val pageNavigation: Preference<LibraryNavigationMode> =
-        FixedPreference("pageNavigation", LibraryNavigationMode.Buttons)
+    val pageNavigation: Preference<LibraryNavigationMode> = preferenceStore.getEnum(
+        "library_page_navigation",
+        LibraryNavigationMode.Buttons,
+    )
 
     val lastUpdatedTimestamp: Preference<Long> = preferenceStore.getLong(
         Preference.appStateKey("library_update_last_timestamp"),

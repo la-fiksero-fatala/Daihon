@@ -137,7 +137,7 @@ private fun BoxScope.CoverTextOverlay(
     Row(
         modifier = Modifier.align(
             Alignment.BottomStart,
-        ).fillMaxWidth().background(Color.White),
+        ).fillMaxWidth().background(Color.White.copy(alpha = 0.7f)),
         verticalAlignment = Alignment.Bottom,
     ) {
         GridItemTitle(

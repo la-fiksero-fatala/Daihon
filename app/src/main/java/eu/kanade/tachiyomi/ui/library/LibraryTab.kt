@@ -36,6 +36,7 @@ import eu.kanade.presentation.library.DeleteLibraryMangaDialog
 import eu.kanade.presentation.library.LibrarySettingsDialog
 import eu.kanade.presentation.library.components.LibraryContent
 import eu.kanade.presentation.library.components.LibraryPageJumpDialog
+import eu.kanade.presentation.library.components.LibraryTabs
 import eu.kanade.presentation.library.components.LibraryToolbar
 import eu.kanade.presentation.manga.components.LibraryBottomActionMenu
 import eu.kanade.presentation.more.onboarding.GETTING_STARTED_URL
@@ -144,8 +145,6 @@ data object LibraryTab : Tab {
         }
 
         val snackbarHostState = remember { SnackbarHostState() }
-        val showCategoryTabs = (state.showCategoryTabs || !state.searchQuery.isNullOrEmpty()) &&
-            state.displayedCategories.let { it.isNotEmpty() && (it.size > 1 || !it.first().isSystemCategory) }
 
         val onClickRefresh: suspend (Category?) -> Boolean = { category ->
             val started = LibraryUpdateWorker.startNow(context.workManager, category)
@@ -163,19 +162,32 @@ data object LibraryTab : Tab {
         Scaffold(
             topBar = { scrollBehavior ->
                 val title = state.getToolbarTitle(
-                    defaultTitle = stringResource(MR.strings.label_library),
+                    defaultTitle = "",
                     defaultCategoryTitle = stringResource(MR.strings.label_default),
                     page = state.coercedActiveCategoryIndex,
                 )
                 LibraryToolbar(
                     onClickPageNumber = { libraryNavigation.showPageDialog = true },
                     pagination = libraryNavigation.pageInfo.takeIf {
-                        paginated && pageButtons == LibraryPageButtons.Hidden && !showCategoryTabs
+                        paginated && pageButtons == LibraryPageButtons.Hidden
                     },
                     searchInteractionSource = searchInteractionSource,
                     hasActiveFilters = state.hasActiveFilters,
                     selectedCount = state.selection.size,
                     title = title,
+                    categorySelector = if (state.displayedCategories.isEmpty()) {
+                        null
+                    } else {
+                        { iconOnly ->
+                            LibraryTabs(
+                                categories = state.displayedCategories,
+                                currentIndex = state.coercedActiveCategoryIndex,
+                                getItemCountForCategory = state::getItemCountForCategory,
+                                onTabItemClick = viewModel::updateActiveCategoryIndex,
+                                iconOnly = iconOnly,
+                            )
+                        }
+                    },
                     onClickUnselectAll = viewModel::clearSelection,
                     onClickSelectAll = viewModel::selectAll,
                     onClickInvertSelection = viewModel::invertSelection,
@@ -196,8 +208,7 @@ data object LibraryTab : Tab {
                     },
                     searchQuery = state.searchQuery,
                     onSearchQueryChange = viewModel::search,
-                    // For scroll overlay when no tab
-                    scrollBehavior = scrollBehavior.takeIf { !state.showCategoryTabs },
+                    scrollBehavior = scrollBehavior,
                 )
             },
             bottomBar = {
@@ -251,7 +262,6 @@ data object LibraryTab : Tab {
                         contentPadding = contentPadding,
                         currentPage = state.coercedActiveCategoryIndex,
                         hasActiveFilters = state.hasActiveFilters,
-                        showPageTabs = showCategoryTabs,
                         onChangeCurrentPage = viewModel::updateActiveCategoryIndex,
                         onClickManga = { navigator.push(MangaScreen(it)) },
                         onContinueReadingClicked = { it: LibraryManga ->
@@ -276,7 +286,6 @@ data object LibraryTab : Tab {
                         onGlobalSearchClicked = {
                             navigator.push(GlobalSearchScreen(viewModel.state.value.searchQuery ?: ""))
                         },
-                        getItemCountForCategory = { state.getItemCountForCategory(it) },
                         getDisplayMode = { viewModel.getDisplayMode() },
                         getColumnsForOrientation = { viewModel.getColumnsForOrientation(it) },
                         getItemsForCategory = { state.getItemsForCategory(it) },
