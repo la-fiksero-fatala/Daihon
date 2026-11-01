@@ -40,11 +40,13 @@ fun EmptyScreen(
     stringRes: StringResource,
     modifier: Modifier = Modifier,
     actions: List<EmptyScreenAction>? = null,
+    alwaysShowNavigation: Boolean = false,
 ) {
     EmptyScreen(
         message = stringResource(stringRes),
         modifier = modifier,
         actions = actions,
+        alwaysShowNavigation = alwaysShowNavigation,
     )
 }
 
@@ -53,9 +55,11 @@ fun EmptyScreen(
     message: String,
     modifier: Modifier = Modifier,
     actions: List<EmptyScreenAction>? = null,
+    alwaysShowNavigation: Boolean = false,
 ) {
     val face = remember { getRandomErrorFace() }
     PaperScrollColumn(
+        alwaysShowNavigation = alwaysShowNavigation,
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp),

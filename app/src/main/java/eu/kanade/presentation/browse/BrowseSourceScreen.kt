@@ -1,6 +1,7 @@
 package eu.kanade.presentation.browse
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.material3.SnackbarDuration
@@ -28,6 +29,7 @@ import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.PaperLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
@@ -73,12 +75,19 @@ fun BrowseSourceContent(
     }
 
     if (mangaList.itemCount == 0 && mangaList.loadState.refresh is LoadState.Loading) {
-        LoadingScreen(Modifier.padding(contentPadding))
+        PaperLazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = contentPadding,
+            alwaysShowNavigation = true,
+        ) {
+            item { LoadingScreen(Modifier.fillParentMaxSize()) }
+        }
         return
     }
 
     if (mangaList.itemCount == 0) {
         EmptyScreen(
+            alwaysShowNavigation = true,
             modifier = Modifier.padding(contentPadding),
             message = when (errorState) {
                 is LoadState.Error -> getErrorMessage(errorState)

@@ -27,6 +27,7 @@ fun BrowseSourceComfortableGrid(
     onMangaLongClick: (Manga) -> Unit,
 ) {
     LazyVerticalGrid(
+        alwaysShowNavigation = true,
         hasMoreItems = !mangaList.loadState.append.endOfPaginationReached,
         columns = columns,
         contentPadding = contentPadding + PaddingValues(8.dp),

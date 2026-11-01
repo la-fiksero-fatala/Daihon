@@ -44,6 +44,7 @@ fun PaperScrollColumn(
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     reverseScrolling: Boolean = false,
     enabled: Boolean = true,
+    alwaysShowNavigation: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val density = LocalDensity.current
@@ -83,7 +84,8 @@ fun PaperScrollColumn(
             Modifier.heightIn(min = with(density) { constraints.minHeight.toDp() }, max = limit)
                 .fillMaxWidth().navigationBarsPadding(),
             fill = fill, ready = measured && viewport > 0,
-            showJumpToTop = pages.size > 2,
+            showJumpToTop = alwaysShowNavigation || pages.size > 2,
+            alwaysShowNavigation = alwaysShowNavigation,
             onJumpToTop = {
                 PaperNavigation.activate(owner)
                 scope.launch { state.scrollTo(0) }

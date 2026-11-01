@@ -72,6 +72,7 @@ internal fun GlobalSearchContent(
     fromSourceId: Long? = null,
 ) {
     LazyColumn(
+        alwaysShowNavigation = true,
         modifier = Modifier.fillMaxSize(),
         contentPadding = contentPadding,
     ) {
