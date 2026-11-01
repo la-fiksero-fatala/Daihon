@@ -1,6 +1,6 @@
 # Device display profiles
 
-Onboarding and Settings → Display share the same device selection and independent
+Onboarding and Settings → Display → Device and refresh share the same device selection and independent
 navigation and reader profiles. Defaults leave display modes and refreshes under
 firmware control. Existing installations can use Settings or replay onboarding.
 
@@ -38,3 +38,14 @@ Refresh-induced redraws cannot start another refresh: the pending change is cons
 before requesting a panel update. Pausing cancels pending requests. A frequency of
 System managed adds no draw observer. Hardware failures are caught and reported
 once per active profile.
+
+Reader Page refresh offers None, Black and white, and System. It is also available
+in the reader settings and in the device submenu's Reader display section. System
+uses the detected firmware's full-refresh command after a selected manga image is
+decoded and drawing has settled, including the first page. It also counts an
+instant overlapping section change within a long strip. Preloads, repeated page
+notifications, menus, and settings changes do not request a page refresh. The
+reader profile's general update interval is suspended while System is selected,
+so menu input cannot trigger that interval indirectly. Unknown devices disable the
+System choice. Firmware-controlled refreshes remain outside the app's control;
+turn off automatic full refreshes in the device's per-app settings if desired.

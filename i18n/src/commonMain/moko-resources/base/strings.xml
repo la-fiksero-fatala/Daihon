@@ -1117,6 +1117,7 @@
     <string name="daihon_support_explanation">Daihon is based on Mihon. These links support the upstream Mihon team.</string>
 
     <!-- Device-specific display control -->
+    <string name="display_device_settings">Device and refresh</string>
     <string name="display_device">Your device</string>
     <string name="display_device_profile">Device profile</string>
     <string name="display_device_detected">Device: %1$s\nRefresh interface: %2$s</string>
@@ -1132,7 +1133,7 @@
     <string name="display_refresh_each_update">Every screen update</string>
     <string name="display_refresh_interval">Every %1$d screen updates</string>
     <string name="display_refresh_now">Refresh screen now</string>
-    <string name="display_profile_help">Full refreshes are counted after content finishes drawing. Faster display modes may leave more residual images. You can change these choices at any time in Settings → Display.</string>
+    <string name="display_profile_help">Full refreshes are counted after content finishes drawing. Faster display modes may leave more residual images. You can change these choices at any time in Settings → Display → Device and refresh.</string>
     <string name="display_mode_quality">Quality (normal)</string>
     <string name="display_mode_balanced">Balanced (DU)</string>
     <string name="display_mode_regal">Text (Regal)</string>
@@ -1145,4 +1146,9 @@
     <string name="daihon_filter_value">Type to filter choices, or use − and +</string>
     <string name="pref_page_padding">Page padding (px)</string>
     <string name="page_padding_pixels">%1$d px on each side</string>
+    <string name="page_refresh">Page refresh</string>
+    <string name="page_refresh_none">None</string>
+    <string name="page_refresh_flash">Black and white</string>
+    <string name="page_refresh_system">System</string>
+    <string name="page_refresh_system_help">System refresh cleans the panel after the first manga page and each page change. Reader menu taps do not trigger it. Disable automatic full refreshes in your device’s app settings to avoid duplicate refreshes.</string>
 </resources>

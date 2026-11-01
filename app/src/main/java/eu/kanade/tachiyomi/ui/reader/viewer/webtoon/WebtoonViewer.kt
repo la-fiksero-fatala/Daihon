@@ -112,6 +112,9 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
             object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     onScrolled()
+                    if (dy != 0) {
+                        (tracker.currentPage as? ReaderPage)?.let(activity::onReaderSectionChanged)
+                    }
                     tracker.onScrolledBy(
                         dy = dy.toFloat(),
                         firstVisible = layoutManager.findFirstVisibleItemPosition(),

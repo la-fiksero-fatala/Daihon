@@ -8,6 +8,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
+import eu.kanade.presentation.reader.settings.PageRefreshSetting
+import eu.kanade.tachiyomi.ui.reader.setting.PageRefresh
 import eu.kanade.tachiyomi.util.display.DisplayDevice
 import eu.kanade.tachiyomi.util.display.DisplayHardwareProbe
 import eu.kanade.tachiyomi.util.display.DisplayMode
@@ -72,6 +74,7 @@ internal fun displayProfileGroup(reader: Boolean): Preference.PreferenceGroup {
     val hardware = remember(device) { DisplayHardwareProbe().detect(context, device) }
     val modePreference = if (reader) preferences.readerMode else preferences.navigationMode
     val mode by modePreference.collectAsState()
+    val pageRefresh by context.appGraph.readerPreferences.pageRefresh.collectAsState()
     val displayModeTitle = stringResource(MR.strings.display_mode)
     val refreshTitle = stringResource(MR.strings.display_full_refresh)
     return Preference.PreferenceGroup(
@@ -95,7 +98,9 @@ internal fun displayProfileGroup(reader: Boolean): Preference.PreferenceGroup {
                     )
                 }
             },
-            if (hardware.canRefresh) {
+            if (reader && pageRefresh == PageRefresh.System) {
+                Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.page_refresh_system_help))
+            } else if (hardware.canRefresh) {
                 Preference.PreferenceItem.ListPreference(
                     title = refreshTitle,
                     preference = if (reader) preferences.readerRefresh else preferences.navigationRefresh,
@@ -116,7 +121,13 @@ internal fun displayProfileGroup(reader: Boolean): Preference.PreferenceGroup {
                     )
                 }
             },
-            Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.display_profile_help)),
+            if (reader) {
+                Preference.PreferenceItem.CustomPreference(stringResource(MR.strings.page_refresh)) {
+                    PageRefreshSetting()
+                }
+            } else {
+                Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.display_profile_help))
+            },
         ),
     )
 }

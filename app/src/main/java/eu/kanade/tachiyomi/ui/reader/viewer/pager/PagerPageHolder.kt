@@ -66,6 +66,7 @@ class PagerPageHolder(
     @SuppressLint("ClickableViewAccessibility")
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+        viewer.activity.onReaderPageReleased(page)
         loadJob?.cancel()
         loadJob = null
     }
@@ -193,6 +194,7 @@ class PagerPageHolder(
 
     override fun onImageLoaded() {
         super.onImageLoaded()
+        viewer.activity.onReaderPageDecoded(page)
         progressIndicator?.hide()
         if (isVisibleOnScreen()) viewer.activity.onDisplayContentChanged()
     }

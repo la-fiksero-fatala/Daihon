@@ -1511,6 +1511,9 @@ open class WebGpuViewer(
                     }
                     noteIfLone(page)
                     viewerState.invalidate()
+                    activity.window.decorView.post {
+                        if (!destroyed && page.isDecoded) activity.onReaderPageDecoded(page.page)
+                    }
                 }
             }
         } finally {

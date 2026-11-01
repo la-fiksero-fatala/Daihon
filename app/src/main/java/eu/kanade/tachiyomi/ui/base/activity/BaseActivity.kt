@@ -17,8 +17,10 @@ import eu.kanade.tachiyomi.util.display.DisplayRefreshSession
 import eu.kanade.tachiyomi.util.system.prepareTabletUiContext
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
@@ -30,6 +32,8 @@ open class BaseActivity :
     ThemingDelegate by ThemingDelegateImpl() {
 
     protected open val readerDisplayProfile = false
+
+    protected open val pageRefreshOnly: Flow<Boolean> = flowOf(false)
 
     private var displayRefreshSession: DisplayRefreshSession? = null
 
@@ -62,12 +66,13 @@ open class BaseActivity :
                 val preferences = appGraph.deviceDisplayPreferences
                 val mode = if (readerDisplayProfile) preferences.readerMode else preferences.navigationMode
                 val interval = if (readerDisplayProfile) preferences.readerRefresh else preferences.navigationRefresh
-                combine(preferences.device.changes(), mode.changes(), interval.changes()) {
+                combine(preferences.device.changes(), mode.changes(), interval.changes(), pageRefreshOnly) {
                         device,
                         displayMode,
                         refresh,
+                        pagesOnly,
                     ->
-                    Triple(device, displayMode, refresh)
+                    Triple(device, displayMode, if (pagesOnly) 0 else refresh)
                 }.collectLatest { (device, displayMode, refresh) ->
                     var failureReported = false
                     val session = DisplayRefreshSession(

@@ -30,7 +30,7 @@ class ReaderPreferences(
         true,
     )
 
-    val flashOnPageChange: Preference<Boolean> = FixedPreference("flashOnPageChange", false)
+    val pageRefresh = preferenceStore.getEnum("reader_page_refresh", PageRefresh.None)
 
     val flashDurationMillis: Preference<Int> = preferenceStore.getInt("pref_reader_flash_duration", MILLI_CONVERSION)
 

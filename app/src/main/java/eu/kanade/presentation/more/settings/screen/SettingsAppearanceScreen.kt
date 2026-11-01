@@ -36,12 +36,14 @@ object SettingsAppearanceScreen : SearchableSettings {
     @Composable
     override fun getPreferences(): List<Preference> {
         val context = LocalContext.current
+        val navigator = LocalNavigator.currentOrThrow
         val uiPreferences = remember { context.appGraph.uiPreferences }
 
         return listOf(
-            deviceDisplayGroup(),
-            displayProfileGroup(reader = false),
-            displayProfileGroup(reader = true),
+            Preference.PreferenceItem.TextPreference(
+                title = stringResource(MR.strings.display_device_settings),
+                onClick = { navigator.push(SettingsDeviceDisplayScreen) },
+            ),
             getDisplayGroup(uiPreferences = uiPreferences),
         )
     }
