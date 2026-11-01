@@ -4,6 +4,9 @@ Daihon request audit — 2026-11-01
     and internal Debug package IDs differ from Mihon. Existing data is retained
     when updating the same Daihon package.
 [x] Black だ, white circle, black background; adaptive and monochrome icons.
+    About/More use the same Daihon logo. Notification app marks use an alpha-only
+    Daihon symbol; large app logos are rasterized from the vector correctly.
+    Status-specific download, pause, warning, and chapter-cover icons remain meaningful.
 [x] Fixed light, high-contrast appearance; theme/dark-mode selectors removed.
 [x] Dialog outlines and section cues retained; redundant icon, cover, settings-row,
     and detail-action borders removed.
@@ -36,8 +39,9 @@ Daihon request audit — 2026-11-01
 [x] Library organization/sorting has an inline X and dismisses on outside taps.
 [x] Manga Details opens by default and has Start/Resume from Chapter N using the
     existing next-unread and continue-reading logic. In single-pane layouts, the
-    reading button takes two thirds of its row and a Chapters/Details button takes
-    one third. Tabs are removed; top back returns to the library. The row uses one
+    reading button takes 60% of its row and a Chapters/Details button takes
+    40%. Chapters shows the maximum actual chapter number, including fractions,
+    or Chapters (-) when no recognized chapter number is available. Tabs are removed; top back returns to the library. The row uses one
     outline and divider; detail actions remain unboxed. Reading/view-switch actions
     occupy a fixed screen footer in both views, with a 16 physical-pixel gap above
     the system navigation area and no separator above them. Tablet dual panes
@@ -92,6 +96,7 @@ Daihon request audit — 2026-11-01
     integrations retained. Manual local debug information remains available.
 [x] Support/Help entries removed. About no longer offers What's new, Check for
     updates, or social links. Version, licenses, and privacy information remain.
+    The duplicate About entry is removed from Settings; More still opens About.
 [x] Update all and similar outlined actions inherit the button content color,
     avoiding white text on a white background.
 [x] Settings > Display > Page navigation has separate visibility switches for
@@ -131,11 +136,48 @@ Daihon request audit — 2026-11-01
     before drawing and restore the original position, including after cancellation.
     Migration, global search, and individual source search always keep all three
     controls while navigation is enabled, regardless of changing result counts.
+[x] Library search starts within the selected category. Search in all categories
+    combines matching library manga once each, using the current sort and filters.
+    The category remains selected when search closes; no grouping preference is
+    changed. The adjacent source action reads Search for "X" in sources.
+[x] Library slider previews the target number live in the toolbar, while entries
+    change only on release. Its rail uses the same single inner separator as the
+    arrow controls, including the top edge in horizontal layouts.
+[x] Generic, library and chapter jump dialogs share one footer row with the same
+    spacing between Jump to top, Cancel and OK, including translated/wrapped labels.
+[x] Manga Refresh is a visible toolbar icon next to Download in both views. The
+    chapter filter/sort icon is hidden in Details unless a tablet chapter pane is
+    also visible. The overflow Refresh entry is removed, rather than duplicated.
+[x] Corner overflow menus use a narrower 196–260 dp width instead of 280–320 dp.
+[x] Time format defaults to Follow system. Existing explicit choices are retained.
+[x] Optional MIT-licensed Anime4K DoG source-space enhancement is available in
+    global Reader settings and the in-reader Reading mode settings. Catmull–Rom
+    remains the default scaler. DoG runs only while enlarging; native-size and
+    downscaled images retain the default algorithms. Source-space processing then
+    one Catmull–Rom resize avoids an intermediate 2x resampling stage. Padding only
+    changes the viewport. The full upstream MIT notice is bundled in the shader
+    and assets/licenses/Anime4K.txt; docs/upscaling.txt pins and explains the port.
+    This older lightweight variant is adapted, not claimed pixel-identical to the
+    original fixed-2x shader. No measured battery/performance claim is made.
+[x] WebGPU retains grayscale and inverted page-image colors without filtering
+    loading, error or transition controls. Both off adds no built-in color pass.
+[x] Custom filter shows the current source image resolution before cropping,
+    splitting or fitting. Preloaded pages update only their own metadata.
+[x] Exactly one selected chapter exposes Check resolution in its bottom actions.
+    It prefers downloaded/local and cached data, reads PNG/GIF/JPEG/WebP headers,
+    and uses native metadata parsing for other formats. Online checks preserve
+    source request overrides and first try a partial image request. Unsupported
+    ranges/long metadata retry the original request; the image body is cancelled
+    as soon as dimensions are known. A progress bar and Cancel/X are provided.
+    Results sort by width*height using 64-bit area and show actual width × height;
+    even counts select the lower middle page. Failed probes are counted and any
+    partial median is clearly identified. Reading progress is not changed.
 [x] Source changes use focused, neutral commits so UI decisions can be reverted.
 
 Validation
 - Debug build and formatting pass.
-- Prior app suite: 74 tests passed. Current presentation-core suite: 33 pass,
+- App suite before these changes: 74 tests passed. Current additions include two
+  real shader-planning checks and five image-header/median tests. Presentation-core: 33 tests,
   including three header-free item-numbering and jump-target regression tests.
 - Focused tests cover first-page decode gating, preloads, duplicate notifications,
   released images, chapter-transition cancellation, long-strip sections, orphan
@@ -151,7 +193,16 @@ Validation
   first-page jump-to-top in lists/grids, permanent controls in dynamic result
   views, compact rows with outlined arrows, and two-row tags above descriptions.
   Offline fixture code was removed before delivery.
-- Tablet mode restored after validation. Only fictional emulator reading data used.
+- Current focused emulator checks: real WebGPU rendering with 24 px padding;
+  source-size DoG at a fractional viewing scale; native downscaling; source metadata
+  changing from 640x960 to 1800x2700; local chapter median 640x960 for three pages;
+  Details/Chapters toolbar and 60/40 footer; three uniformly spaced jump actions;
+  category A=36, B=25 with one shared manga produces 60 unique search results;
+  closing all-category search returns to category A; dragging from page 6 previews
+  page 7 while page-6 covers remain, then releases to page 10.
+- Temporary fictional emulator database/preferences/files are restored/removed
+  after the smoke checks; no fixture activity or data is committed. Prior phone
+  and tablet checks are retained; a full manual device review is left to the user.
 - Preview package/label, optimized APK build, USB installation, and preservation of
   Mihon are verified separately in the delivered build's TESTING.txt.
 
