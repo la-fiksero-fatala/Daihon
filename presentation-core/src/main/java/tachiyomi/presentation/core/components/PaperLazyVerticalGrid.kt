@@ -35,9 +35,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -46,6 +48,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @Composable
 fun PaperLazyVerticalGrid(
@@ -59,6 +63,7 @@ fun PaperLazyVerticalGrid(
     flingBehavior: FlingBehavior = ScrollableDefaults.flingBehavior(),
     userScrollEnabled: Boolean = true,
     hasMoreItems: Boolean = false,
+    alwaysShowNavigation: Boolean = false,
     content: LazyGridScope.() -> Unit,
 ) {
     if (!userScrollEnabled) {
@@ -80,7 +85,19 @@ fun PaperLazyVerticalGrid(
     val visible = info.visibleItemsInfo.filter { it.index < total }
     val first = PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
     val end = info.viewportEndOffset - info.afterContentPadding
-    val next = nextPaperAnchor(visible.map { PaperItem(it.index, it.offset.y, it.size.height) }, first, end, total)
+    fun liveNext(): PaperAnchor? {
+        val layout = state.layoutInfo
+        val count = (layout.totalItemsCount - 1).coerceAtLeast(0)
+        return nextPaperAnchor(
+            layout.visibleItemsInfo.filter {
+                it.index < count
+            }.map { PaperItem(it.index, it.offset.y, it.size.height) },
+            PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset),
+            layout.viewportEndOffset - layout.afterContentPadding,
+            count,
+        )
+    }
+    val next = liveNext()
     val hasPrevious = first.index > 0 || first.offset > 0
     val paged = total > 0 && (hasPrevious || next != null)
     val partial = visible.firstOrNull { it.offset.y > 0 && it.offset.y + it.size.height > end }
@@ -90,18 +107,42 @@ fun PaperLazyVerticalGrid(
             .maxOfOrNull { it.size.height } ?: 0
         if (first.offset > 0 && rowHeight <= end) state.scrollToItem(first.index)
     }
-    var startedAtTop by remember(total, viewport) { mutableStateOf(false) }
-    var hasThirdPage by remember(total, viewport) { mutableStateOf(false) }
-    LaunchedEffect(first, next, history.size) {
-        if (history.lastOrNull() != first && paperHasThirdPage(startedAtTop, history.size, next != null)) {
-            hasThirdPage = true
+    fun liveProbeKey(): PaperPageProbeKey {
+        val layout = state.layoutInfo
+        return PaperPageProbeKey((layout.totalItemsCount - 1).coerceAtLeast(0), layout.viewportSize)
+    }
+    val probeKey = liveProbeKey()
+    var probeResult by remember(state) { mutableStateOf<PaperPageProbeResult?>(null) }
+    val probeMutex = remember(state) { Mutex() }
+    val layoutReady = alwaysShowNavigation || total == 0 || probeResult?.key == probeKey
+    LaunchedEffect(probeKey, alwaysShowNavigation) {
+        if (alwaysShowNavigation || total == 0 || probeKey.viewport.width <= 0 || probeKey.viewport.height <= 0) {
+            return@LaunchedEffect
+        }
+        probeMutex.withLock {
+            // Let the rail's initial width settle before inspecting either page.
+            withFrameNanos {}
+            if (liveProbeKey() != probeKey) return@withLock
+            val original = PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+            val third = probePaperThirdPage(
+                original,
+                top = { state.scrollToItem(0) },
+                next = ::liveNext,
+                move = { state.scrollToItem(it.index, it.offset) },
+                restore = {
+                    val last = (state.layoutInfo.totalItemsCount - 2).coerceAtLeast(0)
+                    state.scrollToItem(it.index.coerceIn(0, last), it.offset)
+                },
+                settle = { withFrameNanos {} },
+            )
+            withFrameNanos {}
+            if (liveProbeKey() == probeKey) probeResult = PaperPageProbeResult(probeKey, third)
         }
     }
     val navigate: (Int) -> Unit = { step ->
         PaperNavigation.activate(owner)
         scope.launch {
             if (step > 0 && next != null) {
-                if (history.isEmpty()) startedAtTop = !hasPrevious
                 history.add(first)
                 state.scrollToItem(next.index, next.offset)
             } else if (step < 0 && hasPrevious) {
@@ -127,12 +168,16 @@ fun PaperLazyVerticalGrid(
         PaperPageFrame(
             owner, "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}",
             paged, hasPrevious, next != null, { navigate(-1) }, { navigate(1) }, { showJump = true },
-            Modifier.heightIn(max = limit).fillMaxWidth().padding(
+            Modifier.drawWithContent {
+                val current = liveProbeKey()
+                if (alwaysShowNavigation || current.count == 0 || probeResult?.key == current) drawContent()
+            }.heightIn(max = limit).fillMaxWidth().padding(
                 top = contentPadding.calculateTopPadding(),
                 bottom = contentPadding.calculateBottomPadding(),
             ).consumeWindowInsets(contentPadding).navigationBarsPadding(),
-            fill = constraints.minHeight > 0, ready = info.totalItemsCount > 0,
-            showJumpToTop = hasThirdPage,
+            fill = constraints.minHeight > 0, ready = info.totalItemsCount > 0 && layoutReady,
+            showJumpToTop = alwaysShowNavigation || probeResult?.hasThirdPage == true,
+            alwaysShowNavigation = alwaysShowNavigation,
             onJumpToTop = {
                 PaperNavigation.activate(owner)
                 history.clear()
@@ -141,7 +186,7 @@ fun PaperLazyVerticalGrid(
         ) {
             Box(
                 Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }
-                    .then(paperInput(owner, !showJump, navigate, atTop = !hasPrevious)),
+                    .then(paperInput(owner, !showJump && layoutReady, navigate, atTop = !hasPrevious)),
             ) {
                 LazyVerticalGrid(
                     columns = columns,

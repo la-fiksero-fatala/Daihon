@@ -34,9 +34,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -45,6 +47,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /** Complete rows per step, preserving empty space on an incomplete final page. */
 @Composable
@@ -59,6 +63,7 @@ fun PaperLazyColumn(
     userScrollEnabled: Boolean = true,
     fillRowGaps: Boolean = false,
     hasMoreItems: Boolean = false,
+    alwaysShowNavigation: Boolean = false,
     pageLabel: ((first: Int, last: Int) -> String?)? = null,
     onJump: ((first: Int) -> Unit)? = null,
     content: LazyListScope.() -> Unit,
@@ -91,13 +96,18 @@ fun PaperLazyColumn(
     val end = info.viewportEndOffset - info.afterContentPadding
     val pageItems = visible.map { PaperItem(it.index, it.offset, it.size) }
     val orphan = paperOrphanHeader(pageItems, sections.headers, first, end)
-    val next = orphan?.let { PaperAnchor(it.index) } ?: nextPaperAnchor(
-        pageItems.filter { it.index >= first.index },
-        first,
-        end,
-        total,
-        pinnedHeight,
-    )
+    fun liveNext(): PaperAnchor? {
+        val layout = state.layoutInfo
+        val count = (layout.totalItemsCount - 1).coerceAtLeast(0)
+        return nextPaperListAnchor(
+            layout.visibleItemsInfo.filter { it.index < count }.map { PaperItem(it.index, it.offset, it.size) },
+            sections.headers,
+            PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset),
+            layout.viewportEndOffset - layout.afterContentPadding,
+            count,
+        )
+    }
+    val next = liveNext()
     val rowHeight = visible.maxOfOrNull { it.size } ?: 0
     val spacing = paperRowSpacing((end - info.beforeContentPadding).coerceAtLeast(0), rowHeight, total)
     val arrangement = if (fillRowGaps) Arrangement.spacedBy(with(density) { spacing.toDp() }) else verticalArrangement
@@ -129,18 +139,42 @@ fun PaperLazyColumn(
             jumpTo(PaperAnchor(first.index))
         }
     }
-    var startedAtTop by remember(total, viewport) { mutableStateOf(false) }
-    var hasThirdPage by remember(total, viewport) { mutableStateOf(false) }
-    LaunchedEffect(first, next, history.size) {
-        if (history.lastOrNull() != first && paperHasThirdPage(startedAtTop, history.size, next != null)) {
-            hasThirdPage = true
+    fun liveProbeKey(): PaperPageProbeKey {
+        val layout = state.layoutInfo
+        return PaperPageProbeKey((layout.totalItemsCount - 1).coerceAtLeast(0), layout.viewportSize)
+    }
+    val probeKey = liveProbeKey()
+    var probeResult by remember(state) { mutableStateOf<PaperPageProbeResult?>(null) }
+    val probeMutex = remember(state) { Mutex() }
+    val layoutReady = alwaysShowNavigation || total == 0 || probeResult?.key == probeKey
+    LaunchedEffect(probeKey, alwaysShowNavigation) {
+        if (alwaysShowNavigation || total == 0 || probeKey.viewport.width <= 0 || probeKey.viewport.height <= 0) {
+            return@LaunchedEffect
+        }
+        probeMutex.withLock {
+            // Let the rail's initial width settle before inspecting either page.
+            withFrameNanos {}
+            if (liveProbeKey() != probeKey) return@withLock
+            val original = PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+            val third = probePaperThirdPage(
+                original,
+                top = { state.scrollToItem(0) },
+                next = ::liveNext,
+                move = { jumpTo(it) },
+                restore = {
+                    val last = (state.layoutInfo.totalItemsCount - 2).coerceAtLeast(0)
+                    state.scrollToItem(it.index.coerceIn(0, last), it.offset)
+                },
+                settle = { withFrameNanos {} },
+            )
+            withFrameNanos {}
+            if (liveProbeKey() == probeKey) probeResult = PaperPageProbeResult(probeKey, third)
         }
     }
     val navigate: (Int) -> Unit = { step ->
         PaperNavigation.activate(owner)
         scope.launch {
             if (step > 0 && next != null) {
-                if (history.isEmpty()) startedAtTop = !hasPrevious
                 history.add(first)
                 jumpTo(next)
             } else if (step < 0 && hasPrevious) {
@@ -180,12 +214,16 @@ fun PaperLazyColumn(
                     showJump = true
                 }
             },
-            Modifier.heightIn(max = limit).fillMaxWidth().padding(
+            Modifier.drawWithContent {
+                val current = liveProbeKey()
+                if (alwaysShowNavigation || current.count == 0 || probeResult?.key == current) drawContent()
+            }.heightIn(max = limit).fillMaxWidth().padding(
                 top = contentPadding.calculateTopPadding(),
                 bottom = contentPadding.calculateBottomPadding(),
             ).consumeWindowInsets(contentPadding).navigationBarsPadding(),
-            fill = constraints.minHeight > 0, ready = info.totalItemsCount > 0,
-            showJumpToTop = hasThirdPage,
+            fill = constraints.minHeight > 0, ready = info.totalItemsCount > 0 && layoutReady,
+            showJumpToTop = alwaysShowNavigation || probeResult?.hasThirdPage == true,
+            alwaysShowNavigation = alwaysShowNavigation,
             onJumpToTop = {
                 PaperNavigation.activate(owner)
                 history.clear()
@@ -194,7 +232,7 @@ fun PaperLazyColumn(
         ) {
             Box(
                 Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }
-                    .then(paperInput(owner, !showJump, navigate, atTop = !hasPrevious)),
+                    .then(paperInput(owner, !showJump && layoutReady, navigate, atTop = !hasPrevious)),
             ) {
                 LazyColumn(
                     state = state,

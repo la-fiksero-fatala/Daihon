@@ -116,13 +116,4 @@ class PaperPageMathTest {
         paperRowSpacing(650, 100, 3) shouldBe 0f
         paperRowSpacing(80, 100, 30) shouldBe 0f
     }
-
-    @Test
-    fun `jump to top waits until a third lazy page is confirmed`() {
-        paperHasThirdPage(true, 0, true) shouldBe false
-        paperHasThirdPage(true, 1, false) shouldBe false
-        paperHasThirdPage(true, 1, true) shouldBe true
-        paperHasThirdPage(true, 2, false) shouldBe true
-        paperHasThirdPage(false, 1, true) shouldBe false
-    }
 }

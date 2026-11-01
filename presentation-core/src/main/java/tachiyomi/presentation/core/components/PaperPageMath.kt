@@ -51,6 +51,17 @@ fun paperOrphanHeader(items: List<PaperItem>, headers: List<Int>, first: PaperAn
             items.none { it.index > item.index && it.index !in headers && it.offset + it.size <= end }
     }
 
-/** A lazy list confirms the third page from real boundaries, without measuring every item. */
-fun paperHasThirdPage(startedAtTop: Boolean, previousPages: Int, hasNext: Boolean): Boolean =
-    startedAtTop && (previousPages >= 2 || (previousPages == 1 && hasNext))
+/** Match normal list paging, including pinned headings and deferred orphan headings. */
+fun nextPaperListAnchor(
+    items: List<PaperItem>,
+    headers: List<Int>,
+    nativeFirst: PaperAnchor,
+    end: Int,
+    total: Int,
+): PaperAnchor? {
+    val pinnedHeight = items.lastOrNull { it.index in headers && it.offset <= 0 }?.size ?: 0
+    val leading = items.firstOrNull { it.index !in headers && it.offset + it.size > pinnedHeight }
+    val first = leading?.let { PaperAnchor(it.index, (pinnedHeight - it.offset).coerceAtLeast(0)) } ?: nativeFirst
+    return paperOrphanHeader(items, headers, first, end)?.let { PaperAnchor(it.index) }
+        ?: nextPaperAnchor(items.filter { it.index >= first.index }, first, end, total, pinnedHeight)
+}

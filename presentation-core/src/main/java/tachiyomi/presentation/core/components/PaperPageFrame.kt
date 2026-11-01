@@ -33,6 +33,7 @@ internal fun PaperPageFrame(
     fill: Boolean = false,
     ready: Boolean = true,
     showJumpToTop: Boolean = false,
+    alwaysShowNavigation: Boolean = false,
     onJumpToTop: () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -57,7 +58,7 @@ internal fun PaperPageFrame(
         }
         Row(Modifier.weight(1f, fill = fill).fillMaxWidth()) {
             Column(Modifier.weight(1f), content = content)
-            if (paged && visibleBar) {
+            if ((paged || alwaysShowNavigation) && visibleBar) {
                 PaperPageControls(
                     canPrevious,
                     canNext,
