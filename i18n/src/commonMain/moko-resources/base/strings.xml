@@ -1110,8 +1110,6 @@
     <string name="daihon_select_value">Value</string>
     <string name="daihon_move_up">Move up</string>
     <string name="daihon_move_down">Move down</string>
-    <string name="daihon_choose_source">Choose source</string>
-    <string name="daihon_browse_source">Browse source</string>
     <string name="daihon_entry_input">Entry (1–%1$d)</string>
     <string name="daihon_support_upstream">Support Mihon</string>
     <string name="daihon_support_explanation">Daihon is based on Mihon. These links support the upstream Mihon team.</string>
