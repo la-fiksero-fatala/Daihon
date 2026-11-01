@@ -108,8 +108,9 @@ Daihon request audit — 2026-11-01
 [x] Search and migration restore stacked source sections, paged vertically as
     complete sections. Each source uses compact-grid 88 dp cards with title overlays
     and independent horizontal paging. Permanent left/right buttons are outlined
-    and match the visible cover height. Cards spread across the available width;
-    short final rows also distribute their spacing. No per-row numbering is used.
+    and match the visible cover height. Card titles use half-size text. Fixed,
+    evenly spaced slots include equal gaps beside the arrows; short result rows
+    keep empty slots instead of redistributing entries. No per-row numbering is used.
     Source links, filters, progress states, migration source markers, and manga
     click/long-click behavior remain.
 [x] Manga tag/category chips precede the description and default to at most two
