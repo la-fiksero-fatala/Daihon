@@ -1,8 +1,40 @@
 Daihon reader upscaling
 
-The default remains WebGPU viewer 54's Catmull-Rom interpolation. Its area/box
-downscaler is unchanged. Padding changes layout bounds before creating the
-viewer surface; it never resizes a page bitmap or adds a scaling pass.
+The legacy reader is the default. WebGPU is opt-in in Reader settings; an
+explicit saved renderer choice is respected. Anime4K stays in WebGPU only.
+
+Legacy sampling (Android 13+)
+- Catmull-Rom (default), Mitchell-Netravali, Lanczos-3, or System/bilinear.
+- The original tiled decoder, cropped source bounds, fit/zoom/pan transforms,
+  and system sampling during downscaling remain. Custom enlargement is gated
+  on the original image's scale, not the scale of an intermediate decoded tile.
+- The selected kernel samples the existing decoded bitmap directly into the
+  existing destination transform through Android's AGSL RuntimeShader. No new
+  resized bitmap or intermediate 2x image is made. Interpolation uses linear
+  light and a float accumulator; alpha is retained. Tile edges use the source
+  bitmap shader's clamp behavior. Padding only changes the viewport.
+- Optional Gentle sharpening, Paper contrast and Monochrome dithering filters
+  default to None. Monochrome uses an ordered 4x4 pattern; Android paint dithering
+  is disabled for that choice to avoid adding a second dither.
+- Settings appear in Reader > Display and the reader's Custom filter tab.
+- Earlier Android versions and software canvases retain system sampling. A
+  shader rejected by the graphics stack also falls back to system sampling.
+- The shader is an original Apache-2.0 implementation of standard mathematical
+  reconstruction kernels; no GPL/LGPL shader or model is imported.
+  Catmull-Rom uses B=0,C=1/2; Mitchell uses B=C=1/3; Lanczos-3 is sinc(x)*sinc(x/3).
+  References:
+  https://api.skia.org/structSkCubicResampler.html
+  https://www.pbr-book.org/4ed/Sampling_and_Reconstruction/Image_Reconstruction
+  https://developer.android.com/develop/ui/views/graphics/agsl/using-agsl
+
+WebGPU
+Its default Catmull-Rom upscaler and area/box downscaler are unchanged.
+Paged frames prepare their high-quality tiles before presentation, avoiding the
+centre-out progressive refinement being exposed as a page-turn ripple. A small
+adapter isolates the pinned v54 internal full-tile API; recheck it when updating
+the library. Tile-generation commands populate the cache before the base frame
+presents it; the helper's transient blit is discarded.
+Long-strip placement and its requested overlap remain unchanged.
 
 The optional Anime4K DoG preset is a WGSL adaptation of bloc97's non-CNN
 Anime4K_Upscale_DoG_x2.glsl, revision 7684e9586f8dcc738af08a1cdceb024cc184f426.

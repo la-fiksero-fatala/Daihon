@@ -4,11 +4,15 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.ColorFilter
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
+import android.graphics.RectF
 import android.view.MotionEvent
 import android.view.View
 import eu.kanade.tachiyomi.data.coil.ImageDecoder
+import eu.kanade.tachiyomi.ui.reader.setting.LegacyImageRendering
+import eu.kanade.tachiyomi.ui.reader.viewer.ReaderBitmapSampler
 import kotlin.math.roundToInt
 
 /**
@@ -19,9 +23,18 @@ import kotlin.math.roundToInt
 class WebtoonStripImageView(context: Context) : View(context) {
 
     private var strips: List<Bitmap> = emptyList()
+    private var sourceWidth = 0
     private var imageWidth = 0
     private var imageHeight = 0
 
+    var rendering = LegacyImageRendering()
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidate()
+        }
+    private val sampler = ReaderBitmapSampler(context)
+    private val samplingMatrix = Matrix()
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
 
     /** Applied to the strips as they draw. */
@@ -43,6 +56,7 @@ class WebtoonStripImageView(context: Context) : View(context) {
         releaseStrips()
         isReleasedOffScreen = false
         strips = image.strips
+        sourceWidth = image.sourceSize.width
         imageWidth = image.width
         imageHeight = image.height
         requestLayout()
@@ -102,7 +116,19 @@ class WebtoonStripImageView(context: Context) : View(context) {
             if (bottom <= clipRect.top) continue
             if (top >= clipRect.bottom) break
             dstRect.set(0, top, width, bottom)
-            canvas.drawBitmap(strip, null, dstRect, paint)
+            samplingMatrix.setRectToRect(
+                RectF(0f, 0f, strip.width.toFloat(), strip.height.toFloat()),
+                RectF(dstRect),
+                Matrix.ScaleToFit.FILL,
+            )
+            sampler.draw(
+                canvas,
+                strip,
+                samplingMatrix,
+                paint,
+                rendering,
+                width.toFloat() / sourceWidth.coerceAtLeast(1),
+            )
         }
     }
 

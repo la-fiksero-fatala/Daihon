@@ -14,6 +14,7 @@ import coil3.decode.Decoder
 import coil3.decode.ImageSource
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
+import eu.kanade.tachiyomi.util.image.ImageDimensions
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import okio.BufferedSource
@@ -52,7 +53,7 @@ class ImageDecoder(private val resources: ImageSource, private val options: Opti
      * immutable bitmap only when it is drawn, so only the strips on screen reach the GPU instead of
      * the whole page as one texture.
      */
-    class StripsImage(val strips: List<Bitmap>) : Image {
+    class StripsImage(val strips: List<Bitmap>, val sourceSize: ImageDimensions) : Image {
         override val size: Long = strips.sumOf { it.allocationByteCount.toLong() }
         override val width: Int = strips.firstOrNull()?.width ?: 0
         override val height: Int = strips.sumOf { it.height }
@@ -122,10 +123,10 @@ class ImageDecoder(private val resources: ImageSource, private val options: Opti
                     .coerceIn(1, dec.width)
                 // ceil(width / decodeSample) >= stripWidth: strips only scale down
                 val decodeSample = (dec.width / stripWidth).coerceAtLeast(1)
-                Triple(dec.decode(null, decodeSample), dec.isHdr, stripWidth to dec.width)
+                Triple(dec.decode(null, decodeSample), dec.isHdr, Triple(stripWidth, dec.width, dec.height))
             }
         }
-        val (stripWidth, pageWidth) = widths
+        val (stripWidth, pageWidth, pageHeight) = widths
         frame.use {
             val config = if (isHdr) Bitmap.Config.RGBA_F16 else Bitmap.Config.ARGB_8888
             val bytesPerPixel = if (isHdr) 8 else 4
@@ -155,7 +156,10 @@ class ImageDecoder(private val resources: ImageSource, private val options: Opti
                 strip.copy(config, false).also { if (strip !== band) strip.recycle() }
             }
             band.recycle()
-            DecodeResult(image = StripsImage(strips), isSampled = stripWidth < pageWidth)
+            DecodeResult(
+                image = StripsImage(strips, ImageDimensions(pageWidth, pageHeight)),
+                isSampled = stripWidth < pageWidth,
+            )
         }
     }
 

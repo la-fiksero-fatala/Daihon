@@ -20,6 +20,8 @@ import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.setting.GeneralSettings
+import eu.kanade.tachiyomi.ui.reader.setting.LegacyImageRendering
+import eu.kanade.tachiyomi.ui.reader.setting.LocalLegacyImageRendering
 import eu.kanade.tachiyomi.ui.reader.viewer.LocalPageColorFilter
 import eu.kanade.tachiyomi.ui.reader.viewer.LongStripSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
@@ -177,6 +179,9 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
         frame.addView(recycler)
     }
 
+    var imageRendering = LegacyImageRendering()
+        private set
+
     /** The page images' colours, for pages bound later - see [LocalPageColorFilter]. */
     var pageColorFilter: ColorFilter? = null
         private set
@@ -190,11 +195,16 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
 
     @Composable
     override fun Content(modifier: Modifier) {
+        val rendering = LocalLegacyImageRendering.current
         val filter = LocalPageColorFilter.current
         val pageFilter = remember(filter) { filter?.asAndroidColorFilter() }
         SideEffect {
             pageColorFilter = pageFilter
-            pageViews.forEach { it.pageColorFilter = pageFilter }
+            imageRendering = rendering
+            pageViews.forEach {
+                it.pageColorFilter = pageFilter
+                it.imageRendering = rendering
+            }
         }
         AndroidView(factory = { frame }, modifier = modifier)
     }

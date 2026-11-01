@@ -89,6 +89,7 @@ import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.Success
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
+import eu.kanade.tachiyomi.ui.reader.setting.LocalLegacyImageRendering
 import eu.kanade.tachiyomi.ui.reader.setting.PageRefresh
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
@@ -534,13 +535,17 @@ class ReaderActivity : BaseActivity() {
         val viewer by viewerFlow.collectAsState()
         val general by settingsViewModel.general.collectAsState()
         val padding by readerPreferences.pagePadding.collectAsState()
+        val rendering by settingsViewModel.legacyRendering.collectAsState()
         val paged = viewer != null && ReadingMode.isPagerType(viewModel.getMangaReadingMode())
         val colorFilter = remember(general.grayscale, general.invertedColors) {
             viewerColorFilter(general.grayscale, general.invertedColors)
         }
 
         // Each viewer filters its page images alone: transition, loading and error pages keep their colours.
-        CompositionLocalProvider(LocalPageColorFilter provides colorFilter) {
+        CompositionLocalProvider(
+            LocalPageColorFilter provides colorFilter,
+            LocalLegacyImageRendering provides rendering,
+        ) {
             BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(insets)) {
                 val pixels = if (paged) {
                     boundedReaderPagePadding(

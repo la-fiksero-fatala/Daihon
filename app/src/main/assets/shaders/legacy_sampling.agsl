@@ -1,0 +1,72 @@
+// Copyright 2026 Daihon. SPDX-License-Identifier: Apache-2.0
+// Direct source-pixel reconstruction: Catmull-Rom B=0,C=1/2; Mitchell B=C=1/3;
+// Lanczos-3 sinc(x)*sinc(x/3). Standard mathematical kernels, implemented here.
+// The source bitmap is never resized into an intermediate image.
+uniform shader image;
+uniform int kernel;
+uniform int effect;
+uniform float2 pixelOrigin;
+uniform float2 pixelStep;
+
+float4 linearSample(float2 p) {
+    half4 c = image.eval(p);
+    return float4(toLinearSrgb(c.rgb / max(c.a, 0.0001)) * c.a, c.a);
+}
+float cubic(float d, float b, float c) {
+    float x = abs(d);
+    if (x >= 2.0) return 0.0;
+    if (x < 1.0) return ((12.0 - 9.0*b - 6.0*c)*x*x*x + (-18.0 + 12.0*b + 6.0*c)*x*x + 6.0 - 2.0*b) / 6.0;
+    return ((-b - 6.0*c)*x*x*x + (6.0*b + 30.0*c)*x*x + (-12.0*b - 48.0*c)*x + 8.0*b + 24.0*c) / 6.0;
+}
+float sinc(float x) {
+    if (abs(x) < 0.0001) return 1.0;
+    float angle = 3.141592653589793 * x;
+    return sin(angle) / angle;
+}
+float weight(float x) {
+    if (kernel == 3) return abs(x) < 3.0 ? sinc(x) * sinc(x / 3.0) : 0.0;
+    return kernel == 2 ? cubic(x, 1.0/3.0, 1.0/3.0) : cubic(x, 0.0, 0.5);
+}
+float4 reconstruct(float2 p) {
+    if (kernel == 0) return linearSample(p);
+    float2 base = floor(p - 0.5) + 0.5;
+    float4 sum = float4(0.0);
+    float total = 0.0;
+    // Fixed loop bounds keep this usable by Android's AGSL compiler.
+    for (int y = -2; y <= 3; y++) {
+        for (int x = -2; x <= 3; x++) {
+            if (kernel == 3 || (x >= -1 && x <= 2 && y >= -1 && y <= 2)) {
+                float2 q = base + float2(x, y);
+                float w = weight(p.x - q.x) * weight(p.y - q.y);
+                sum += linearSample(q) * w;
+                total += w;
+            }
+        }
+    }
+    return sum / max(total, 0.0001);
+}
+float bayer(float2 p) {
+    float2 q = mod(floor(p), 4.0);
+    // A 4x4 ordered pattern, anchored to output pixels rather than image magnification.
+    float low = mod(q.x, 2.0) * 2.0 + mod(q.y, 2.0) * 3.0;
+    low = mod(low, 4.0);
+    float high = mod(floor(q.x / 2.0) * 2.0 + floor(q.y / 2.0) * 3.0, 4.0);
+    return (low * 4.0 + high + 0.5) / 16.0;
+}
+half4 main(float2 p) {
+    float4 c = reconstruct(p);
+    float alpha = clamp(float(c.a), 0.0, 1.0);
+    float3 rgb = float3(c.rgb) / max(alpha, 0.0001);
+    if (effect == 1) {
+        float4 n = (linearSample(p + float2(1.0, 0.0)) + linearSample(p - float2(1.0, 0.0))
+            + linearSample(p + float2(0.0, 1.0)) + linearSample(p - float2(0.0, 1.0))) * 0.25;
+        rgb += 0.25 * (rgb - float3(n.rgb) / max(float(n.a), 0.0001));
+    }
+    rgb = float3(fromLinearSrgb(half3(clamp(rgb, 0.0, 1.0))));
+    if (effect == 2) rgb = clamp((rgb - 0.5) * 1.12 + 0.5, 0.0, 1.0);
+    if (effect == 3) {
+        float luminance = dot(rgb, float3(0.299, 0.587, 0.114));
+        rgb = float3(step(bayer(pixelOrigin + p * pixelStep), luminance));
+    }
+    return half4(half3(rgb * alpha), half(alpha));
+}

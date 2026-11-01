@@ -40,6 +40,7 @@ import com.github.chrisbanes.photoview.PhotoView
 import eu.kanade.tachiyomi.data.coil.ImageDecoder
 import eu.kanade.tachiyomi.data.coil.cropBorders
 import eu.kanade.tachiyomi.data.coil.webtoonStrips
+import eu.kanade.tachiyomi.ui.reader.setting.LegacyImageRendering
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonStripImageView
 import eu.kanade.tachiyomi.util.image.ImageDimensions
 import eu.kanade.tachiyomi.util.system.animatorDurationScale
@@ -85,6 +86,19 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 if (filter == null) LAYER_TYPE_NONE else LAYER_TYPE_HARDWARE,
                 filter?.let { Paint().apply { colorFilter = it } },
             )
+        }
+    }
+
+    var imageRendering = LegacyImageRendering()
+        set(value) {
+            field = value
+            applyImageRendering()
+        }
+
+    private fun applyImageRendering() {
+        when (val view = pageView) {
+            is ReaderSamplingImageView -> view.rendering = imageRendering
+            is WebtoonStripImageView -> view.rendering = imageRendering
         }
     }
 
@@ -312,7 +326,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
         if (pageView is SubsamplingScaleImageView) return
         removeView(pageView)
 
-        pageView = SubsamplingScaleImageView(context).apply {
+        pageView = ReaderSamplingImageView(context).apply {
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER_IMMEDIATE)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
             setMinimumTileDpi(180)
@@ -331,6 +345,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
         }
         addView(pageView, MATCH_PARENT, MATCH_PARENT)
         applyPageColorFilter()
+        applyImageRendering()
     }
 
     private fun SubsamplingScaleImageView.setupZoom(config: Config?) {
@@ -390,6 +405,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
         pageView = WebtoonStripImageView(context)
         addView(pageView, MATCH_PARENT, WRAP_CONTENT)
         applyPageColorFilter()
+        applyImageRendering()
     }
 
     private fun setStripImage(data: BufferedSource, config: Config) {
@@ -467,6 +483,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
         }
         addView(pageView, MATCH_PARENT, MATCH_PARENT)
         applyPageColorFilter()
+        applyImageRendering()
     }
 
     private fun setAnimatedImage(

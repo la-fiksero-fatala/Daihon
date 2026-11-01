@@ -422,7 +422,7 @@
     <string name="pref_webtoon_vertical_navigator_on_left">Place vertical navigator on the left side</string>
     <string name="pref_show_reading_mode">Show reading mode</string>
     <string name="pref_show_reading_mode_summary">Briefly show current mode when reader is opened</string>
-    <string name="pref_high_quality_renderer">Use high quality renderer</string>
+    <string name="pref_high_quality_renderer">Use WebGPU renderer</string>
     <string name="pref_crop_borders">Crop borders</string>
     <string name="pref_custom_brightness">Custom brightness</string>
     <string name="pref_grayscale">Grayscale</string>
@@ -1148,4 +1148,16 @@
     <string name="daihon_all_categories">All categories</string>
     <string name="daihon_chapters_count">Chapters (%1$s)</string>
     <string name="daihon_cropped_resolution">Cropped resolution</string>
+    <string name="reader_image_filter">Image filter</string>
+    <string name="reader_scaler_system">System (bilinear)</string>
+    <string name="reader_scaler_catmull_rom">Catmull–Rom (sharp)</string>
+    <string name="reader_scaler_mitchell">Mitchell–Netravali (balanced)</string>
+    <string name="reader_scaler_lanczos3">Lanczos 3 (detailed)</string>
+    <string name="reader_filter_none">None</string>
+    <string name="reader_filter_sharpen">Gentle sharpening</string>
+    <string name="reader_filter_contrast">Paper contrast</string>
+    <string name="reader_filter_monochrome">Monochrome dithering</string>
+    <string name="reader_legacy_sampling_help">Scaling choices apply only to enlargement. Downscaling stays unchanged. Image filters are optional.</string>
+    <string name="reader_legacy_requires_android_13">Requires Android 13 or later. System sampling remains available.</string>
+    <string name="reader_legacy_shader_unavailable">Custom image sampling is unavailable. Using system sampling.</string>
 </resources>

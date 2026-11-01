@@ -1,5 +1,6 @@
 package eu.kanade.presentation.more.settings.screen
 
+import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
@@ -9,6 +10,8 @@ import androidx.compose.ui.platform.LocalView
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.reader.settings.PagePaddingSetting
 import eu.kanade.presentation.reader.settings.PageRefreshSetting
+import eu.kanade.tachiyomi.ui.reader.setting.LegacyImageFilter
+import eu.kanade.tachiyomi.ui.reader.setting.LegacyUpscaler
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
@@ -84,6 +87,18 @@ object SettingsReaderScreen : SearchableSettings {
                 Preference.PreferenceItem.SwitchPreference(
                     preference = renderer,
                     title = stringResource(MR.strings.pref_high_quality_renderer),
+                ),
+                Preference.PreferenceItem.ListPreference(
+                    preference = readerPreferences.legacyUpscaler,
+                    title = stringResource(MR.strings.reader_upscaling_algorithm),
+                    entries = LegacyUpscaler.entries.associateWith { stringResource(it.title) },
+                    visible = !webGpu && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
+                ),
+                Preference.PreferenceItem.ListPreference(
+                    preference = readerPreferences.legacyImageFilter,
+                    title = stringResource(MR.strings.reader_image_filter),
+                    entries = LegacyImageFilter.entries.associateWith { stringResource(it.title) },
+                    visible = !webGpu && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
                 ),
                 Preference.PreferenceItem.ListPreference(
                     preference = readerPreferences.upscalingAlgorithm,

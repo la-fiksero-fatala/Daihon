@@ -46,6 +46,12 @@ class ReaderSettingsViewModel(
         .map { it.currentChapter?.pages?.getOrNull(it.currentPage - 1) }
         .distinctUntilChanged()
 
+    val legacyRendering = combine(
+        preferences.legacyUpscaler.changes(),
+        preferences.legacyImageFilter.changes(),
+        ::LegacyImageRendering,
+    ).stateIn(viewModelScope, SharingStarted.Eagerly, LegacyImageRendering())
+
     val sourceDimensions = currentPage
         .flatMapLatest { it?.sourceDimensions ?: flowOf(null) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)

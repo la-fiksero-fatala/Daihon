@@ -89,6 +89,7 @@ class WebtoonPageHolder(
         this.page?.let(viewer.activity::onReaderPageReleased)
         this.page = page
         frame.pageColorFilter = viewer.pageColorFilter
+        frame.imageRendering = viewer.imageRendering
         loadJob?.cancel()
         loadJob = scope.launch { loadPageAndProcessStatus() }
         refreshLayoutParams()

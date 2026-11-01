@@ -23,6 +23,8 @@ import eu.kanade.tachiyomi.ui.reader.model.InsertPage
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.setting.GeneralSettings
+import eu.kanade.tachiyomi.ui.reader.setting.LegacyImageRendering
+import eu.kanade.tachiyomi.ui.reader.setting.LocalLegacyImageRendering
 import eu.kanade.tachiyomi.ui.reader.viewer.LocalPageColorFilter
 import eu.kanade.tachiyomi.ui.reader.viewer.PagedSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView.ZoomStartPosition
@@ -170,18 +172,26 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
      */
     abstract fun createPager(): Pager
 
+    var imageRendering = LegacyImageRendering()
+        private set
+
     /** The page images' colours, for holders made later - see [LocalPageColorFilter]. */
     var pageColorFilter: ColorFilter? = null
         private set
 
     @Composable
     override fun Content(modifier: Modifier) {
+        val rendering = LocalLegacyImageRendering.current
         val filter = LocalPageColorFilter.current
         val pageFilter = remember(filter) { filter?.asAndroidColorFilter() }
         SideEffect {
             pageColorFilter = pageFilter
+            imageRendering = rendering
             // The pager keeps every page it holds as a child.
-            pager.children.filterIsInstance<PagerPageHolder>().forEach { it.pageColorFilter = pageFilter }
+            pager.children.filterIsInstance<PagerPageHolder>().forEach {
+                it.pageColorFilter = pageFilter
+                it.imageRendering = rendering
+            }
         }
         AndroidView(
             factory = { context -> DisallowInterceptBarrier(context).apply { addView(pager) } },

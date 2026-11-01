@@ -37,7 +37,7 @@ class BasePreferences(
         PRIVATE(MR.strings.ext_installer_private, false),
     }
 
-    val highQualityRenderer: Preference<Boolean> = preferenceStore.getBoolean("pref_high_quality_renderer_key", true)
+    val highQualityRenderer: Preference<Boolean> = preferenceStore.getBoolean("pref_high_quality_renderer_key", false)
 
     val donationCampaignShown: Preference<Boolean> = preferenceStore.getBoolean(
         Preference.appStateKey("donation_campaign_shown"),
