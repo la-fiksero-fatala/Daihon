@@ -182,7 +182,7 @@ internal fun LibraryPaginatedContent(
     val handler: (Int) -> Unit = remember { { currentOnPageChange(it) } }
     SideEffect {
         if (active && pageSize > 0) {
-            navigation.pageInfo = LibraryPageInfo(page, pageCount, maximumRows, canStretchSpacing)
+            navigation.pageInfo = LibraryPageInfo(page, pageCount, maximumRows)
             val compatibleRows = libraryCompatiblePageRows(requestedRows, maximumRows)
             if (compatibleRows != requestedRows) onPageRowsChange(compatibleRows)
         }

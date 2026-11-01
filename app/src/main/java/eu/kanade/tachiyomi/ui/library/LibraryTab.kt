@@ -310,7 +310,6 @@ data object LibraryTab : Tab {
             is LibraryViewModel.Dialog.SettingsSheet -> run {
                 LibrarySettingsDialog(
                     maxPageRows = libraryNavigation.pageInfo?.maxRows ?: 10,
-                    canStretchPageSpacing = libraryNavigation.pageInfo?.canStretchSpacing == true,
                     onDismissRequest = onDismissRequest,
                     viewModel = settingsViewModel,
                     category = state.activeCategory,

@@ -56,7 +56,6 @@ fun LibrarySettingsDialog(
     viewModel: LibrarySettingsViewModel,
     category: Category?,
     maxPageRows: Int = 10,
-    canStretchPageSpacing: Boolean = false,
 ) {
     TabbedDialog(
         onDismissRequest = onDismissRequest,
@@ -82,7 +81,6 @@ fun LibrarySettingsDialog(
                 2 -> DisplayPage(
                     viewModel = viewModel,
                     maxPageRows = maxPageRows,
-                    canStretchPageSpacing = canStretchPageSpacing,
                 )
             }
         }
@@ -244,7 +242,6 @@ private val displayModes = listOf(
 private fun ColumnScope.DisplayPage(
     viewModel: LibrarySettingsViewModel,
     maxPageRows: Int,
-    canStretchPageSpacing: Boolean,
 ) {
     val displayMode by viewModel.libraryPreferences.displayMode.collectAsState()
     SettingsChipRow(MR.strings.action_display_mode) {
@@ -281,6 +278,17 @@ private fun ColumnScope.DisplayPage(
             pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
         )
     }
+
+    val rows by viewModel.libraryPreferences.pageRows.collectAsState()
+    val maximum = maxPageRows.coerceAtLeast(1)
+    val rowValue = rows.coerceIn(0, maximum)
+    SliderItem(
+        value = rowValue,
+        valueRange = 0..maximum,
+        label = stringResource(MR.strings.library_page_rows),
+        valueString = if (rowValue == 0) stringResource(MR.strings.label_auto) else rowValue.toString(),
+        onChange = viewModel.libraryPreferences.pageRows::set,
+    )
 
     HeadingItem(MR.strings.overlay_header)
     CheckboxItem(
@@ -321,20 +329,5 @@ private fun ColumnScope.DisplayPage(
         ),
         selectedIndex = LibraryNavigationMode.entries.indexOf(navigation),
         onSelect = { viewModel.libraryPreferences.pageNavigation.set(LibraryNavigationMode.entries[it]) },
-    )
-    val rows by viewModel.libraryPreferences.pageRows.collectAsState()
-    val maximum = maxPageRows.coerceAtLeast(1)
-    val rowValue = rows.coerceIn(0, maximum)
-    SliderItem(
-        value = rowValue,
-        valueRange = 0..maximum,
-        label = stringResource(MR.strings.library_page_rows),
-        valueString = if (rowValue == 0) stringResource(MR.strings.label_auto) else rowValue.toString(),
-        onChange = viewModel.libraryPreferences.pageRows::set,
-    )
-    CheckboxItem(
-        label = stringResource(MR.strings.library_stretch_page_spacing),
-        pref = viewModel.libraryPreferences.stretchPageSpacing,
-        enabled = canStretchPageSpacing,
     )
 }
