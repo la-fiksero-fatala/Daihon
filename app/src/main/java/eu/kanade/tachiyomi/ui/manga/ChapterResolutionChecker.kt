@@ -65,7 +65,9 @@ class ChapterResolutionChecker(
                         null
                     }
                     if (result != null) dimensions += result else failed++
-                    onProgress(ChapterResolutionProgress(index + 1, pages.size, failed))
+                    onProgress(
+                        ChapterResolutionProgress(index + 1, pages.size, failed, ImageDimensions.median(dimensions)),
+                    )
                 }
                 onProgress(
                     ChapterResolutionProgress(pages.size, pages.size, failed, ImageDimensions.median(dimensions), true),

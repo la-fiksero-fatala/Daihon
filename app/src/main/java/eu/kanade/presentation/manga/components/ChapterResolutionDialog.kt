@@ -19,7 +19,6 @@ import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.StaticLinearProgressIndicator
 import tachiyomi.presentation.core.components.material.PaperAlertDialog
-import tachiyomi.presentation.core.components.material.PaperButton
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
@@ -64,10 +63,6 @@ internal fun ChapterResolutionDialog(chapter: Chapter, viewModel: MangaViewModel
                 }
             }
         },
-        confirmButton = {
-            PaperButton(onClick = onDismissRequest) {
-                Text(stringResource(if (finished) MR.strings.action_ok else MR.strings.action_cancel))
-            }
-        },
+        confirmButton = {},
     )
 }
