@@ -166,7 +166,7 @@ object SettingsMainScreen : Screen() {
 
     private val items = listOf(
         Item(
-            titleRes = MR.strings.pref_category_appearance,
+            titleRes = MR.strings.pref_category_display,
             subtitleRes = MR.strings.daihon_display_summary,
             icon = MaterialSymbols.Rounded.Palette,
             screen = SettingsAppearanceScreen,

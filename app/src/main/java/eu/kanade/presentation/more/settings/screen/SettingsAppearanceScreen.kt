@@ -31,7 +31,7 @@ object SettingsAppearanceScreen : SearchableSettings {
 
     @ReadOnlyComposable
     @Composable
-    override fun getTitleRes() = MR.strings.pref_category_appearance
+    override fun getTitleRes() = MR.strings.pref_category_display
 
     @Composable
     override fun getPreferences(): List<Preference> {
@@ -39,6 +39,9 @@ object SettingsAppearanceScreen : SearchableSettings {
         val uiPreferences = remember { context.appGraph.uiPreferences }
 
         return listOf(
+            deviceDisplayGroup(),
+            displayProfileGroup(reader = false),
+            displayProfileGroup(reader = true),
             getDisplayGroup(uiPreferences = uiPreferences),
         )
     }

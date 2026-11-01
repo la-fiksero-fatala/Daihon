@@ -123,6 +123,8 @@ import tachiyomi.presentation.core.components.material.PaperAlertDialog as Alert
 
 class ReaderActivity : BaseActivity() {
 
+    override val readerDisplayProfile = true
+
     private val graph: AppGraph by lazy { metroGraph() }
 
     companion object {
@@ -755,6 +757,7 @@ class ReaderActivity : BaseActivity() {
      */
     fun onPageSelected(page: ReaderPage) {
         viewModel.onPageSelected(page)
+        onDisplayContentChanged()
     }
 
     /**
