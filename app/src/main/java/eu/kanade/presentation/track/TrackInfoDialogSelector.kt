@@ -24,6 +24,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,9 +36,9 @@ import androidx.compose.ui.unit.dp
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.NumberValuePicker
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
-import tachiyomi.presentation.core.components.WheelNumberPicker
-import tachiyomi.presentation.core.components.WheelTextPicker
+import tachiyomi.presentation.core.components.TextValuePicker
 import tachiyomi.presentation.core.components.material.AlertDialogContent
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
@@ -97,14 +101,18 @@ fun TrackChapterSelector(
     onConfirm: () -> Unit,
     onDismissRequest: () -> Unit,
 ) {
+    var valid by remember { mutableStateOf(true) }
+    val values = range.toList()
     BaseSelector(
+        confirmEnabled = valid,
         title = stringResource(MR.strings.chapters),
         content = {
-            WheelNumberPicker(
-                items = range.toList(),
+            NumberValuePicker(
+                items = values,
                 modifier = Modifier.align(Alignment.Center),
-                startIndex = selection,
-                onSelectionChanged = { onSelectionChange(it) },
+                startIndex = values.indexOf(selection).coerceAtLeast(0),
+                onSelectionChanged = { onSelectionChange(values[it]) },
+                onValidityChanged = { valid = it },
             )
         },
         onConfirm = onConfirm,
@@ -120,14 +128,17 @@ fun TrackScoreSelector(
     onConfirm: () -> Unit,
     onDismissRequest: () -> Unit,
 ) {
+    var valid by remember { mutableStateOf(true) }
     BaseSelector(
+        confirmEnabled = valid,
         title = stringResource(MR.strings.score),
         content = {
-            WheelTextPicker(
+            TextValuePicker(
                 items = selections,
                 modifier = Modifier.align(Alignment.Center),
-                startIndex = selections.indexOf(selection).takeIf { it > 0 } ?: (selections.size / 2),
+                startIndex = selections.indexOf(selection).coerceAtLeast(0),
                 onSelectionChanged = { onSelectionChange(selections[it]) },
+                onValidityChanged = { valid = it },
             )
         },
         onConfirm = onConfirm,
@@ -196,6 +207,7 @@ private fun BaseSelector(
     onConfirm: () -> Unit,
     onDismissRequest: () -> Unit,
     thirdButton: @Composable (RowScope.() -> Unit)? = null,
+    confirmEnabled: Boolean = true,
 ) {
     AlertDialogContent(
         modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
@@ -218,7 +230,7 @@ private fun BaseSelector(
                 TextButton(onClick = onDismissRequest) {
                     Text(text = stringResource(MR.strings.action_cancel))
                 }
-                TextButton(onClick = onConfirm) {
+                TextButton(onClick = onConfirm, enabled = confirmEnabled) {
                     Text(text = stringResource(MR.strings.action_ok))
                 }
             }

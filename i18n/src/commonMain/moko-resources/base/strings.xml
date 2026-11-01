@@ -1137,4 +1137,8 @@
     <string name="display_mode_fast">Fast (A2)</string>
     <string name="display_mode_fastest">Fastest (X)</string>
     <string name="display_apply_failed">The device could not apply this display setting. Try System managed.</string>
+    <string name="daihon_decrease_value">Decrease value</string>
+    <string name="daihon_increase_value">Increase value</string>
+    <string name="daihon_valid_value">Enter a supported value</string>
+    <string name="daihon_filter_value">Type to filter choices, or use − and +</string>
 </resources>
