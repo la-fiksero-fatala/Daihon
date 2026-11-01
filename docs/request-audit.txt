@@ -68,6 +68,7 @@ Daihon request audit — 2026-11-01
     their section headings. Orphan bottom headers wait for the following page.
     Lazy rows reserve space below their pinned header. Section metadata is cached
     while continuing to observe state changes such as group expansion.
+    Item totals, visible ranges and typed item jumps exclude section headers.
 [x] Latest hardware request supersedes the earlier device-profile requirements:
     vendor detection, display-mode overrides, refresh cadence, device onboarding,
     the device submenu, and navigation refresh hooks are removed entirely.
@@ -125,7 +126,8 @@ Daihon request audit — 2026-11-01
 
 Validation
 - Debug build and formatting pass.
-- 74 app tests and 30 presentation-core tests pass (104 total, no failures/skips).
+- Prior app suite: 74 tests passed. Current presentation-core suite: 33 pass,
+  including three header-free item-numbering and jump-target regression tests.
 - Focused tests cover first-page decode gating, preloads, duplicate notifications,
   released images, chapter-transition cancellation, long-strip sections, orphan
   headers, vertical spacing, full-row grid boundaries, form controls, text lines,

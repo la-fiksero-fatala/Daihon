@@ -86,6 +86,7 @@ fun PaperLazyColumn(
     var showJump by remember { mutableStateOf(false) }
     val info = state.layoutInfo
     val total = (info.totalItemsCount - 1).coerceAtLeast(0)
+    val itemTotal = sections.itemCount
     val visible = info.visibleItemsInfo.filter { it.index < total }.sortedBy { it.index }
     val headerSizes = remember(sections) { mutableMapOf<Int, Int>() }
     visible.filter { it.index in sections.headers }.forEach { headerSizes[it.index] = it.size }
@@ -93,6 +94,7 @@ fun PaperLazyColumn(
     val leading = visible.firstOrNull { it.index !in sections.headers && it.offset + it.size > pinnedHeight }
     val first = leading?.let { PaperAnchor(it.index, (pinnedHeight - it.offset).coerceAtLeast(0)) }
         ?: PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+    val firstItem = sections.itemIndex(first.index)
     val end = info.viewportEndOffset - info.afterContentPadding
     val pageItems = visible.map { PaperItem(it.index, it.offset, it.size) }
     val orphan = paperOrphanHeader(pageItems, sections.headers, first, end)
@@ -109,10 +111,10 @@ fun PaperLazyColumn(
     }
     val next = liveNext()
     val rowHeight = visible.maxOfOrNull { it.size } ?: 0
-    val spacing = paperRowSpacing((end - info.beforeContentPadding).coerceAtLeast(0), rowHeight, total)
+    val spacing = paperRowSpacing((end - info.beforeContentPadding).coerceAtLeast(0), rowHeight, itemTotal)
     val arrangement = if (fillRowGaps) Arrangement.spacedBy(with(density) { spacing.toDp() }) else verticalArrangement
     val hasPrevious = state.firstVisibleItemIndex > 0 || state.firstVisibleItemScrollOffset > 0
-    val paged = total > 0 && (hasPrevious || next != null)
+    val paged = itemTotal > 0 && (hasPrevious || next != null)
     val partial = visible.firstOrNull { it.index > first.index && it.offset + it.size > end }
     val mask =
         (orphan ?: partial?.let { PaperItem(it.index, it.offset, it.size) })?.let {
@@ -198,10 +200,11 @@ fun PaperLazyColumn(
         val limit = if (constraints.hasBoundedHeight) maxHeight else fallback
         val shownLast = visible.lastOrNull { it.index !in sections.headers && it.offset + it.size <= end }?.index
             ?: first.index
-        val label = pageLabel?.invoke(first.index, shownLast) ?: if (total == 0) {
+        val lastItem = sections.itemIndex(shownLast)
+        val label = pageLabel?.invoke(first.index, shownLast) ?: if (itemTotal == 0) {
             "0 / 0"
         } else {
-            "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}"
+            "${firstItem + 1}–${lastItem + 1} / $itemTotal${if (hasMoreItems) "+" else ""}"
         }
         PaperPageFrame(
             owner, label, paged, hasPrevious, next != null,
@@ -265,9 +268,9 @@ fun PaperLazyColumn(
         }
     }
     if (showJump) {
-        PaperJumpDialog(first.index, total, { index ->
+        PaperJumpDialog(firstItem, itemTotal, { index ->
             history.clear()
-            scope.launch { jumpTo(PaperAnchor(index)) }
+            scope.launch { jumpTo(PaperAnchor(sections.listIndex(index))) }
         }, onDismissRequest = { showJump = false }, itemNumber = true)
     }
 }

@@ -15,6 +15,19 @@ internal class PaperListContent : LazyListScope {
     val headers = mutableListOf<Int>()
     private var count = 0
 
+    val itemCount: Int get() = count - headers.size
+
+    /** Counters and typed item jumps exclude headings; lazy layout indices still include them. */
+    fun itemIndex(listIndex: Int): Int =
+        (listIndex - headers.count { it < listIndex }).coerceIn(0, (itemCount - 1).coerceAtLeast(0))
+
+    fun listIndex(itemIndex: Int): Int {
+        if (itemCount == 0) return 0
+        var index = itemIndex.coerceIn(0, itemCount - 1)
+        headers.forEach { if (it <= index) index++ }
+        return index
+    }
+
     override fun item(key: Any?, contentType: Any?, content: @Composable LazyItemScope.() -> Unit) {
         if (contentType == "header") {
             stickyHeader(key, contentType) { content() }
