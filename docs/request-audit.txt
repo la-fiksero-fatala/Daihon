@@ -32,6 +32,10 @@ Daihon request audit — 2026-11-01
     reading button takes two thirds of its row and a Chapters/Details button takes
     one third. Tabs are removed; top back returns to the library. The row uses one
     outline and divider; detail actions remain unboxed. Tablet dual panes remain.
+[x] Chapter navigation uses actual visible chapter numbers and the series maximum,
+    including fractions. The chapter picker accepts decimal chapter numbers;
+    duplicate releases and gap notices do not inflate the total. Unnumbered lists
+    retain entry-based navigation.
 [x] Chapter controls remain permanently at the bottom. Chapter rows fill fractional
     vertical remainder without changing item sizes; the artificial last-page tail
     and extra vertical Resume padding are removed. Final jumps may clamp at the end.
@@ -68,7 +72,7 @@ Daihon request audit — 2026-11-01
 
 Validation
 - Debug build and formatting pass.
-- 80 app tests and 15 presentation-core tests pass (95 total, no failures/skips).
+- 83 app tests and 15 presentation-core tests pass (98 total, no failures/skips).
 - Focused tests cover first-page decode gating, preloads, duplicate notifications,
   released images, chapter-transition cancellation, long-strip sections, orphan
   headers, and vertical spacing.

@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,6 +66,8 @@ import eu.kanade.presentation.components.relativeDateText
 import eu.kanade.presentation.manga.components.ChapterDownloadAction
 import eu.kanade.presentation.manga.components.ChapterHeader
 import eu.kanade.presentation.manga.components.ChapterNavigationButtons
+import eu.kanade.presentation.manga.components.ChapterPageJumpDialog
+import eu.kanade.presentation.manga.components.ChapterPageNumbers
 import eu.kanade.presentation.manga.components.ExpandableMangaDescription
 import eu.kanade.presentation.manga.components.MangaActionRow
 import eu.kanade.presentation.manga.components.MangaBottomActionMenu
@@ -80,6 +83,7 @@ import eu.kanade.tachiyomi.ui.manga.ChapterList
 import eu.kanade.tachiyomi.ui.manga.MangaViewModel
 import eu.kanade.tachiyomi.util.chapter.getNextUnread
 import eu.kanade.tachiyomi.util.system.copyToClipboard
+import kotlinx.coroutines.launch
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.FormatListNumbered
 import mihon.icons.materialsymbols.rounded.Info
@@ -158,6 +162,16 @@ fun MangaScreen(
     var showDetails by rememberSaveable(state.manga.id) { mutableStateOf(true) }
     val nextChapter = remember(state.chapters, state.manga) { state.chapters.getNextUnread(state.manga) }
     val chapterState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val chapterNumbers = remember(chapters, state.chapters) {
+        ChapterPageNumbers.from(
+            chapters,
+            state.chapters.maxOfOrNull { item ->
+                item.chapter.chapterNumber.takeIf { it.isFinite() && it >= 0 } ?: 0.0
+            },
+        )
+    }
+    var jumpFromRow by remember { mutableStateOf<Int?>(null) }
     BackHandler(enabled = selected) { onAllChapterSelected(false) }
 
     val details: @Composable () -> Unit = {
@@ -242,6 +256,8 @@ fun MangaScreen(
                 showControlsDivider = selected,
                 fillRowGaps = true,
                 preserveLastPageSpace = false,
+                pageLabel = chapterNumbers?.let { numbers -> { first, last -> numbers.label(first, last) } },
+                onJump = chapterNumbers?.let { { row -> jumpFromRow = row } },
                 beforeControls = {
                     if (!selected) {
                         MangaReadingActions(
@@ -325,7 +341,15 @@ fun MangaScreen(
             }
         }
     }
-
+    val jumpRow = jumpFromRow
+    if (jumpRow != null && chapterNumbers != null) {
+        ChapterPageJumpDialog(
+            numbers = chapterNumbers,
+            currentRow = jumpRow,
+            onSelectRow = { row -> scope.launch { chapterState.scrollToItem(row) } },
+            onDismissRequest = { jumpFromRow = null },
+        )
+    }
 }
 
 /** One outline and one divider keep the two actions from drawing doubled adjoining borders. */

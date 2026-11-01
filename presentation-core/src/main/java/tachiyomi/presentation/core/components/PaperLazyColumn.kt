@@ -63,6 +63,8 @@ fun PaperLazyColumn(
     preserveLastPageSpace: Boolean = true,
     beforeControls: @Composable (() -> Unit)? = null,
     hasMoreItems: Boolean = false,
+    pageLabel: ((first: Int, last: Int) -> String?)? = null,
+    onJump: ((first: Int) -> Unit)? = null,
     content: LazyListScope.() -> Unit,
 ) {
     // The library already supplies a fixed subset and its own page controls.
@@ -189,7 +191,7 @@ fun PaperLazyColumn(
             if (paged || alwaysShowControls) {
                 val shownLast = visible.lastOrNull { it.offset + it.size <= end }?.index ?: first.index
                 PaperPageControls(
-                    if (total == 0) {
+                    pageLabel?.invoke(first.index, shownLast) ?: if (total == 0) {
                         "0 / 0"
                     } else {
                         "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}"
@@ -198,7 +200,14 @@ fun PaperLazyColumn(
                     next != null,
                     { navigate(-1) },
                     { navigate(1) },
-                    { showJump = true },
+                    {
+                        if (onJump != null) {
+                            history.clear()
+                            onJump(first.index)
+                        } else {
+                            showJump = true
+                        }
+                    },
                     Modifier.padding(bottom = contentPadding.calculateBottomPadding())
                         .consumeWindowInsets(contentPadding).navigationBarsPadding(),
                     canJump = total > 0,
