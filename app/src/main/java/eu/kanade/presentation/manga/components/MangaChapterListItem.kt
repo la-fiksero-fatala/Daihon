@@ -2,6 +2,7 @@ package eu.kanade.presentation.manga.components
 
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -58,64 +59,64 @@ fun MangaChapterListItem(
             .padding(start = 16.dp, top = 4.dp, end = 8.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (!read) {
-                    Icon(
-                        imageVector = MaterialSymbols.RoundedFilled.Circle,
-                        contentDescription = stringResource(MR.strings.unread),
-                        modifier = Modifier
-                            .height(8.dp)
-                            .padding(end = 4.dp),
-                        tint = MaterialTheme.colorScheme.primary,
+        BoxWithConstraints(Modifier.weight(1f)) {
+            val titleLines = if (maxWidth < 128.dp) 2 else 1
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (!read) {
+                        Icon(
+                            imageVector = MaterialSymbols.RoundedFilled.Circle,
+                            contentDescription = stringResource(MR.strings.unread),
+                            modifier = Modifier
+                                .height(8.dp)
+                                .padding(end = 4.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = titleLines,
+                        overflow = TextOverflow.Ellipsis,
+
+                        color = LocalContentColor.current,
                     )
                 }
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
 
-                    color = LocalContentColor.current,
-                )
-            }
-
-            Row {
-                val subtitleStyle = MaterialTheme.typography.bodySmall
-                    .merge(
-                        color = LocalContentColor.current
-                            .copy(alpha = 1f),
-                    )
-                ProvideTextStyle(value = subtitleStyle) {
-                    if (date != null) {
-                        Text(
-                            text = date,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                Row {
+                    val subtitleStyle = MaterialTheme.typography.bodySmall
+                        .merge(
+                            color = LocalContentColor.current
+                                .copy(alpha = 1f),
                         )
-                        if (readProgress != null || scanlator != null) DotSeparatorText()
-                    }
-                    if (readProgress != null) {
-                        Text(
-                            text = readProgress,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = LocalContentColor.current,
-                        )
-                        if (scanlator != null) DotSeparatorText()
-                    }
-                    if (scanlator != null) {
-                        Text(
-                            text = scanlator,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                    ProvideTextStyle(value = subtitleStyle) {
+                        if (date != null) {
+                            Text(
+                                text = date,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            if (readProgress != null || scanlator != null) DotSeparatorText()
+                        }
+                        if (readProgress != null) {
+                            Text(
+                                text = readProgress,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = LocalContentColor.current,
+                            )
+                            if (scanlator != null) DotSeparatorText()
+                        }
+                        if (scanlator != null) {
+                            Text(
+                                text = scanlator,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                 }
             }

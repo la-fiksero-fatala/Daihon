@@ -40,7 +40,8 @@ Daihon request audit — 2026-11-01
     row remainder is filled only for full viewports; short lists are not stretched.
     Right-side controls page through complete rows. Final pages preserve white
     space instead of clamping backward to fill the viewport. Resume stays below
-    the chapter content.
+    the chapter content. Narrow chapter titles may wrap to two lines so chapter
+    numbers remain readable alongside their actions in tablet panes.
 [x] Chapter bookmark and read/unread icons replace swipe actions beside download.
 [x] Numeric choices use direct keyboard entry and filtering rather than many pages
     of choices. Reading-mode choices are stacked vertically. Smart update is capped
