@@ -65,7 +65,7 @@ fun Surface(
                         color = color,
                         elevation = absoluteElevation,
                     ),
-                    border = border ?: BorderStroke(1.dp, Color.Black),
+                    border = border,
                     shadowElevation = 0.dp,
                 )
                 .combinedClickable(

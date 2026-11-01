@@ -688,6 +688,7 @@ private fun RowScope.MangaActionButton(
     TextButton(
         onClick = onClick,
         modifier = Modifier.weight(1f),
+        border = null,
         onLongClick = onLongClick,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
