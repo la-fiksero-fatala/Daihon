@@ -27,6 +27,11 @@ import tachiyomi.presentation.core.components.material.PaperFilterChip as Filter
 
 @Composable
 internal fun ColumnScope.ReadingModePage(viewModel: ReaderSettingsViewModel) {
+    val webGpu by viewModel.isWebGpu.collectAsState()
+    if (webGpu) {
+        WebGpuViewerSettings(viewModel)
+        return
+    }
     HeadingItem(MR.strings.pref_category_for_this_series)
     val manga by viewModel.mangaFlow.collectAsState()
     val readingMode = remember(manga) { ReadingMode.fromPreference(manga?.readingMode?.toInt()) }

@@ -64,6 +64,8 @@ object SettingsReaderScreen : SearchableSettings {
 
     @Composable
     private fun getDisplayGroup(readerPreferences: ReaderPreferences): Preference.PreferenceGroup {
+        val context = LocalContext.current
+        val renderer = remember { context.appGraph.basePreferences.highQualityRenderer }
         val fullscreen by readerPreferences.fullscreen.collectAsState()
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_display),
@@ -76,6 +78,10 @@ object SettingsReaderScreen : SearchableSettings {
                     entries = ReaderOrientation.entries.drop(1)
                         .associate { it.flagValue to stringResource(it.stringRes) },
                     title = stringResource(MR.strings.pref_rotation_type),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = renderer,
+                    title = stringResource(MR.strings.pref_high_quality_renderer),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = readerPreferences.fullscreen,

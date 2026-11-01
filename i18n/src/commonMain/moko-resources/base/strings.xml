@@ -1132,4 +1132,5 @@
     <string name="page_navigation_library_settings">Configure visibility and style in the library’s Display menu</string>
     <string name="page_navigation_dialogs">Dialogs and pop-up menus</string>
     <string name="page_navigation_other">Other screens</string>
+    <string name="webgpu_renderer_fallback">WebGPU is unavailable. Using the standard renderer.</string>
 </resources>

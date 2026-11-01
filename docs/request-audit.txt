@@ -79,6 +79,10 @@ Daihon request audit — 2026-11-01
     Preloads, duplicate callbacks, menus, and chapter transitions do not trigger it.
     A failed command shows a message once per reader session. Existing System
     preference values remain compatible with the renamed BOOX refresh option.
+[x] WebGPU is the default renderer, with a standard-renderer switch in Reader
+    settings and a fallback after an actual renderer failure. Paged turns, zoom,
+    pan, strip steps, fades and image frames follow the no-animation policy.
+    Reader controls stay live; touch movement is committed on release.
 [x] Reader image padding accepts physical pixels and applies around paged images.
     The bottom page number rises by the same applied pixel padding, using the
     same viewport limit and system insets as the image. Strip mode is unchanged.

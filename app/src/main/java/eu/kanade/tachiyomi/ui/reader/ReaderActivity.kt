@@ -99,6 +99,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.Action
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.NavigationRegion
 import eu.kanade.tachiyomi.ui.reader.viewer.boundedReaderPagePadding
+import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuViewer
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.display.BooxPageRefresh
 import eu.kanade.tachiyomi.util.display.ReaderPageRefreshSession
@@ -163,6 +164,18 @@ class ReaderActivity : BaseActivity() {
     }
     fun onReaderPageReleased(page: ReaderPage) {
         pageRefreshSession?.released(page)
+    }
+
+    fun onWebGpuUnavailable(failed: WebGpuViewer) {
+        window.decorView.post {
+            if (viewer !== failed) return@post
+            preferences.highQualityRenderer.set(false)
+            val state = viewModel.state.value
+            if (state.currentPage > 0) state.viewerChapters?.currChapter?.requestedPage = state.currentPage - 1
+            toast(MR.strings.webgpu_renderer_fallback)
+            updateViewer()
+            state.viewerChapters?.let(::setChapters)
+        }
     }
 
     private val graph: AppGraph by lazy { metroGraph() }

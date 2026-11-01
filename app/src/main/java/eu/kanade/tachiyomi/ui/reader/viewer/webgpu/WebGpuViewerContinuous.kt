@@ -2,13 +2,16 @@ package eu.kanade.tachiyomi.ui.reader.viewer.webgpu
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import ca.mpreg.webgpuviewer.viewer.ImagePage
 import ca.mpreg.webgpuviewer.viewer.ImageViewerContinuous
 import ca.mpreg.webgpuviewer.viewer.ImageViewerContinuousState
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.viewer.mouseWheelPaging
+import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.paperStripStep
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.math.max
 
 class WebGpuViewerContinuous(activity: ReaderActivity, val useGap: Boolean = false) :
@@ -27,7 +30,7 @@ class WebGpuViewerContinuous(activity: ReaderActivity, val useGap: Boolean = fal
 
     @Composable
     override fun Content(modifier: Modifier) {
-        ImageViewerContinuous(modifier = modifier.mouseWheelPaging(this), state = state)
+        PaperWebGpuContent(this, modifier)
     }
 
     init {
@@ -69,7 +72,10 @@ class WebGpuViewerContinuous(activity: ReaderActivity, val useGap: Boolean = fal
      */
     private fun select(imagePage: ImagePage) {
         val page = readerPageFor(imagePage) ?: return
-        scope.launch { activity.onPageSelected(page) }
+        scope.launch {
+            activity.onPageSelected(page)
+            if (imagePage is TransitionPage) activity.onReaderTransitionSelected()
+        }
     }
 
     private fun readerPageFor(imagePage: ImagePage): ReaderPage? {
@@ -90,7 +96,42 @@ class WebGpuViewerContinuous(activity: ReaderActivity, val useGap: Boolean = fal
     }
 
     private fun scrollByHalfPage(direction: Int) {
-        state.animateScroll(direction * state.height / 2f)
+        val before = state.documentYDouble
+        state.animationJob?.cancel()
+        state.scrollBy(direction * paperStripStep(state.height, state.scale).toFloat())
+        state.invalidate()
+        if (before != state.documentYDouble) {
+            state.getPage(0)?.let(::readerPageFor)?.let(activity::onReaderSectionChanged)
+        }
+    }
+
+    internal override fun paperDoubleTap(origin: Offset) {
+        zoom(if (state.scale > state.homeScale) state.homeScale else state.doubleTapScale, origin)
+    }
+
+    private fun zoom(requested: Float, origin: Offset = Offset(.5f, .5f)) {
+        val scale = requested.coerceIn(state.minScale, state.maxScale)
+        val diff = 1f / scale - 1f / state.scale
+        val limit = max(0f, (scale - 1f) / (2f * scale))
+        state.animationJob?.cancel()
+        state.scale = scale
+        state.offsetX = (state.offsetX + (origin.x - .5f) * diff).coerceIn(-limit, limit)
+        state.scrollBy(-origin.y * diff * state.height)
+        state.invalidate()
+    }
+
+    internal override fun paperGesture(dx: Float, dy: Float, factor: Float) {
+        if (factor != 1f) {
+            zoom(state.scale * factor)
+        } else if (abs(dx) > abs(dy) && state.scale > state.homeScale) {
+            val limit = max(0f, (state.scale - 1f) / (2f * state.scale))
+            state.offsetX = (state.offsetX + dx / (state.width.coerceAtLeast(1) * state.scale)).coerceIn(-limit, limit)
+            state.invalidate()
+        } else if (dy < 0) {
+            moveRight()
+        } else if (dy > 0) {
+            moveLeft()
+        }
     }
 
     override fun moveRight() = scrollByHalfPage(1)
@@ -106,6 +147,6 @@ class WebGpuViewerContinuous(activity: ReaderActivity, val useGap: Boolean = fal
     }
 
     override fun animateTurn(direction: Int, fromSpread: ImagePage) {
-        state.animateSlideIn(direction)
+        state.invalidate()
     }
 }

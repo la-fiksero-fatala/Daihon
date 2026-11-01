@@ -5,25 +5,12 @@ import android.graphics.Rect
 import android.os.SystemClock
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import ca.mpreg.imagedecoder.ImageDecoder
 import ca.mpreg.webgpuviewer.closeTo
 import ca.mpreg.webgpuviewer.renderer.GainmapInput
 import ca.mpreg.webgpuviewer.renderer.Image
-import ca.mpreg.webgpuviewer.transition.TransitionBasic
-import ca.mpreg.webgpuviewer.transition.TransitionCube
-import ca.mpreg.webgpuviewer.transition.TransitionCubeOuter
-import ca.mpreg.webgpuviewer.transition.TransitionFade
-import ca.mpreg.webgpuviewer.transition.TransitionFadeWhite
-import ca.mpreg.webgpuviewer.transition.TransitionFlip
-import ca.mpreg.webgpuviewer.transition.TransitionFlipLeft
-import ca.mpreg.webgpuviewer.transition.TransitionFlipRight
 import ca.mpreg.webgpuviewer.transition.TransitionNone
-import ca.mpreg.webgpuviewer.transition.TransitionSphere
-import ca.mpreg.webgpuviewer.transition.TransitionStackDown
-import ca.mpreg.webgpuviewer.transition.TransitionStackLeft
-import ca.mpreg.webgpuviewer.transition.TransitionStackRight
-import ca.mpreg.webgpuviewer.transition.TransitionStackUp
-import ca.mpreg.webgpuviewer.viewer.AnimationFrame
 import ca.mpreg.webgpuviewer.viewer.ImagePage
 import ca.mpreg.webgpuviewer.viewer.ImageViewer
 import ca.mpreg.webgpuviewer.viewer.ImageViewerContinuousState
@@ -118,9 +105,6 @@ open class WebGpuViewer(
         Thread(r, "WebGpuViewer-Stream").apply { isDaemon = true }
     }
     private val streamDispatcher = streamExecutor.asCoroutineDispatcher()
-
-    // Animations decode as they play, a few at a time, apart from page decodes.
-    private val animationDispatcher = Dispatchers.Default.limitedParallelism(2)
 
     // Guards pageCache, decodeQueue, deferredCleanup and chapterPreloadsInFlight.
     private val lock = Object()
@@ -789,6 +773,7 @@ open class WebGpuViewer(
     }
 
     init {
+        viewerState.onRenderUnavailable = { activity.onWebGpuUnavailable(this) }
         viewerState.apply {
             fetchPage = fetch@{ index ->
                 val current = currentPage ?: return@fetch null
@@ -849,7 +834,9 @@ open class WebGpuViewer(
         }
         common.distinctUntilChanged().collectChanges(scope) { old, new ->
             if (old?.doubleTapGesturesDisabled != new.doubleTapGesturesDisabled) {
-                viewerState.doubleTapGesturesEnabled = !new.doubleTapGesturesDisabled
+                // Image taps are handled by the paper input host, chrome taps by the library.
+                viewerState.doubleTapGesturesEnabled = false
+                viewerState.pinchZoomEnabled = false
             }
             if (old?.imageFilters != new.imageFilters) {
                 // Else an older, slower load could land last.
@@ -879,22 +866,7 @@ open class WebGpuViewer(
 
         val isDual = isDualPageMode()
         viewerState.apply {
-            transition = when (if (isDual) pageSettings.transitionAnimationDual else pageSettings.transitionAnimation) {
-                TransitionAnimation.BASIC -> if (isVertical) TransitionBasic.Vertical else TransitionBasic
-                TransitionAnimation.FLIP -> TransitionFlip
-                TransitionAnimation.FLIP_LEFT -> TransitionFlipLeft
-                TransitionAnimation.FLIP_RIGHT -> TransitionFlipRight
-                TransitionAnimation.STACK_LEFT -> TransitionStackLeft
-                TransitionAnimation.STACK_RIGHT -> TransitionStackRight
-                TransitionAnimation.STACK_UP -> TransitionStackUp
-                TransitionAnimation.STACK_DOWN -> TransitionStackDown
-                TransitionAnimation.SPHERE -> TransitionSphere
-                TransitionAnimation.CUBE_INSIDE -> TransitionCube
-                TransitionAnimation.CUBE_OUTSIDE -> TransitionCubeOuter
-                TransitionAnimation.FADE -> TransitionFade
-                TransitionAnimation.FADE_WHITE -> TransitionFadeWhite
-                TransitionAnimation.NONE -> TransitionNone
-            }
+            transition = TransitionNone
 
             when (if (isDual) pageSettings.cutoutModeDual else pageSettings.cutoutMode) {
                 ReaderPreferences.CutoutMode.IGNORE -> avoidCutout = false
@@ -964,6 +936,7 @@ open class WebGpuViewer(
     }
 
     override fun destroy() {
+        viewerState.onRenderUnavailable = null
         // Before the interrupt: taken mid-decode, only the flag stops the worker parking.
         destroyed = true
         scope.cancel()
@@ -994,7 +967,7 @@ open class WebGpuViewer(
 
     @Composable
     override fun Content(modifier: Modifier) {
-        ImageViewer(modifier = modifier.mouseWheelPaging(this), state = viewerState)
+        PaperWebGpuContent(this, modifier)
     }
 
     private val cropBorders: Boolean
@@ -1080,10 +1053,8 @@ open class WebGpuViewer(
 
                     when (state) {
                         Page.State.Queue, Page.State.LoadPage -> true
-                        Page.State.DownloadImage -> {
-                            page.page.downloadStream?.let { startStreamDecode(page, it) }
-                            true
-                        }
+                        // Keep the loading indicator until the complete image is available.
+                        Page.State.DownloadImage -> true
 
                         is Page.State.Error -> {
                             logcat(LogPriority.ERROR) { "Page load error: ${state.error}" }
@@ -1256,8 +1227,8 @@ open class WebGpuViewer(
     }
 
     /**
-     * Decodes [dec] into [page], then closes it - unless an animation keeps it, to decode frames
-     * past the first as they come due. [feed] pushes more bytes, false once all are in.
+     * Decodes the first frame of [dec] into [page], then closes it.
+     * [feed] pushes more bytes, false once all are in.
      */
     private suspend fun buildPage(
         page: ViewerReaderPage,
@@ -1265,11 +1236,10 @@ open class WebGpuViewer(
         streaming: Boolean,
         feed: () -> Boolean,
     ) {
-        var kept = false
         try {
-            decodeInto(page, dec, streaming, feed) { kept = true }
+            decodeInto(page, dec, streaming, feed)
         } finally {
-            if (!kept) dec.close()
+            dec.close()
         }
     }
 
@@ -1278,7 +1248,6 @@ open class WebGpuViewer(
         dec: ImageDecoder,
         streaming: Boolean,
         feed: () -> Boolean,
-        keep: () -> Unit,
     ) {
         // The decoder hands the map over unapplied - see ImageDecoder.Gainmap - because how
         // much of it to use depends on the display, so the viewer applies it.
@@ -1353,7 +1322,6 @@ open class WebGpuViewer(
                         page.preview = single
                         page.imagePage = single
                         cleanupImage(old)
-                        if (old.isOnScreen) single.fadeIn()
                         if (!isDualPageMode() && !applyWideZoomIfNeeded(single)) applyFitModeAnchor(single)
                         viewerState.invalidate()
                     }
@@ -1378,7 +1346,6 @@ open class WebGpuViewer(
         // without holding the one streaming thread through it.
         if (streaming && !previewing) return
         val firstFrame = nextWhole(onPartial = { showPartial(it) }) ?: return
-        var secondFrame: ImageDecoder.Frame? = null
         // A new image until a page takes it.
         var orphan: Image? = null
         // Whole frames hold native pixels until closed, on every exit.
@@ -1388,16 +1355,8 @@ open class WebGpuViewer(
                 while (feed()) {
                     if (!synchronized(lock) { pageInCache(page) }) return
                 }
-                if (dec.hasNext) {
-                    secondFrame = try {
-                        nextWhole() ?: return
-                    } catch (e: ImageDecoder.DecodeException) {
-                        logcat(LogPriority.DEBUG) { "Treating as a still: ${e.message}" }
-                        null
-                    }
-                }
             }
-            val animated = if (streaming) secondFrame != null else dec.hasNext
+            val animated = dec.hasNext
 
             // A gain map belongs to a still; its headroom is the map's, not the decoder's.
             val gainmap = if (!animated && dec.hdrKind == ImageDecoder.HdrKind.GAINMAP) {
@@ -1424,13 +1383,13 @@ open class WebGpuViewer(
             val wasHome = shown?.atHome == true
             val firstImage = shown?.image?.also {
                 it.update(firstFrame.image)
-                if (!animated) it.createMipMaps(firstFrame.image)
+                it.createMipMaps(firstFrame.image)
                 it.measure(firstFrame.image, trimColors, trimThreshold = 0.15f, backgroundColor = backgroundColor)
             } ?: Image(
                 firstFrame.image,
                 firstFrame.width,
                 firstFrame.height,
-                createMipMaps = !animated,
+                createMipMaps = true,
                 trimColors = trimColors,
                 trimThreshold = 0.15f,
                 backgroundColor = backgroundColor,
@@ -1438,7 +1397,6 @@ open class WebGpuViewer(
                 hdrHeadroom = hdrHeadroom,
                 gainmap = gainmap?.toInput(),
             ).also { orphan = it }
-            val firstDuration = firstFrame.duration
             firstFrame.close()
 
             synchronized(lock) {
@@ -1451,7 +1409,7 @@ open class WebGpuViewer(
                     shown != null -> shown.takeIf { page.imagePage === it && !it.destroyed }?.also {
                         page.preview = null
                         // Tiles for a still; an animation swaps images every frame.
-                        it.highQuality = !animated
+                        it.highQuality = true
                         if (wasHome && firstImage.trim != null && !isDualPageMode()) rehome(it)
                         // Bumps frameVersion, so a transition's cached render of the preview is stale.
                         it.invalidate()
@@ -1463,13 +1421,11 @@ open class WebGpuViewer(
                         orphan = null
                         val old = page.imagePage
                         // A failed stream's preview is already showing.
-                        val fromPreview = old === page.preview
                         page.imagePage = imagePage
                         page.preview = null
                         cleanupImage(old)
                         // Fade up from the placeholder's colour, if that placeholder was on screen -
                         // one that decoded out of view has nothing left to fade from.
-                        if (old.isOnScreen && !fromPreview) imagePage.fadeIn()
                         if (!isDualPageMode() && !applyWideZoomIfNeeded(imagePage)) {
                             applyFitModeAnchor(imagePage)
                         }
@@ -1479,36 +1435,7 @@ open class WebGpuViewer(
                     else -> null
                 }
                 if (pageInCache(page)) page.state = PageState.IDLE
-                target?.also { installedPage ->
-                    if (animated) {
-                        // The page takes the decoder, which loops, and the second frame decoded
-                        // to tell it's animated, which goes first: the rest decode as they're due.
-                        keep()
-                        var ahead = secondFrame
-                        secondFrame = null
-                        val name = pageName(page)
-                        val release = {
-                            ahead?.close()
-                            ahead = null
-                            dec.close()
-                        }
-                        installedPage.animate(firstDuration, release) {
-                            withContext(animationDispatcher) {
-                                val f = ahead?.also { ahead = null } ?: if (dec.hasNext) {
-                                    val started = SystemClock.uptimeMillis()
-                                    dec.decodeNext().also {
-                                        logcat(LogPriority.DEBUG) {
-                                            "Decoded frame ${it.index} of $name in " +
-                                                "${SystemClock.uptimeMillis() - started} ms"
-                                        }
-                                    }
-                                } else {
-                                    null
-                                }
-                                f?.let { AnimationFrame(it.image, it.duration) { it.close() } }
-                            }
-                        }
-                    }
+                target?.also {
                     noteIfLone(page)
                     viewerState.invalidate()
                     activity.window.decorView.post {
@@ -1518,34 +1445,23 @@ open class WebGpuViewer(
             }
         } finally {
             firstFrame.close()
-            secondFrame?.close()
             // Nothing took it, normally or not. A preview's image belongs to its page either way.
             orphan?.let { ImagePage.ImageSingle(it).cleanup() }
         }
     }
 
-    /** Animates [page] to where a fresh install would place it, e.g. once its trim is known. */
+    /** Place a page immediately once its final trim is known. */
     private fun rehome(page: ImagePage.ImageSingle) {
-        val fromX = page.x
-        val fromY = page.y
-        val fromScale = page.scale
-        // Cached from the old size.
+        page.animationJob?.cancel()
         page.homeScale = -1f
         page.homeX = 0f
         page.homeY = 0f
         page.minScale = 0f
-        // The placement a fresh install gets, read back and undone so it can animate there.
         page.x = page.homeX
         page.y = page.homeY
         page.scale = page.homeScale
         if (!applyWideZoomIfNeeded(page)) applyFitModeAnchor(page)
-        val toX = page.x
-        val toY = page.y
-        val toScale = page.scale
-        page.x = fromX
-        page.y = fromY
-        page.scale = fromScale
-        page.animateTo(targetX = toX, targetY = toY, targetScale = toScale)
+        page.invalidate()
     }
 
     private fun applyWideZoomIfNeeded(page: ImagePage.ImageSingle): Boolean {
@@ -1755,6 +1671,7 @@ open class WebGpuViewer(
         val anchor = getSpreadAnchor(page)
         currentPage = anchor
         progressPage(anchor)?.let { activity.onPageSelected(it.page) }
+        if (anchor is ViewerTransitionPage) activity.onReaderTransitionSelected()
         preloadPages(anchor)
 
         viewerState.apply {
@@ -1784,6 +1701,7 @@ open class WebGpuViewer(
                             activity.hideMenu()
                         }
                         progressPage(settled)?.let { activity.onPageSelected(it.page) }
+                        if (settled is ViewerTransitionPage) activity.onReaderTransitionSelected()
                     }
                     preloadPages(settled)
 
@@ -1820,6 +1738,7 @@ open class WebGpuViewer(
 
         currentPage = newPage
         progressPage(newPage)?.let { activity.onPageSelected(it.page) }
+        if (newPage is ViewerTransitionPage) activity.onReaderTransitionSelected()
         preloadPages(newPage)
 
         (newPage as? ViewerTransitionPage)?.let { ViewerTransitionPage ->
@@ -1869,8 +1788,59 @@ open class WebGpuViewer(
 
     /** How a [moveToPage] turn is shown. [direction] is 1 forward through the pages, -1 back. */
     protected open fun animateTurn(direction: Int, fromSpread: ImagePage) {
-        viewerState.transitionFromPage = fromSpread
-        viewerState.animatePageTurn(if (isReversed) direction else -direction)
+        viewerState.animationJob?.cancel()
+        viewerState.transitionFromPage = null
+        viewerState.pageOffset = 0f
+        viewerState.invalidate()
+    }
+
+    internal val doubleTapEnabled: Boolean get() = !settingsViewModel.preferences.disableDoubleTapGestures.get()
+
+    internal open fun paperDoubleTap(origin: Offset) {
+        val page = viewerState.getPage(0) ?: return
+        val scale = (if (page.atHomeScale) page.doubleTapScale else page.homeScale).coerceIn(
+            page.minScale,
+            page.maxScale,
+        )
+        val diff = 1f / scale - 1f / page.scale
+        page.animationJob?.cancel()
+        page.setPos(
+            (page.x + (origin.x - .5f) * diff).coerceIn(page.minX(scale), page.maxX(scale)),
+            (page.y + (origin.y - .5f) * diff).coerceIn(page.minY(scale), page.maxY(scale)),
+            scale,
+        )
+    }
+
+    internal open fun paperGesture(dx: Float, dy: Float, factor: Float) {
+        val page = viewerState.getPage(0) ?: return
+        if (factor != 1f || !page.atHomeScale) {
+            val scale = (page.scale * factor).coerceIn(page.minScale, page.maxScale)
+            page.animationJob?.cancel()
+            page.setPos(
+                (
+                    page.x + dx / (
+                        viewerState.width.coerceAtLeast(
+                            1,
+                        ) * page.scale
+                        )
+                    ).coerceIn(page.minX(scale), page.maxX(scale)),
+                (
+                    page.y + dy / (
+                        viewerState.height.coerceAtLeast(
+                            1,
+                        ) * page.scale
+                        )
+                    ).coerceIn(page.minY(scale), page.maxY(scale)),
+                scale,
+            )
+        } else {
+            val delta = if (isVertical) dy else dx
+            if (delta < 0) {
+                moveRight()
+            } else if (delta > 0) {
+                moveLeft()
+            }
+        }
     }
 
     override fun moveForward() = if (isReversed) moveLeft() else moveRight()
@@ -1889,7 +1859,8 @@ open class WebGpuViewer(
                 val x = (currentX - c / page.scale).coerceIn(minX, maxX)
 
                 if (!currentX.closeTo(x)) {
-                    page.animateTo(targetX = x, targetY = page.y)
+                    page.animationJob?.cancel()
+                    page.setPos(x = x)
                     return
                 }
             }
@@ -1909,7 +1880,8 @@ open class WebGpuViewer(
                 val x = (currentX + c / page.scale).coerceIn(minX, maxX)
 
                 if (!currentX.closeTo(x)) {
-                    page.animateTo(targetX = x, targetY = page.y)
+                    page.animationJob?.cancel()
+                    page.setPos(x = x)
                     return
                 }
             }

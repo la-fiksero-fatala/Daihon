@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.manga.model.readerOrientation
 import eu.kanade.domain.manga.model.readingMode
+import eu.kanade.presentation.reader.settings.PagePaddingSetting
 import eu.kanade.presentation.reader.settings.TapZonesItems
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
@@ -49,6 +50,7 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.CheckboxItem
 import tachiyomi.presentation.core.components.HeadingItem
+import tachiyomi.presentation.core.components.RadioItem
 import tachiyomi.presentation.core.components.SettingsChipRow
 import tachiyomi.presentation.core.components.SettingsItemsPaddings
 import tachiyomi.presentation.core.components.SliderItem
@@ -67,14 +69,13 @@ internal fun WebGpuViewerSettings(viewModel: ReaderSettingsViewModel) {
     val manga by viewModel.mangaFlow.collectAsState()
 
     val readingMode = remember(manga) { ReadingMode.fromPreference(manga?.readingMode?.toInt()) }
-    SettingsChipRow(MR.strings.pref_category_reading_mode) {
-        ReadingMode.entries.map {
-            FilterChip(
-                selected = it == readingMode,
-                onClick = { viewModel.setReadingMode(it) },
-                label = { Text(stringResource(it.stringRes)) },
-            )
-        }
+    HeadingItem(MR.strings.pref_category_reading_mode)
+    ReadingMode.entries.forEach {
+        RadioItem(
+            selected = it == readingMode,
+            onClick = { viewModel.setReadingMode(it) },
+            label = stringResource(it.stringRes),
+        )
     }
 
     val resolved by viewModel.readingMode.collectAsState()
@@ -157,19 +158,7 @@ internal fun WebGpuViewerSettings(viewModel: ReaderSettingsViewModel) {
     )
 
     if (isDual) {
-        val transitionAnimation by viewModel.preferences.transitionAnimationDual.collectAsState()
-        SettingsChipRow(MR.strings.pref_transition_animation_dual) {
-            (
-                ReaderPreferences.TransitionAnimation.entries - ReaderPreferences.TransitionAnimation.FLIP_LEFT -
-                    ReaderPreferences.TransitionAnimation.FLIP_RIGHT
-                ).forEach {
-                FilterChip(
-                    selected = it == transitionAnimation,
-                    onClick = { viewModel.preferences.transitionAnimationDual.set(it) },
-                    label = { Text(stringResource(it.titleRes)) },
-                )
-            }
-        }
+        PagePaddingSetting()
         val cutoutMode by viewModel.preferences.cutoutModeDual.collectAsState()
         SettingsChipRow(MR.strings.pref_cutout_mode_dual) {
             ReaderPreferences.CutoutMode.entries.forEach {
@@ -184,6 +173,7 @@ internal fun WebGpuViewerSettings(viewModel: ReaderSettingsViewModel) {
     }
 
     if (resolved != ReadingMode.WEBTOON && resolved != ReadingMode.CONTINUOUS_VERTICAL) {
+        PagePaddingSetting()
         val imageScaleType by viewModel.preferences.imageScaleType.collectAsState()
         SettingsChipRow(MR.strings.pref_image_scale_type) {
             ReaderPreferences.ImageScaleTypeWebGpuViewer.forEach {
@@ -227,17 +217,6 @@ internal fun WebGpuViewerSettings(viewModel: ReaderSettingsViewModel) {
             label = stringResource(MR.strings.pref_disable_double_tap_gestures),
             pref = viewModel.preferences.disableDoubleTapGestures,
         )
-
-        val transitionAnimation by viewModel.preferences.transitionAnimation.collectAsState()
-        SettingsChipRow(MR.strings.pref_transition_animation) {
-            ReaderPreferences.TransitionAnimation.entries.forEach {
-                FilterChip(
-                    selected = it == transitionAnimation,
-                    onClick = { viewModel.preferences.transitionAnimation.set(it) },
-                    label = { Text(stringResource(it.titleRes)) },
-                )
-            }
-        }
 
         val cutoutMode by viewModel.preferences.cutoutMode.collectAsState()
         SettingsChipRow(MR.strings.pref_cutout_mode) {
