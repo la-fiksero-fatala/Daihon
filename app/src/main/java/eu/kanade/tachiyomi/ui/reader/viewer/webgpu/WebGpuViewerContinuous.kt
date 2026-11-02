@@ -74,7 +74,6 @@ class WebGpuViewerContinuous(activity: ReaderActivity, val useGap: Boolean = fal
         val page = readerPageFor(imagePage) ?: return
         scope.launch {
             activity.onPageSelected(page)
-            if (imagePage is TransitionPage) activity.onReaderTransitionSelected()
         }
     }
 
@@ -96,13 +95,9 @@ class WebGpuViewerContinuous(activity: ReaderActivity, val useGap: Boolean = fal
     }
 
     private fun scrollByHalfPage(direction: Int) {
-        val before = state.documentYDouble
         state.animationJob?.cancel()
         state.scrollBy(direction * paperStripStep(state.height, state.scale).toFloat())
         state.invalidate()
-        if (before != state.documentYDouble) {
-            state.getPage(0)?.let(::readerPageFor)?.let(activity::onReaderSectionChanged)
-        }
     }
 
     internal override fun paperDoubleTap(origin: Offset) {

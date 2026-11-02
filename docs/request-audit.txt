@@ -73,16 +73,14 @@ Daihon request audit — 2026-11-02
     Lazy rows reserve space below their pinned header. Section metadata is cached
     while continuing to observe state changes such as group expansion.
     Item totals, visible ranges and typed item jumps exclude section headers.
-[x] Latest hardware request supersedes the earlier device-profile requirements:
-    vendor detection, display-mode overrides, refresh cadence, device onboarding,
-    the device submenu, and navigation refresh hooks are removed entirely.
-[x] Reader Page refresh: None, Black and white, BOOX refresh. BOOX refresh remains
-    selectable on every device, with no manufacturer or capability check. It calls
-    the BOOX refresh command directly after the selected image is decoded and
-    drawing settles, including the first image and overlapping strip sections.
-    Preloads, duplicate callbacks, menus, and chapter transitions do not trigger it.
-    A failed command shows a message once per reader session. Existing System
-    preference values remain compatible with the renamed BOOX refresh option.
+[x] Device detection, firmware display modes, hardware refresh commands and their
+    onboarding/settings are removed. Reader decode/release/transition hooks,
+    settled-draw listeners and refresh gating used only by firmware are removed.
+    The original flash-on-page-change boolean and ordinary flash controls are
+    restored, using the existing software overlay and page-change event. Retired
+    display-profile preferences are deleted when reader preferences initialize;
+    an earlier BlackAndWhite choice maps to the standard flash preference while
+    an explicit existing standard flash setting is preserved.
 [x] The legacy reader is the default. WebGPU is opt-in through Use WebGPU renderer
     in Reader settings, with a fallback after an actual renderer failure. Paged turns, zoom,
     pan, strip steps, fades and image frames follow the no-animation policy.
@@ -193,6 +191,11 @@ Daihon request audit — 2026-11-02
 
 Validation
 - Debug build and formatting pass.
+- Firmware-removal follow-up: tracked content has no remaining vendor names or
+  firmware refresh API calls. Runtime preference checks cover the removed System
+  selection, BlackAndWhite-to-software-flash migration, preservation of an explicit
+  standard flash choice, and deletion of all five retired display-profile keys.
+  Original emulator preferences were restored after these checks.
 - Processing follow-up: real Android 10 reader draw with saved Lanczos/Monochrome
   preferences safely falls back to System/None, with no missing-API linkage errors;
   both choices are disabled. Android 10/13 tab screenshots confirm the new label
@@ -202,12 +205,12 @@ Validation
   Lanczos plus monochrome produces strictly black/white image pixels; a downscaled
   1800x2700 page is pixel-identical between System and Lanczos selections with
   image filters off. Final full suites and USB installation are recorded in TESTING.txt.
-- App suite before these changes: 74 tests passed. Current additions include two
-  real shader-planning checks and five image-header/median tests. Presentation-core: 33 tests,
-  including three header-free item-numbering and jump-target regression tests.
-- Focused tests cover first-page decode gating, preloads, duplicate notifications,
-  released images, chapter-transition cancellation, long-strip sections, orphan
-  headers, vertical spacing, full-row grid boundaries, form controls, text lines,
+- Current app suite: 76 tests pass, including two shader-planning checks and five
+  image-header/median tests. Tests of removed firmware-refresh gating were removed
+  with their implementation. Presentation-core retains 33 passing tests, including
+  three header-free item-numbering and jump-target regression tests.
+- Focused tests cover orphan headers, vertical spacing, full-row grid boundaries,
+  form controls, text lines,
   repeated headings, final-page whitespace, first-cell grid rounding, popup
   readiness, single-page/context-menu hiding, description breaks, horizontal card
   capacity, and an initial third-page check with position restoration.
@@ -233,10 +236,6 @@ Validation
   Mihon are verified separately in the delivered build's TESTING.txt.
 
 Limits
-- ADB/emulator checks do not establish physical ghosting or waveform quality.
-  BOOX firmware controls may still perform their own refreshes; disable automatic
-  full refreshes in its per-app settings when using the reader's BOOX refresh option.
-- BOOX refresh command success and physical panel behavior depend on firmware;
-  availability is not prefiltered. No vendor modes are detected or modified.
-  The Go 7 is the connected installation target.
+- Emulator checks do not establish physical ghosting or panel waveform quality.
+    Screen hardware behavior is controlled by the operating system/device settings.
 - Earlier Mihon upstream PR work is separate from these Daihon UI changes.

@@ -30,7 +30,25 @@ class ReaderPreferences(
         true,
     )
 
-    val pageRefresh = preferenceStore.getEnum("reader_page_refresh", PageRefresh.None)
+    val flashOnPageChange: Preference<Boolean> = preferenceStore.getBoolean("pref_reader_flash", false)
+
+    init {
+        // Retire the old selector while preserving an explicitly chosen software flash.
+        val oldRefresh = preferenceStore.getString("reader_page_refresh")
+        if (oldRefresh.isSet()) {
+            if (!flashOnPageChange.isSet()) flashOnPageChange.set(oldRefresh.get() == "BlackAndWhite")
+            oldRefresh.delete()
+        }
+        listOf(
+            "display_device",
+            "display_navigation_mode",
+            "display_reader_mode",
+            "display_navigation_refresh",
+            "display_reader_refresh",
+        ).forEach { key ->
+            preferenceStore.getString(key).let { if (it.isSet()) it.delete() }
+        }
+    }
 
     val flashDurationMillis: Preference<Int> = preferenceStore.getInt("pref_reader_flash_duration", MILLI_CONVERSION)
 

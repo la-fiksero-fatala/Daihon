@@ -1477,9 +1477,6 @@ open class WebGpuViewer(
                     page.page.croppedDimensions.value = ImageDimensions(it.trimWidth, it.trimHeight)
                     noteIfLone(page)
                     viewerState.invalidate()
-                    activity.window.decorView.post {
-                        if (!destroyed && page.isDecoded) activity.onReaderPageDecoded(page.page)
-                    }
                 }
             }
         } finally {
@@ -1710,7 +1707,6 @@ open class WebGpuViewer(
         val anchor = getSpreadAnchor(page)
         currentPage = anchor
         progressPage(anchor)?.let { activity.onPageSelected(it.page) }
-        if (anchor is ViewerTransitionPage) activity.onReaderTransitionSelected()
         preloadPages(anchor)
 
         viewerState.apply {
@@ -1740,7 +1736,6 @@ open class WebGpuViewer(
                             activity.hideMenu()
                         }
                         progressPage(settled)?.let { activity.onPageSelected(it.page) }
-                        if (settled is ViewerTransitionPage) activity.onReaderTransitionSelected()
                     }
                     preloadPages(settled)
 
@@ -1777,7 +1772,6 @@ open class WebGpuViewer(
 
         currentPage = newPage
         progressPage(newPage)?.let { activity.onPageSelected(it.page) }
-        if (newPage is ViewerTransitionPage) activity.onReaderTransitionSelected()
         preloadPages(newPage)
 
         (newPage as? ViewerTransitionPage)?.let { ViewerTransitionPage ->

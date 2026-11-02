@@ -19,14 +19,18 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 import tachiyomi.presentation.core.components.material.PaperFilterChip as FilterChip
 
+private val flashColors = listOf(
+    MR.strings.pref_flash_style_black to ReaderPreferences.FlashColor.BLACK,
+    MR.strings.pref_flash_style_white to ReaderPreferences.FlashColor.WHITE,
+    MR.strings.pref_flash_style_white_black to ReaderPreferences.FlashColor.WHITE_BLACK,
+)
+
 @Composable
 internal fun ColumnScope.GeneralPage(viewModel: ReaderSettingsViewModel) {
     CheckboxItem(
         label = stringResource(MR.strings.pref_show_page_number),
         pref = viewModel.preferences.showPageNumber,
     )
-
-    PageRefreshSetting()
 
     val verticalNavigatorModes by viewModel.preferences.verticalNavigator.collectAsState()
 
@@ -92,4 +96,46 @@ internal fun ColumnScope.GeneralPage(viewModel: ReaderSettingsViewModel) {
         label = stringResource(MR.strings.pref_always_show_chapter_transition),
         pref = viewModel.preferences.alwaysShowChapterTransition,
     )
+
+    CheckboxItem(
+        label = stringResource(MR.strings.pref_flash_page),
+        pref = viewModel.preferences.flashOnPageChange,
+    )
+    val flashPageState by viewModel.preferences.flashOnPageChange.collectAsState()
+    if (flashPageState) {
+        val flashMillisPref = viewModel.preferences.flashDurationMillis
+        val flashMillis by flashMillisPref.collectAsState()
+        val flashIntervalPref = viewModel.preferences.flashPageInterval
+        val flashInterval by flashIntervalPref.collectAsState()
+        val flashColorPref = viewModel.preferences.flashColor
+        val flashColor by flashColorPref.collectAsState()
+
+        SliderItem(
+            value = flashMillis / ReaderPreferences.MILLI_CONVERSION,
+            valueRange = 1..15,
+            label = stringResource(MR.strings.pref_flash_duration),
+            valueString = stringResource(MR.strings.pref_flash_duration_summary, flashMillis),
+            onChange = { flashMillisPref.set(it * ReaderPreferences.MILLI_CONVERSION) },
+            pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        )
+        SliderItem(
+            value = flashInterval,
+            valueRange = 1..10,
+            label = stringResource(MR.strings.pref_flash_page_interval),
+            valueString = pluralStringResource(MR.plurals.pref_pages, flashInterval, flashInterval),
+            onChange = {
+                flashIntervalPref.set(it)
+            },
+            pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        )
+        SettingsChipRow(MR.strings.pref_flash_with) {
+            flashColors.map { (labelRes, value) ->
+                FilterChip(
+                    selected = flashColor == value,
+                    onClick = { flashColorPref.set(value) },
+                    label = { Text(stringResource(labelRes)) },
+                )
+            }
+        }
+    }
 }

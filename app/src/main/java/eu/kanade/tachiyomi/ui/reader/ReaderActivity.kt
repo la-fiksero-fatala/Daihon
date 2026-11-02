@@ -90,7 +90,6 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.setting.LocalLegacyImageRendering
-import eu.kanade.tachiyomi.ui.reader.setting.PageRefresh
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsViewModel
@@ -102,8 +101,6 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.NavigationRegion
 import eu.kanade.tachiyomi.ui.reader.viewer.boundedReaderPagePadding
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuViewer
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
-import eu.kanade.tachiyomi.util.display.BooxPageRefresh
-import eu.kanade.tachiyomi.util.display.ReaderPageRefreshSession
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.readerBackgroundColor
 import eu.kanade.tachiyomi.util.system.toShareIntent
@@ -131,41 +128,6 @@ import tachiyomi.presentation.core.components.StaticCircularProgressIndicator as
 import tachiyomi.presentation.core.components.material.PaperAlertDialog as AlertDialog
 
 class ReaderActivity : BaseActivity() {
-
-    private var pageRefreshSession: ReaderPageRefreshSession? = null
-    private var refreshFailureReported = false
-
-    private fun initPageRefresh() {
-        pageRefreshSession = ReaderPageRefreshSession(
-            window.decorView,
-            canRefresh = {
-                readerPreferences.pageRefresh.get() == PageRefresh.System &&
-                    lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED) &&
-                    !viewModel.state.value.menuVisible && viewModel.state.value.dialog == null
-            },
-            refresh = {
-                if (!BooxPageRefresh.refresh() && !refreshFailureReported) {
-                    refreshFailureReported = true
-                    toast(MR.strings.page_refresh_failed)
-                }
-            },
-        )
-    }
-
-    fun onReaderSectionChanged(page: ReaderPage) {
-        pageRefreshSession?.selected(page, sectionChanged = true)
-    }
-
-    fun onReaderTransitionSelected() {
-        pageRefreshSession?.clearSelection()
-    }
-
-    fun onReaderPageDecoded(page: ReaderPage) {
-        pageRefreshSession?.decoded(page)
-    }
-    fun onReaderPageReleased(page: ReaderPage) {
-        pageRefreshSession?.released(page)
-    }
 
     fun onWebGpuUnavailable(failed: WebGpuViewer) {
         window.decorView.post {
@@ -243,7 +205,6 @@ class ReaderActivity : BaseActivity() {
         windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
         super.onCreate(savedInstanceState)
-        initPageRefresh()
 
         setComposeContent {
             val state by viewModel.state.collectAsState()
@@ -254,7 +215,7 @@ class ReaderActivity : BaseActivity() {
                 else -> WindowInsets(0)
             }
             val showPageNumber by readerPreferences.showPageNumber.collectAsState()
-            val pageRefresh by readerPreferences.pageRefresh.collectAsState()
+            val flashOnPageChange by readerPreferences.flashOnPageChange.collectAsState()
             val colorOverlayEnabled by readerPreferences.colorFilter.collectAsState()
             val colorOverlay by readerPreferences.colorFilterValue.collectAsState()
             val colorOverlayMode by readerPreferences.colorFilterMode.collectAsState()
@@ -329,7 +290,7 @@ class ReaderActivity : BaseActivity() {
                     }
                 }
 
-                if (pageRefresh == PageRefresh.BlackAndWhite) {
+                if (flashOnPageChange) {
                     DisplayRefreshHost(hostState = displayRefreshHost)
                 }
 
@@ -473,7 +434,6 @@ class ReaderActivity : BaseActivity() {
      * Called when the activity is destroyed. Cleans up the viewer and any view.
      */
     override fun onDestroy() {
-        pageRefreshSession?.close()
         super.onDestroy()
         viewer?.destroy()
         menuToggleToast?.cancel()
@@ -841,7 +801,6 @@ class ReaderActivity : BaseActivity() {
      * bottom menu and delegates the change to the presenter.
      */
     fun onPageSelected(page: ReaderPage) {
-        pageRefreshSession?.selected(page)
         viewModel.onPageSelected(page)
     }
 

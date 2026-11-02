@@ -86,7 +86,6 @@ class WebtoonPageHolder(
      * Binds the given [page] with this view holder, subscribing to its state.
      */
     fun bind(page: ReaderPage) {
-        this.page?.let(viewer.activity::onReaderPageReleased)
         this.page = page
         frame.pageColorFilter = viewer.pageColorFilter
         frame.imageRendering = viewer.imageRendering
@@ -110,7 +109,6 @@ class WebtoonPageHolder(
      * Called when the view is recycled and added to the view pool.
      */
     override fun recycle() {
-        page?.let(viewer.activity::onReaderPageReleased)
         loadJob?.cancel()
         loadJob = null
 
@@ -230,7 +228,6 @@ class WebtoonPageHolder(
      * Called when the image is decoded and going to be displayed.
      */
     private fun onImageDecoded() {
-        page?.let(viewer.activity::onReaderPageDecoded)
         progressContainer.isVisible = false
         removeErrorLayout()
     }

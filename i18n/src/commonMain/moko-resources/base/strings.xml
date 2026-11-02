@@ -407,7 +407,7 @@
     <string name="pref_load_ahead_only_over_wifi">Load ahead only on Wi-Fi</string>
     <string name="pref_load_ahead_only_over_wifi_summary">Saves mobile data by loading only the pages near the one you\'re reading</string>
     <string name="pref_flash_page">Flash on page change</string>
-    <string name="pref_flash_page_summ">Reduces ghosting on e-ink displays</string>
+    <string name="pref_flash_page_summ">Reduces ghosting on e-paper displays</string>
     <string name="pref_flash_duration">Flash duration</string>
     <string name="pref_flash_duration_summary">%1$s ms</string>
     <string name="pref_flash_page_interval">Flash every</string>
@@ -1121,11 +1121,6 @@
     <string name="pref_page_padding">Page padding (px)</string>
     <string name="page_padding_pixels">%1$d px on each side</string>
     <string name="page_refresh">Page refresh</string>
-    <string name="page_refresh_none">None</string>
-    <string name="page_refresh_flash">Black and white</string>
-    <string name="page_refresh_system">BOOX refresh</string>
-    <string name="page_refresh_system_help">Requests a BOOX screen refresh after the first manga page and each page change. Reader menu taps do not trigger it. Disable automatic full refreshes in the device’s app settings to avoid duplicate refreshes. Requires BOOX firmware.</string>
-    <string name="page_refresh_failed">BOOX refresh could not be requested.</string>
     <string name="page_navigation_settings">Page navigation</string>
     <string name="page_navigation_height">Navigation bar width</string>
     <string name="page_navigation_dp">%1$d dp</string>

@@ -9,7 +9,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.reader.settings.PagePaddingSetting
-import eu.kanade.presentation.reader.settings.PageRefreshSetting
 import eu.kanade.tachiyomi.ui.reader.setting.LegacyImageFilter
 import eu.kanade.tachiyomi.ui.reader.setting.LegacyUpscaler
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
@@ -58,6 +57,7 @@ object SettingsReaderScreen : SearchableSettings {
                 subtitle = stringResource(MR.strings.pref_load_ahead_only_over_wifi_summary),
             ),
             getDisplayGroup(readerPreferences = readerPref),
+            getScreenRefreshGroup(readerPreferences = readerPref),
             getReadingGroup(readerPreferences = readerPref),
             getPagedGroup(readerPreferences = readerPref),
             getWebtoonGroup(readerPreferences = readerPref),
@@ -75,9 +75,6 @@ object SettingsReaderScreen : SearchableSettings {
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_display),
             preferenceItems = listOf(
-                Preference.PreferenceItem.CustomPreference(stringResource(MR.strings.page_refresh)) {
-                    PageRefreshSetting()
-                },
                 Preference.PreferenceItem.ListPreference(
                     preference = readerPreferences.defaultOrientationType,
                     entries = ReaderOrientation.entries.drop(1)
@@ -122,6 +119,49 @@ object SettingsReaderScreen : SearchableSettings {
                 Preference.PreferenceItem.SwitchPreference(
                     preference = readerPreferences.showPageNumber,
                     title = stringResource(MR.strings.pref_show_page_number),
+                ),
+            ),
+        )
+    }
+
+    @Composable
+    private fun getScreenRefreshGroup(readerPreferences: ReaderPreferences): Preference.PreferenceGroup {
+        val flashPageState by readerPreferences.flashOnPageChange.collectAsState()
+
+        val flashColorPref = readerPreferences.flashColor
+
+        return Preference.PreferenceGroup(
+            title = stringResource(MR.strings.page_refresh),
+            preferenceItems = listOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = readerPreferences.flashOnPageChange,
+                    title = stringResource(MR.strings.pref_flash_page),
+                    subtitle = stringResource(MR.strings.pref_flash_page_summ),
+                ),
+                Preference.PreferenceItem.SliderPreference(
+                    preference = readerPreferences.flashDurationMillis,
+                    valueRange = ReaderPreferences.MILLI_CONVERSION.let { it..it * 15 step it },
+                    title = stringResource(MR.strings.pref_flash_duration),
+                    valueText = { stringResource(MR.strings.pref_flash_duration_summary, it) },
+                    visible = flashPageState,
+                ),
+                Preference.PreferenceItem.SliderPreference(
+                    preference = readerPreferences.flashPageInterval,
+                    valueRange = 1..10,
+                    title = stringResource(MR.strings.pref_flash_page_interval),
+                    valueText = { pluralStringResource(MR.plurals.pref_pages, it, it) },
+                    visible = flashPageState,
+                ),
+                Preference.PreferenceItem.ListPreference(
+                    preference = flashColorPref,
+                    entries = mapOf(
+                        ReaderPreferences.FlashColor.BLACK to stringResource(MR.strings.pref_flash_style_black),
+                        ReaderPreferences.FlashColor.WHITE to stringResource(MR.strings.pref_flash_style_white),
+                        ReaderPreferences.FlashColor.WHITE_BLACK
+                            to stringResource(MR.strings.pref_flash_style_white_black),
+                    ),
+                    title = stringResource(MR.strings.pref_flash_with),
+                    visible = flashPageState,
                 ),
             ),
         )
