@@ -115,6 +115,9 @@ class ReaderPreferences(
     )
 
     val pagePadding: Preference<Int> = preferenceStore.getInt("reader_page_padding_px", 0)
+    val dynamicPagePadding = preferenceStore.getBoolean("reader_dynamic_padding", false)
+    val minimumPagePadding = preferenceStore.getInt("reader_minimum_padding_px", 0)
+    val maximumPagePadding = preferenceStore.getInt("reader_maximum_padding_px", 64)
 
     val cropBorders: Preference<Boolean> = preferenceStore.getBoolean("crop_borders", false)
 

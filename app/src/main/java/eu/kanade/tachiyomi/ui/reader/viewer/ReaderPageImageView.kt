@@ -20,6 +20,7 @@ import androidx.annotation.AttrRes
 import androidx.annotation.CallSuper
 import androidx.annotation.StyleRes
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.os.postDelayed
 import androidx.core.view.isVisible
 import coil3.asDrawable
@@ -30,6 +31,7 @@ import coil3.request.Disposable
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.size.Precision
+import coil3.size.Size
 import coil3.size.ViewSizeResolver
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
@@ -45,6 +47,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonStripImageView
 import eu.kanade.tachiyomi.util.image.ImageDimensions
 import eu.kanade.tachiyomi.util.system.animatorDurationScale
 import eu.kanade.tachiyomi.util.view.isVisibleOnScreen
+import mihon.app.di.appGraph
 import okio.BufferedSource
 
 /**
@@ -89,6 +92,12 @@ open class ReaderPageImageView @JvmOverloads constructor(
         }
     }
 
+    var paddingInfo: ReaderPaddingInfo? = null
+        set(value) {
+            field = value
+            (pageView as? ReaderSamplingImageView)?.paddingInfo = value
+        }
+
     var imageRendering = LegacyImageRendering()
         set(value) {
             field = value
@@ -97,7 +106,10 @@ open class ReaderPageImageView @JvmOverloads constructor(
 
     private fun applyImageRendering() {
         when (val view = pageView) {
-            is ReaderSamplingImageView -> view.rendering = imageRendering
+            is ReaderSamplingImageView -> {
+                view.rendering = imageRendering
+                view.paddingInfo = paddingInfo
+            }
             is WebtoonStripImageView -> view.rendering = imageRendering
         }
     }
@@ -167,6 +179,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
     }
 
     private fun SubsamplingScaleImageView.landscapeZoom(forward: Boolean) {
+        if ((this as? ReaderSamplingImageView)?.nativeCandidate == true) return
         if (
             config != null &&
             config!!.landscapeZoom &&
@@ -366,7 +379,11 @@ open class ReaderPageImageView @JvmOverloads constructor(
         config: Config,
     ) = (pageView as? SubsamplingScaleImageView)?.apply {
         setDoubleTapZoomDuration(config.zoomDuration.getSystemScaledDuration())
-        setMinimumScaleType(config.minimumScaleType)
+        if (this is ReaderSamplingImageView) {
+            configuredScaleType = config.minimumScaleType
+        } else {
+            setMinimumScaleType(config.minimumScaleType)
+        }
         setMinimumDpi(1) // Just so that very small image will be fit for initial load
         setCropBorders(config.cropBorders)
         setOnImageEventListener(
@@ -496,15 +513,25 @@ open class ReaderPageImageView @JvmOverloads constructor(
 
         val request = ImageRequest.Builder(context)
             .data(data)
+            .apply {
+                if (!isWebtoon && context.appGraph.readerPreferences.dynamicPagePadding.get()) size(Size.ORIGINAL)
+            }
             .memoryCachePolicy(CachePolicy.DISABLED)
             .diskCachePolicy(CachePolicy.DISABLED)
             .target(
                 onSuccess = { result ->
                     val drawable = result.asDrawable(context.resources)
-                    setImageDrawable(drawable)
                     (drawable as? Animatable)?.stop()
-                    isVisible = true
-                    this@ReaderPageImageView.onImageLoaded()
+                    if (!isWebtoon && context.appGraph.readerPreferences.dynamicPagePadding.get()) {
+                        // Freeze at decoded source size, then use the same integer-aligned paged path.
+                        val frame = drawable.toBitmap(result.width, result.height)
+                        prepareNonAnimatedImageView()
+                        setNonAnimatedImage(BitmapDrawable(context.resources, frame), config)
+                    } else {
+                        setImageDrawable(drawable)
+                        isVisible = true
+                        this@ReaderPageImageView.onImageLoaded()
+                    }
                 },
             )
             .listener(

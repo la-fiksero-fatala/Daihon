@@ -26,7 +26,9 @@ import eu.kanade.tachiyomi.ui.reader.setting.GeneralSettings
 import eu.kanade.tachiyomi.ui.reader.setting.LegacyImageRendering
 import eu.kanade.tachiyomi.ui.reader.setting.LocalLegacyImageRendering
 import eu.kanade.tachiyomi.ui.reader.viewer.LocalPageColorFilter
+import eu.kanade.tachiyomi.ui.reader.viewer.LocalReaderPaddingInfo
 import eu.kanade.tachiyomi.ui.reader.viewer.PagedSettings
+import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPaddingInfo
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView.ZoomStartPosition
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.collectChanges
@@ -155,6 +157,10 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
                 cleanupPageSplit()
             }
         }
+        settingsViewModel.pagePadding.collectChanges(scope) { old, new ->
+            // Recreate a frozen animated page with the appropriate native-capable view when toggled.
+            if (old != null && old.dynamic != new.dynamic) refreshAdapter()
+        }
         settingsViewModel.paged.collectChanges(scope) { old, new ->
             if (old != null && old.page != new.page) {
                 refreshAdapter()
@@ -172,6 +178,9 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
      */
     abstract fun createPager(): Pager
 
+    var paddingInfo: ReaderPaddingInfo? = null
+        private set
+
     var imageRendering = LegacyImageRendering()
         private set
 
@@ -181,16 +190,19 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
 
     @Composable
     override fun Content(modifier: Modifier) {
+        val padding = LocalReaderPaddingInfo.current
         val rendering = LocalLegacyImageRendering.current
         val filter = LocalPageColorFilter.current
         val pageFilter = remember(filter) { filter?.asAndroidColorFilter() }
         SideEffect {
             pageColorFilter = pageFilter
             imageRendering = rendering
+            paddingInfo = padding
             // The pager keeps every page it holds as a child.
             pager.children.filterIsInstance<PagerPageHolder>().forEach {
                 it.pageColorFilter = pageFilter
                 it.imageRendering = rendering
+                it.paddingInfo = padding
             }
         }
         AndroidView(

@@ -17,13 +17,16 @@ import eu.kanade.tachiyomi.util.system.toast
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
+import kotlin.math.abs
 import kotlin.math.hypot
+import kotlin.math.round
 
 /** Samples the existing decoded bitmap directly into the existing destination transform. */
 internal class ReaderBitmapSampler(context: Context) {
     private val appContext = context.applicationContext
     private val values = FloatArray(9)
     private val paint = Paint()
+    private val nativeMatrix = Matrix()
     private var shader: Any? = null
 
     fun draw(
@@ -33,10 +36,27 @@ internal class ReaderBitmapSampler(context: Context) {
         original: Paint?,
         options: LegacyImageRendering,
         sourceScale: Float? = null,
+        nativePixels: Boolean = false,
     ) {
         matrix.getValues(values)
         val scaleX = hypot(values[Matrix.MSCALE_X], values[Matrix.MSKEW_Y])
         val scaleY = hypot(values[Matrix.MSCALE_Y], values[Matrix.MSKEW_X])
+        if (nativePixels && sourceScale == 1f) {
+            // Never reveal a subsampled preview as native pixels; the full-resolution tile replaces it.
+            if (abs(scaleX - 1f) > .000001f || abs(scaleY - 1f) > .000001f) return
+            values[Matrix.MTRANS_X] = round(values[Matrix.MTRANS_X])
+            values[Matrix.MTRANS_Y] = round(values[Matrix.MTRANS_Y])
+            for (index in intArrayOf(Matrix.MSCALE_X, Matrix.MSCALE_Y, Matrix.MSKEW_X, Matrix.MSKEW_Y)) {
+                values[index] = round(values[index])
+            }
+            nativeMatrix.setValues(values)
+            if (original != null) paint.set(original) else paint.reset()
+            paint.isFilterBitmap = false
+            paint.isAntiAlias = false
+            paint.isDither = false
+            canvas.drawBitmap(bitmap, nativeMatrix, paint)
+            return
+        }
         val enlarging = sourceScale?.let { it > 1.001f }
             ?: (scaleX > 1.001f && scaleY > 1.001f)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || unavailable || !canvas.isHardwareAccelerated ||

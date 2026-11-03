@@ -1,4 +1,4 @@
-Daihon request audit — 2026-11-02
+Daihon request audit — 2026-11-03
 
 [x] Public Daihon fork and separate project/application identity. Stable, Preview,
     and internal Debug package IDs differ from Mihon. Existing data is retained
@@ -91,6 +91,15 @@ Daihon request audit — 2026-11-02
 [x] Reader image padding accepts physical pixels and applies around paged images.
     The bottom page number rises by the same applied pixel padding, using the
     same viewport limit and system insets as the image. Strip mode is unchanged.
+[x] Optional Dynamic padding submenu below Page padding, with direct minimum and
+    maximum entry. Enabled mode labels the ordinary setting Target padding.
+    Near-native pages use exact 1:1 source pixels when the post-crop image fits
+    both axes within the fitted-axis padding range. Outside the range, normal
+    target-padding fitting remains. Odd extra pixels are assigned to one edge;
+    native tiles use unfiltered integer placement with spatial filters bypassed.
+    Page indicators follow the actual bottom padding. Strips retain overlap.
+    Dynamic padding requires the standard reader; WebGPU retains its existing
+    fixed padding and rendering path.
 [x] Static loading rings keep their full outline inside the canvas, avoiding
     clipped edges in the reader and other small loading views.
 [x] Analytics/crash upload dependencies and identifiers removed; manga-progress
@@ -190,6 +199,11 @@ Daihon request audit — 2026-11-02
 [x] Source changes use focused, neutral commits so UI decisions can be reverted.
 
 Validation
+- Dynamic padding: five standard-reader native cases have zero differing RGB
+  pixels across the complete displayed images, including odd dimensions, the
+  width-constrained case, and a frozen GIF. Too-small and oversized fallback pages
+  are pixel-identical to their fixed-target-padding screenshots. Five added
+  geometry tests cover exact fitting, both axes, limits and restored values.
 - Debug build and formatting pass.
 - Firmware-removal follow-up: tracked content has no remaining vendor names or
   firmware refresh API calls. Runtime preference checks cover the removed System
@@ -205,7 +219,7 @@ Validation
   Lanczos plus monochrome produces strictly black/white image pixels; a downscaled
   1800x2700 page is pixel-identical between System and Lanczos selections with
   image filters off. Final full suites and USB installation are recorded in TESTING.txt.
-- Current app suite: 76 tests pass, including two shader-planning checks and five
+- Current app suite: 81 tests pass, including two shader-planning checks and five
   image-header/median tests. Tests of removed firmware-refresh gating were removed
   with their implementation. Presentation-core retains 33 passing tests, including
   three header-free item-numbering and jump-target regression tests.

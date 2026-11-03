@@ -58,6 +58,7 @@ class PagerPageHolder(
     init {
         pageColorFilter = viewer.pageColorFilter
         imageRendering = viewer.imageRendering
+        paddingInfo = viewer.paddingInfo
         loadJob = scope.launch { loadPageAndProcessStatus() }
     }
 

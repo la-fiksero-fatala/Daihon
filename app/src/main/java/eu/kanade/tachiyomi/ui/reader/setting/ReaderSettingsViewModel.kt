@@ -8,6 +8,7 @@ import eu.kanade.tachiyomi.ui.reader.ReaderViewModel
 import eu.kanade.tachiyomi.ui.reader.viewer.LongStripSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.NavigationSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.PagedSettings
+import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPaddingSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation
 import eu.kanade.tachiyomi.ui.reader.viewer.navigation.LNavigation
 import eu.kanade.tachiyomi.ui.reader.viewer.navigation.RightAndLeftNavigation
@@ -51,6 +52,20 @@ class ReaderSettingsViewModel(
         preferences.legacyImageFilter.changes(),
         ::LegacyImageRendering,
     ).stateIn(viewModelScope, SharingStarted.Eagerly, LegacyImageRendering())
+
+    val pagePadding = settings(
+        preferences.pagePadding,
+        preferences.dynamicPagePadding,
+        preferences.minimumPagePadding,
+        preferences.maximumPagePadding,
+    ) {
+        ReaderPaddingSettings(
+            pagePadding.get(),
+            dynamicPagePadding.get(),
+            minimumPagePadding.get(),
+            maximumPagePadding.get(),
+        )
+    }
 
     val sourceDimensions = currentPage
         .flatMapLatest { it?.sourceDimensions ?: flowOf(null) }

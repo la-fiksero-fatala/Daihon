@@ -95,10 +95,13 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsViewModel
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.ui.reader.viewer.LocalPageColorFilter
+import eu.kanade.tachiyomi.ui.reader.viewer.LocalReaderPaddingInfo
+import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPaddingInfo
+import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPaddingSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.Action
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.NavigationRegion
-import eu.kanade.tachiyomi.ui.reader.viewer.boundedReaderPagePadding
+import eu.kanade.tachiyomi.ui.reader.viewer.readerPageLayout
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuViewer
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.system.openInBrowser
@@ -269,16 +272,25 @@ class ReaderActivity : BaseActivity() {
 
                 if (!state.menuVisible && showPageNumber) {
                     val viewer by viewerFlow.collectAsState()
-                    val padding by readerPreferences.pagePadding.collectAsState()
+                    val padding by settingsViewModel.pagePadding.collectAsState()
+                    val dimensions by settingsViewModel.croppedDimensions.collectAsState()
                     val paged = viewer != null && ReadingMode.isPagerType(viewModel.getMangaReadingMode())
                     BoxWithConstraints(
                         Modifier.fillMaxSize().windowInsetsPadding(if (paged) insets else WindowInsets(0)),
                     ) {
-                        val pixels = if (paged) {
-                            boundedReaderPagePadding(padding, constraints.maxWidth, constraints.maxHeight)
+                        val policy = if (paged) {
+                            padding.copy(
+                                dynamic = padding.dynamic && viewer !is WebGpuViewer,
+                            )
                         } else {
-                            0
+                            ReaderPaddingSettings()
                         }
+                        val pixels = readerPageLayout(
+                            constraints.maxWidth,
+                            constraints.maxHeight,
+                            policy,
+                            dimensions,
+                        ).bottom
                         ReaderPageIndicator(
                             currentPage = state.currentPage,
                             totalPages = state.totalPages,
@@ -494,7 +506,8 @@ class ReaderActivity : BaseActivity() {
     private fun ReaderViewer(insets: WindowInsets) {
         val viewer by viewerFlow.collectAsState()
         val general by settingsViewModel.general.collectAsState()
-        val padding by readerPreferences.pagePadding.collectAsState()
+        val padding by settingsViewModel.pagePadding.collectAsState()
+        val dimensions by settingsViewModel.croppedDimensions.collectAsState()
         val rendering by settingsViewModel.legacyRendering.collectAsState()
         val paged = viewer != null && ReadingMode.isPagerType(viewModel.getMangaReadingMode())
         val colorFilter = remember(general.grayscale, general.invertedColors) {
@@ -507,18 +520,32 @@ class ReaderActivity : BaseActivity() {
             LocalLegacyImageRendering provides rendering,
         ) {
             BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(insets)) {
-                val pixels = if (paged) {
-                    boundedReaderPagePadding(
-                        padding,
-                        constraints.maxWidth,
-                        constraints.maxHeight,
+                val policy = if (paged) {
+                    padding.copy(
+                        dynamic = padding.dynamic && viewer !is WebGpuViewer,
                     )
                 } else {
-                    0
+                    ReaderPaddingSettings()
                 }
-                val margin = with(LocalDensity.current) { pixels.toDp() }
-                key(viewer) {
-                    viewer?.Content(modifier = Modifier.fillMaxSize().padding(margin))
+                val layout = readerPageLayout(constraints.maxWidth, constraints.maxHeight, policy, dimensions)
+                val info = ReaderPaddingInfo(
+                    policy,
+                    constraints.maxWidth,
+                    constraints.maxHeight,
+                    layout,
+                )
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalReaderPaddingInfo provides if (paged) info else null) {
+                    key(viewer) {
+                        viewer?.Content(
+                            modifier = Modifier.fillMaxSize().padding(
+                                start = with(density) { layout.left.toDp() },
+                                top = with(density) { layout.top.toDp() },
+                                end = with(density) { layout.right.toDp() },
+                                bottom = with(density) { layout.bottom.toDp() },
+                            ),
+                        )
+                    }
                 }
             }
         }

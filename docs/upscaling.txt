@@ -69,3 +69,31 @@ shader and included in the APK at assets/licenses/Anime4K.txt. The permissive
 MIT terms allow redistribution alongside Daihon's Apache-2.0 code while
 retaining the copyright, permission and warranty notices. App LICENSE remains
 Apache-2.0. No LGPL/GPL shader or model weights are bundled.
+
+Dynamic paged padding
+- Optional Dynamic padding opens beneath Page padding in the global and in-reader
+  paged settings. Enabling it renames the ordinary value Target padding and lets
+  the user enter a minimum and maximum in physical screen pixels. Cancel discards
+  edits; invalid or reversed limits cannot be applied. Fixed padding is unchanged
+  while disabled. This feature requires the standard reader; its row is disabled
+  with an explanation when WebGPU is selected. WebGPU keeps its existing fixed
+  padding and rendering behavior.
+- Decisions use the actual available viewport after system insets and the current
+  page's decoded, post-crop dimensions. A page uses native size when both axes fit
+  and the padding on its fitted axis is inside the inclusive limits. The other
+  axis retains normal aspect-ratio letterboxing. An odd gap gets its extra pixel
+  on the far edge, making the fit ratio exactly 1 rather than a near-unit scale.
+- Images outside the range use Target padding and the existing fit/scaling policy.
+  Normal user zoom/pan remains available. Padding changes view geometry only;
+  it never creates a resized intermediate bitmap. The bottom page indicator uses
+  the same applied bottom inset. Long strips retain their existing behavior.
+- At native scale the tiled view decodes full-resolution tiles and uses integer-
+  aligned, unfiltered drawing, including frozen animated-image frames. Spatial
+  sharpening/upscaling filters are bypassed; grayscale/inversion remain available.
+  Prefetched/cached pages refit when their viewport or native status changes.
+- Geometry tests cover inclusive limits, both axes, odd gaps and invalid/restored
+  values. Android screenshots of five native cases, including odd-sized and
+  frozen GIF pages, match every original RGB pixel. Smaller/larger fallback pages
+  match the fixed-padding output exactly.
+  Paint sampling reference:
+  https://developer.android.com/reference/android/graphics/Paint
