@@ -56,6 +56,8 @@ class PagerPageHolder(
     private var loadJob: Job? = null
 
     init {
+        page.displayScale.value = null
+        onRenderedScale = { page.displayScale.value = it }
         pageColorFilter = viewer.pageColorFilter
         imageRendering = viewer.imageRendering
         paddingInfo = viewer.paddingInfo
@@ -68,6 +70,7 @@ class PagerPageHolder(
     @SuppressLint("ClickableViewAccessibility")
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+        page.displayScale.value = null
         loadJob?.cancel()
         loadJob = null
     }
@@ -193,6 +196,7 @@ class PagerPageHolder(
      * Called when the page has an error.
      */
     private fun setError(error: Throwable?) {
+        page.displayScale.value = null
         progressIndicator?.hide()
         showErrorLayout(error)
     }

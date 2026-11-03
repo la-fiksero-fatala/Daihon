@@ -41,6 +41,7 @@ internal class ReaderSamplingImageView(context: Context) : SubsamplingScaleImage
     private var appliedNative = false
     val nativeCandidate get() = paddingInfo?.layoutFor(sWidth, sHeight)?.native == true
     private val sampler = ReaderBitmapSampler(context)
+    var onRenderedScale: ((Float?) -> Unit)? = null
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -67,6 +68,7 @@ internal class ReaderSamplingImageView(context: Context) : SubsamplingScaleImage
                 }
             }),
         )
+        onRenderedScale?.invoke(scale.takeIf { isReady && (!nativeCandidate || matches) })
     }
 
     /** Only the Canvas calls used by the pinned tiled view's onDraw are delegated here. */

@@ -1,16 +1,21 @@
 package eu.kanade.presentation.reader.settings
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
+import eu.kanade.presentation.more.settings.widget.PrefsHorizontalPadding
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences.Companion.ColorFilterMode
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderSettingsViewModel
 import tachiyomi.core.common.preference.getAndSet
@@ -25,15 +30,36 @@ import tachiyomi.presentation.core.components.material.PaperFilterChip as Filter
 @Composable
 internal fun ColumnScope.ColorFilterPage(viewModel: ReaderSettingsViewModel) {
     val resolution by viewModel.sourceDimensions.collectAsStateWithLifecycle()
-    TextPreferenceWidget(
-        title = stringResource(MR.strings.daihon_source_resolution),
-        subtitle = resolution?.let { "$it px" } ?: "—",
-    )
     val cropped by viewModel.croppedDimensions.collectAsStateWithLifecycle()
-    TextPreferenceWidget(
-        title = stringResource(MR.strings.daihon_cropped_resolution),
-        subtitle = cropped?.let { "$it px" } ?: "—",
-    )
+    val applied by viewModel.appliedPagePadding.collectAsStateWithLifecycle()
+    val scale by viewModel.displayScale.collectAsStateWithLifecycle()
+    val padding = applied?.let {
+        val edges = listOf(it.left, it.top, it.right, it.bottom)
+        val min = edges.min()
+        val max = edges.max()
+        if (min == max) "$min" else "$min–$max"
+    } ?: "—"
+    val native = scale?.let {
+        stringResource(if (it == 1f) MR.strings.daihon_native_yes else MR.strings.daihon_native_no)
+    } ?: "—"
+    Column(
+        Modifier.padding(horizontal = PrefsHorizontalPadding, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            "${stringResource(MR.strings.daihon_source_resolution)}: ${resolution?.let { "$it px" } ?: "—"}",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Text(
+            "${stringResource(MR.strings.daihon_cropped_resolution)}: ${cropped?.let { "$it px" } ?: "—"}",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Text(
+            stringResource(MR.strings.daihon_applied_padding, padding) + " · " +
+                stringResource(MR.strings.daihon_native_pixels, native),
+            style = MaterialTheme.typography.bodySmall,
+        )
+    }
     val webGpu by viewModel.isWebGpu.collectAsState()
     if (!webGpu) LegacyImageRenderingSettings()
 

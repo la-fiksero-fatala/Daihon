@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -101,6 +102,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPaddingSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.Action
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.NavigationRegion
+import eu.kanade.tachiyomi.ui.reader.viewer.boundedReaderPagePadding
 import eu.kanade.tachiyomi.ui.reader.viewer.readerPageLayout
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuViewer
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
@@ -272,25 +274,16 @@ class ReaderActivity : BaseActivity() {
 
                 if (!state.menuVisible && showPageNumber) {
                     val viewer by viewerFlow.collectAsState()
-                    val padding by settingsViewModel.pagePadding.collectAsState()
-                    val dimensions by settingsViewModel.croppedDimensions.collectAsState()
+                    val padding by readerPreferences.pagePadding.collectAsState()
                     val paged = viewer != null && ReadingMode.isPagerType(viewModel.getMangaReadingMode())
                     BoxWithConstraints(
                         Modifier.fillMaxSize().windowInsetsPadding(if (paged) insets else WindowInsets(0)),
                     ) {
-                        val policy = if (paged) {
-                            padding.copy(
-                                dynamic = padding.dynamic && viewer !is WebGpuViewer,
-                            )
+                        val pixels = if (paged) {
+                            boundedReaderPagePadding(padding, constraints.maxWidth, constraints.maxHeight)
                         } else {
-                            ReaderPaddingSettings()
+                            0
                         }
-                        val pixels = readerPageLayout(
-                            constraints.maxWidth,
-                            constraints.maxHeight,
-                            policy,
-                            dimensions,
-                        ).bottom
                         ReaderPageIndicator(
                             currentPage = state.currentPage,
                             totalPages = state.totalPages,
@@ -528,6 +521,7 @@ class ReaderActivity : BaseActivity() {
                     ReaderPaddingSettings()
                 }
                 val layout = readerPageLayout(constraints.maxWidth, constraints.maxHeight, policy, dimensions)
+                SideEffect { settingsViewModel.appliedPagePadding.value = layout }
                 val info = ReaderPaddingInfo(
                     policy,
                     constraints.maxWidth,

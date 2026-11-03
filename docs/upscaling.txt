@@ -86,7 +86,10 @@ Dynamic paged padding
 - Images outside the range use Target padding and the existing fit/scaling policy.
   Normal user zoom/pan remains available. Padding changes view geometry only;
   it never creates a resized intermediate bitmap. The bottom page indicator uses
-  the same applied bottom inset. Long strips retain their existing behavior.
+  Target padding as its offset, independently of the dynamic image inset.
+  Processing shows source/cropped dimensions, actual padding (a range for odd
+  edges), and the standard reader's current 1:1 scale status in three compact lines.
+  Long strips retain their existing behavior.
 - At native scale the tiled view decodes full-resolution tiles and uses integer-
   aligned, unfiltered drawing, including frozen animated-image frames. Spatial
   sharpening/upscaling filters are bypassed; grayscale/inversion remain available.

@@ -9,6 +9,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.LongStripSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.NavigationSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.PagedSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPaddingSettings
+import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageLayout
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation
 import eu.kanade.tachiyomi.ui.reader.viewer.navigation.LNavigation
 import eu.kanade.tachiyomi.ui.reader.viewer.navigation.RightAndLeftNavigation
@@ -66,6 +67,12 @@ class ReaderSettingsViewModel(
             maximumPagePadding.get(),
         )
     }
+
+    val appliedPagePadding = MutableStateFlow<ReaderPageLayout?>(null)
+
+    val displayScale = currentPage
+        .flatMapLatest { it?.displayScale ?: flowOf(null) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     val sourceDimensions = currentPage
         .flatMapLatest { it?.sourceDimensions ?: flowOf(null) }

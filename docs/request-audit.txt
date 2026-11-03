@@ -89,7 +89,7 @@ Daihon request audit — 2026-11-03
     refinement appearing as a ripple. The native sampler/filter/cache paths remain;
     this uses a small isolated adapter for the pinned v54 internal full-tile API.
 [x] Reader image padding accepts physical pixels and applies around paged images.
-    The bottom page number rises by the same applied pixel padding, using the
+    The bottom page number rises by target pixel padding, using the
     same viewport limit and system insets as the image. Strip mode is unchanged.
 [x] Optional Dynamic padding submenu below Page padding, with direct minimum and
     maximum entry. Enabled mode labels the ordinary setting Target padding.
@@ -97,7 +97,9 @@ Daihon request audit — 2026-11-03
     both axes within the fitted-axis padding range. Outside the range, normal
     target-padding fitting remains. Odd extra pixels are assigned to one edge;
     native tiles use unfiltered integer placement with spatial filters bypassed.
-    Page indicators follow the actual bottom padding. Strips retain overlap.
+    Page indicators use target padding as their offset. Processing shows actual
+    padding and the standard reader's current 1:1 scale, alongside source/cropped
+    dimensions in three compact lines. Strips retain overlap.
     Dynamic padding requires the standard reader; WebGPU retains its existing
     fixed padding and rendering path.
 [x] Static loading rings keep their full outline inside the canvas, avoiding
