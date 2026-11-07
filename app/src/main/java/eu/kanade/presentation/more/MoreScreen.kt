@@ -1,8 +1,14 @@
 package eu.kanade.presentation.more
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.more.settings.widget.SwitchPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
@@ -37,7 +43,9 @@ fun MoreScreen(
     onClickSettings: () -> Unit,
     onClickAbout: () -> Unit,
 ) {
-    Scaffold { contentPadding ->
+    Scaffold(
+        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
+    ) { contentPadding ->
         ScrollbarLazyColumn(contentPadding = contentPadding) {
             item {
                 LogoHeader(
