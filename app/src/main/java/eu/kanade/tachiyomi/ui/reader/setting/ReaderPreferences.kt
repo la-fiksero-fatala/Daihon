@@ -8,17 +8,19 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuShader
 import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuShaders
+import eu.kanade.tachiyomi.util.lang.Hash
 import tachiyomi.core.common.preference.FixedPreference
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
 import tachiyomi.core.common.preference.getEnumSet
+import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
 
 @Inject
 @SingleIn(AppScope::class)
 class ReaderPreferences(
-    preferenceStore: PreferenceStore,
+    private val preferenceStore: PreferenceStore,
 ) {
 
     // region General
@@ -120,6 +122,10 @@ class ReaderPreferences(
     val maximumPagePadding = preferenceStore.getInt("reader_maximum_padding_px", 64)
 
     val cropBorders: Preference<Boolean> = preferenceStore.getBoolean("crop_borders", false)
+
+    // Source and URL survive a backup restore even when local database IDs change.
+    fun cropBrightnessThreshold(manga: Manga): Preference<Int> =
+        preferenceStore.getInt("daihon_crop_brightness_${manga.source}_${Hash.sha256(manga.url)}", -1)
 
     val navigateToPan: Preference<Boolean> = preferenceStore.getBoolean("navigate_pan", true)
 

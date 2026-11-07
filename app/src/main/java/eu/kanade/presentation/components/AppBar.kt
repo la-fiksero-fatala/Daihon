@@ -84,6 +84,7 @@ fun AppBar(
     actionModeActions: @Composable RowScope.() -> Unit = {},
 
     scrollBehavior: TopAppBarScrollBehavior? = null,
+    pageIndicatorModifier: Modifier = Modifier,
 ) {
     val isActionMode by remember(actionModeCounter) {
         derivedStateOf { actionModeCounter > 0 }
@@ -111,6 +112,7 @@ fun AppBar(
         isActionMode = isActionMode,
         onCancelActionMode = onCancelActionMode,
         scrollBehavior = scrollBehavior,
+        pageIndicatorModifier = pageIndicatorModifier,
     )
 }
 
@@ -131,6 +133,7 @@ fun AppBar(
     onCancelActionMode: () -> Unit = {},
 
     scrollBehavior: TopAppBarScrollBehavior? = null,
+    pageIndicatorModifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
@@ -154,7 +157,7 @@ fun AppBar(
             },
             title = titleContent,
             actions = {
-                LocalPaperPageIndicator.current?.Indicator()
+                LocalPaperPageIndicator.current?.Indicator(pageIndicatorModifier)
                 actions()
             },
             colors = TopAppBarDefaults.topAppBarColors(

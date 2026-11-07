@@ -47,7 +47,9 @@ class SourcesDashboardViewModel(
             Tile("source-${source.id}", source.name, null, listOf(source.id), enabled, "${source.id}" in pins, source)
         }
         (installed + standalone).sortedWith(
-            compareBy<Tile> { !it.pinned }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.name },
+            compareByDescending<Tile> { it.extension?.hasUpdate == true }
+                .thenByDescending { it.pinned }
+                .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 

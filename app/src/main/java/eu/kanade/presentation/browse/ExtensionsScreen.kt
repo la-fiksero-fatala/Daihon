@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
@@ -70,7 +69,6 @@ import tachiyomi.presentation.core.theme.header
 import tachiyomi.presentation.core.util.plus
 import tachiyomi.presentation.core.components.StaticCircularProgressIndicator as CircularProgressIndicator
 import tachiyomi.presentation.core.components.material.PaperAlertDialog as AlertDialog
-import tachiyomi.presentation.core.components.material.PaperButton as Button
 import tachiyomi.presentation.core.components.material.PaperButton as TextButton
 import tachiyomi.presentation.core.components.material.PaperIconButton as IconButton
 
@@ -87,7 +85,6 @@ fun ExtensionScreen(
     onUpdateExtension: (Extension.Installed) -> Unit,
     onTrustExtension: (Extension.NotLoaded) -> Unit,
     onOpenExtension: (Extension.Loaded) -> Unit,
-    onClickUpdateAll: () -> Unit,
     onRefresh: () -> Unit,
 ) {
     val navigator = LocalNavigator.currentOrThrow
@@ -129,7 +126,6 @@ fun ExtensionScreen(
                     onUpdateExtension = onUpdateExtension,
                     onTrustExtension = onTrustExtension,
                     onOpenExtension = onOpenExtension,
-                    onClickUpdateAll = onClickUpdateAll,
                 )
             }
         }
@@ -148,7 +144,6 @@ private fun ExtensionContent(
     onUpdateExtension: (Extension.Installed) -> Unit,
     onTrustExtension: (Extension.NotLoaded) -> Unit,
     onOpenExtension: (Extension.Loaded) -> Unit,
-    onClickUpdateAll: () -> Unit,
 ) {
     val context = LocalContext.current
     var notLoadedState by remember { mutableStateOf<Extension.NotLoaded?>(null) }
@@ -175,22 +170,9 @@ private fun ExtensionContent(
             ) {
                 when (header) {
                     is ExtensionUiModel.Header.Resource -> {
-                        val action: @Composable RowScope.() -> Unit =
-                            if (header.textRes == MR.strings.ext_updates_pending) {
-                                {
-                                    Button(onClick = { onClickUpdateAll() }) {
-                                        Text(
-                                            text = stringResource(MR.strings.ext_update_all),
-                                        )
-                                    }
-                                }
-                            } else {
-                                {}
-                            }
                         ExtensionHeader(
                             textRes = header.textRes,
                             modifier = Modifier.animateItem(),
-                            action = action,
                         )
                     }
                     is ExtensionUiModel.Header.Text -> {
@@ -510,12 +492,10 @@ private fun ExtensionItemActions(
 private fun ExtensionHeader(
     textRes: StringResource,
     modifier: Modifier = Modifier,
-    action: @Composable RowScope.() -> Unit = {},
 ) {
     ExtensionHeader(
         text = stringResource(textRes),
         modifier = modifier,
-        action = action,
     )
 }
 
@@ -523,7 +503,6 @@ private fun ExtensionHeader(
 private fun ExtensionHeader(
     text: String,
     modifier: Modifier = Modifier,
-    action: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
         modifier = modifier.padding(horizontal = MaterialTheme.padding.medium),
@@ -536,7 +515,6 @@ private fun ExtensionHeader(
                 .weight(1f),
             style = MaterialTheme.typography.header,
         )
-        action()
     }
 }
 

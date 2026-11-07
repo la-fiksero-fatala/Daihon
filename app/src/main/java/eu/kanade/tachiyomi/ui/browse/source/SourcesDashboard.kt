@@ -1,6 +1,8 @@
 package eu.kanade.tachiyomi.ui.browse.source
 
+import android.util.DisplayMetrics
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -61,8 +63,6 @@ import mihon.icons.materialsymbols.rounded.Explore
 import mihon.icons.materialsymbols.rounded.Settings
 import mihon.icons.materialsymbols.rounded.Sync
 import mihon.icons.materialsymbols.rounded.TravelExplore
-import mihon.icons.materialsymbols.roundedfilled.Extension
-import mihon.icons.materialsymbols.roundedfilled.Favorite
 import mihon.icons.materialsymbols.roundedfilled.Keep
 import tachiyomi.domain.source.model.Source
 import tachiyomi.i18n.MR
@@ -104,6 +104,7 @@ fun SourcesDashboard() {
         topBar = { scrollBehavior ->
             AppBar(
                 title = stringResource(MR.strings.label_sources),
+                pageIndicatorModifier = Modifier.padding(end = if (updates > 0) 12.dp else 20.dp),
                 actions = {
                     AppBarActions(
                         buildList {
@@ -123,9 +124,8 @@ fun SourcesDashboard() {
                                         icon = MaterialSymbols.Rounded.TravelExplore,
                                         onClick = { navigator.push(GlobalSearchScreen()) },
                                     ),
-                                    AppBar.Action(
-                                        title = stringResource(MR.strings.label_extensions),
-                                        icon = MaterialSymbols.RoundedFilled.Extension,
+                                    AppBar.OverflowAction(
+                                        title = stringResource(MR.strings.daihon_install_extensions),
                                         onClick = { navigator.push(ExtensionsManagerScreen()) },
                                     ),
                                     AppBar.OverflowAction(
@@ -290,7 +290,8 @@ private fun SourceTile(
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-            .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small),
+            .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small)
+            .clickable(onClickLabel = stringResource(MR.strings.daihon_source_in_library), onClick = onLibrary),
     ) {
         Column(
             modifier = Modifier.fillMaxSize().padding(top = 8.dp, bottom = 4.dp),
@@ -301,11 +302,11 @@ private fun SourceTile(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.weight(1f, fill = false), verticalAlignment = Alignment.CenterVertically) {
                     if (tile.extension != null) {
-                        ExtensionIcon(tile.extension, Modifier.size(32.dp))
+                        ExtensionIcon(tile.extension, Modifier.size(64.dp), DisplayMetrics.DENSITY_XHIGH)
                     } else {
-                        tile.standalone?.let { SourceIcon(it, Modifier.size(32.dp)) }
+                        tile.standalone?.let { SourceIcon(it, Modifier.size(64.dp)) }
                     }
                     if (tile.pinned) {
                         Icon(
@@ -327,11 +328,6 @@ private fun SourceTile(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 TileAction(MaterialSymbols.Rounded.Explore, stringResource(MR.strings.daihon_source_explore), onExplore)
                 TileAction(MaterialSymbols.Rounded.Settings, stringResource(MR.strings.label_extension_info), onInfo)
-                TileAction(
-                    MaterialSymbols.RoundedFilled.Favorite,
-                    stringResource(MR.strings.daihon_source_in_library),
-                    onLibrary,
-                )
             }
         }
         if (onUpdate != null) {

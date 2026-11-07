@@ -28,16 +28,15 @@ import tachiyomi.presentation.core.components.material.PaperButton as TextButton
 @Composable
 fun extensionsTab(
     extensionsViewModel: ExtensionsViewModel,
+    updatesOnly: Boolean,
 ): TabContent {
     val navigator = LocalNavigator.currentOrThrow
     val context = LocalContext.current
 
-    val updatesCount by extensionsViewModel.updatesCount.collectAsStateWithLifecycle()
     var privateExtensionToUninstall by remember { mutableStateOf<Extension.Installed?>(null) }
 
     return TabContent(
-        titleRes = MR.strings.label_extensions,
-        badgeNumber = updatesCount.takeIf { it > 0 },
+        titleRes = if (updatesOnly) MR.strings.ext_updates_pending else MR.strings.daihon_install_extensions,
         searchEnabled = true,
         actions = listOf(
             AppBar.OverflowAction(
@@ -56,8 +55,14 @@ fun extensionsTab(
                 extensionsViewModel.search(null)
             }
 
+            val items = if (updatesOnly) {
+                state.items.filterKeys { it == ExtensionUiModel.Header.Resource(MR.strings.ext_updates_pending) }
+            } else {
+                state.items.mapValues { (_, group) -> group.filter { it.extension !is Extension.Loaded } }
+                    .filterValues { it.isNotEmpty() }
+            }
             ExtensionScreen(
-                state = state,
+                state = state.copy(items = items),
                 contentPadding = contentPadding,
                 searchQuery = state.searchQuery,
                 onLongClickItem = { extension ->
@@ -73,7 +78,6 @@ fun extensionsTab(
                     }
                 },
                 onClickItemCancel = extensionsViewModel::cancelInstallUpdateExtension,
-                onClickUpdateAll = extensionsViewModel::updateAllExtensions,
                 onOpenWebView = { extension ->
                     extension.sources.getOrNull(0)?.let {
                         navigator.push(

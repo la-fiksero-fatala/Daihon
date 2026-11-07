@@ -64,6 +64,7 @@ fun PaperLazyColumn(
     flingBehavior: FlingBehavior = ScrollableDefaults.flingBehavior(),
     userScrollEnabled: Boolean = true,
     fillRowGaps: Boolean = false,
+    hasMoreItems: Boolean = false,
     alwaysShowNavigation: Boolean = false,
     pageLabel: ((first: Int, last: Int) -> String?)? = null,
     onJump: ((first: Int) -> Unit)? = null,
@@ -150,30 +151,36 @@ fun PaperLazyColumn(
         return PaperPageProbeKey((layout.totalItemsCount - 1).coerceAtLeast(0), layout.viewportSize)
     }
     val probeKey = liveProbeKey()
-    val pages = remember(state, probeKey.viewport, if (alwaysShowNavigation) 0 else total) { PaperLazyPages() }
+    val pages = remember(state, probeKey.viewport, if (hasMoreItems) 0 else total) { PaperLazyPages() }
     var probeResult by remember(state) { mutableStateOf<PaperPageProbeResult?>(null) }
     val probeMutex = remember(state) { Mutex() }
-    val layoutReady = alwaysShowNavigation || total == 0 || probeResult?.key == probeKey
-    LaunchedEffect(probeKey, alwaysShowNavigation) {
-        if (alwaysShowNavigation || total == 0 || probeKey.viewport.width <= 0 || probeKey.viewport.height <= 0) {
+    val skipProbe = alwaysShowNavigation && hasMoreItems
+    val layoutReady = skipProbe || total == 0 || probeResult?.key == probeKey
+    LaunchedEffect(probeKey, pages, skipProbe) {
+        if (skipProbe || total == 0 || probeKey.viewport.width <= 0 || probeKey.viewport.height <= 0) {
             return@LaunchedEffect
         }
         probeMutex.withLock {
             // Let the rail's initial width settle before inspecting either page.
             withFrameNanos {}
             if (liveProbeKey() != probeKey) return@withLock
-            val original = PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
-            val third = probePaperThirdPage(
-                original,
-                top = { state.scrollToItem(0) },
-                next = ::liveNext,
-                move = { jumpTo(it) },
-                restore = {
-                    val last = (state.layoutInfo.totalItemsCount - 2).coerceAtLeast(0)
-                    state.scrollToItem(it.index.coerceIn(0, last), it.offset)
-                },
-                settle = { withFrameNanos {} },
-            )
+            val third = if (chapterNumbers) {
+                val original = PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+                probePaperThirdPage(
+                    original,
+                    top = { state.scrollToItem(0) },
+                    next = ::liveNext,
+                    move = { jumpTo(it) },
+                    restore = {
+                        val last = (state.layoutInfo.totalItemsCount - 2).coerceAtLeast(0)
+                        state.scrollToItem(it.index.coerceIn(0, last), it.offset)
+                    },
+                    settle = { withFrameNanos {} },
+                )
+            } else {
+                pages.measure(::position, ::liveNext, ::jumpTo, ::snap)
+                pages.hasThirdPage
+            }
             withFrameNanos {}
             if (liveProbeKey() == probeKey) probeResult = PaperPageProbeResult(probeKey, third)
         }
@@ -189,6 +196,7 @@ fun PaperLazyColumn(
         }
     }
     val page = pages.indexOf(position())
+    val pageCount = pages.count.takeUnless { hasMoreItems }
     fun goToPage(index: Int) {
         scope.launch {
             probeMutex.withLock { pages.goTo(index, ::position, ::liveNext, ::jumpTo, ::snap) }
@@ -229,7 +237,7 @@ fun PaperLazyColumn(
         val label = if (chapterNumbers) {
             pageLabel?.invoke(first.index, shownLast) ?: "${firstItem + 1}–${lastItem + 1} / $itemTotal"
         } else {
-            (page + 1).toString()
+            "${page + 1}/${pageCount ?: ".."}"
         }
         PaperPageFrame(
             owner, label, paged, hasPrevious, next != null,
@@ -244,7 +252,7 @@ fun PaperLazyColumn(
             },
             Modifier.drawWithContent {
                 val current = liveProbeKey()
-                if (!pages.seeking && (alwaysShowNavigation || current.count == 0 || probeResult?.key == current)) {
+                if (!pages.seeking && (skipProbe || current.count == 0 || probeResult?.key == current)) {
                     drawContent()
                 }
             }.heightIn(max = limit).fillMaxWidth().padding(
@@ -307,7 +315,7 @@ fun PaperLazyColumn(
                 scope.launch { jumpTo(PaperAnchor(sections.listIndex(index))) }
             }, onDismissRequest = { showJump = false }, itemNumber = true)
         } else {
-            PaperJumpDialog(page, null, ::goToPage, onDismissRequest = { showJump = false })
+            PaperJumpDialog(page, pageCount, ::goToPage, onDismissRequest = { showJump = false })
         }
     }
 }

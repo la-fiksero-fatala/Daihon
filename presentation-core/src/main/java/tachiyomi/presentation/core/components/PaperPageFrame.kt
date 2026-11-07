@@ -15,6 +15,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 
@@ -51,9 +52,10 @@ internal fun PaperPageFrame(
     }
     SideEffect { if (publish) host?.update(owner, label, paged, ready, visible) }
     Column(modifier.onGloballyPositioned { visible = !it.boundsInWindow().isEmpty }) {
-        if (paged && ready && navigationUi && host?.hasHeader != true) {
+        if (paged && navigationUi && host?.hasHeader != true) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                PaperPageNumber(label, onJump)
+                // Reserve the counter's height while measuring so revealing it cannot change the page breaks.
+                PaperPageNumber(label, { if (ready) onJump() }, Modifier.alpha(if (ready) 1f else 0f))
             }
         }
         Row(Modifier.weight(1f, fill = fill).fillMaxWidth()) {

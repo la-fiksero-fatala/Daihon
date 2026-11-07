@@ -20,11 +20,14 @@ import eu.kanade.tachiyomi.ui.reader.viewer.webgpu.WebGpuSettings
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.SimpleLongStripSettings
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -90,6 +93,19 @@ class ReaderSettingsViewModel(
         .map { it.manga }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val cropBrightnessThreshold = mangaFlow
+        .map { it?.let(preferences::cropBrightnessThreshold) }
+        .distinctUntilChangedBy { it?.key() }
+        .flatMapLatest { it?.changes() ?: flowOf(-1) }
+        .map { value -> value.takeIf { it in 0..255 } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun setCropBrightnessThreshold(value: Int?) {
+        val manga = mangaFlow.value ?: return
+        val preference = preferences.cropBrightnessThreshold(manga)
+        if (value == null) preference.delete() else preference.set(value.coerceIn(0, 255))
+    }
 
     /**
      * The reading mode the viewer is made for, with the default resolved.
@@ -167,12 +183,16 @@ class ReaderSettingsViewModel(
         preferences.navigateToPan,
         preferences.navigationModePager,
         preferences.pagerNavInverted,
+        extra = cropBrightnessThreshold,
     ) {
         PagedSettings(
             page = PagedSettings.Page(
                 imageScaleType = ReaderPreferences.ScaleType.fromValue(imageScaleType.get()),
                 zoomStart = ReaderPreferences.ZoomStartType.fromValue(zoomStart.get()),
                 cropBorders = cropBorders.get(),
+                cropBrightnessThreshold = this@ReaderSettingsViewModel.cropBrightnessThreshold.value.takeIf {
+                    cropBorders.get()
+                },
                 landscapeZoom = landscapeZoom.get(),
             ),
             navigateToPan = navigateToPan.get(),
@@ -189,9 +209,13 @@ class ReaderSettingsViewModel(
     val longStrip = settings(
         preferences.cropBordersWebtoon,
         preferences.webtoonDisableZoomOut,
+        extra = cropBrightnessThreshold,
     ) {
         LongStripSettings(
             cropBorders = cropBordersWebtoon.get(),
+            cropBrightnessThreshold = this@ReaderSettingsViewModel.cropBrightnessThreshold.value.takeIf {
+                cropBordersWebtoon.get()
+            },
             zoomOutDisabled = webtoonDisableZoomOut.get(),
         )
     }
@@ -352,8 +376,12 @@ class ReaderSettingsViewModel(
      * A value [read] from [sources], kept current as any of them changes. Started eagerly, so a viewer reading it
      * before collecting gets what the preferences hold now.
      */
-    private fun <T> settings(vararg sources: Preference<*>, read: ReaderPreferences.() -> T): StateFlow<T> {
-        return sources.map { it.changes() }
+    private fun <T> settings(
+        vararg sources: Preference<*>,
+        extra: Flow<*> = emptyFlow<Any>(),
+        read: ReaderPreferences.() -> T,
+    ): StateFlow<T> {
+        return (sources.map { it.changes() } + extra)
             .merge()
             .map { preferences.read() }
             .stateIn(viewModelScope, SharingStarted.Eagerly, preferences.read())

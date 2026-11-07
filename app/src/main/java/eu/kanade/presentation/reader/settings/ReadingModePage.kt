@@ -100,10 +100,7 @@ private fun ColumnScope.PagerViewerSettings(viewModel: ReaderSettingsViewModel) 
 
     PagePaddingSetting()
 
-    CheckboxItem(
-        label = stringResource(MR.strings.pref_crop_borders),
-        pref = viewModel.preferences.cropBorders,
-    )
+    CropBordersSetting(viewModel, viewModel.preferences.cropBorders)
 
     CheckboxItem(
         label = stringResource(MR.strings.pref_landscape_zoom),
@@ -169,10 +166,7 @@ private fun ColumnScope.WebtoonViewerSettings(viewModel: ReaderSettingsViewModel
         pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
     )
 
-    CheckboxItem(
-        label = stringResource(MR.strings.pref_crop_borders),
-        pref = viewModel.preferences.cropBordersWebtoon,
-    )
+    CropBordersSetting(viewModel, viewModel.preferences.cropBordersWebtoon)
 
     val dualPageSplitWebtoon by viewModel.preferences.dualPageSplitWebtoon.collectAsState()
     CheckboxItem(

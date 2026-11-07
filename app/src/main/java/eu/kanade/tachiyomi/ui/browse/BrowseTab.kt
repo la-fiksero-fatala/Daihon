@@ -58,7 +58,7 @@ data object BrowseTab : Tab {
 
         LaunchedEffect(navigator) {
             switchToExtensionTabChannel.receiveAsFlow()
-                .collectLatest { navigator.push(ExtensionsManagerScreen()) }
+                .collectLatest { navigator.push(ExtensionsManagerScreen(updatesOnly = true)) }
         }
 
         LaunchedEffect(Unit) {

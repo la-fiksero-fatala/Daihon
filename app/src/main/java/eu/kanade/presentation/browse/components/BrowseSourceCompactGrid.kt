@@ -27,6 +27,7 @@ fun BrowseSourceCompactGrid(
     onMangaLongClick: (Manga) -> Unit,
 ) {
     LazyVerticalGrid(
+        hasMoreItems = (mangaList.loadState.append as? LoadState.NotLoading)?.endOfPaginationReached != true,
         alwaysShowNavigation = true,
         columns = columns,
         contentPadding = contentPadding + PaddingValues(8.dp),

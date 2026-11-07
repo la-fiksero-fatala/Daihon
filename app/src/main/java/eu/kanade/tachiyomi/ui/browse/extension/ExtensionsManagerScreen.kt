@@ -12,12 +12,11 @@ import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.AppBarTitle
 import eu.kanade.presentation.components.SearchToolbar
 import eu.kanade.presentation.util.Screen
-import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 
-class ExtensionsManagerScreen : Screen() {
+class ExtensionsManagerScreen(private val updatesOnly: Boolean = false) : Screen() {
     override val pageNavigationArea get() = PaperNavigationArea.Browse
 
     @Composable
@@ -25,14 +24,14 @@ class ExtensionsManagerScreen : Screen() {
         val navigator = LocalNavigator.currentOrThrow
         val viewModel = metroViewModel<ExtensionsViewModel>()
         val query by viewModel.searchQuery.collectAsStateWithLifecycle()
-        val content = extensionsTab(viewModel)
+        val content = extensionsTab(viewModel, updatesOnly)
         val snackbar = remember { SnackbarHostState() }
         Scaffold(
             topBar = { scrollBehavior ->
                 SearchToolbar(
                     searchQuery = query,
                     onChangeSearchQuery = viewModel::search,
-                    titleContent = { AppBarTitle(stringResource(MR.strings.label_extensions)) },
+                    titleContent = { AppBarTitle(stringResource(content.titleRes)) },
                     navigateUp = navigator::pop,
                     actions = { AppBarActions(content.actions) },
                     scrollBehavior = scrollBehavior,

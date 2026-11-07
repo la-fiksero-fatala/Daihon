@@ -8,6 +8,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageErrorView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.reader.viewer.processPagedImage
+import eu.kanade.tachiyomi.util.image.findLightBorderCrop
 import eu.kanade.tachiyomi.util.image.readImageDimensions
 import eu.kanade.tachiyomi.widget.ViewPagerAdapter
 import kotlinx.coroutines.Dispatchers
@@ -169,16 +170,22 @@ class PagerPageHolder(
                 }
                 Triple(source, isAnimated, background)
             }
+            val pageSettings = viewer.paged.page
+            val threshold = pageSettings.cropBrightnessThreshold
+            val crop = threshold?.takeUnless { isAnimated }?.let {
+                withContext(Dispatchers.Default) { source.findLightBorderCrop(it) }
+            }
             withContext(Dispatchers.Main) {
                 setImage(
                     source,
                     isAnimated,
                     Config(
                         zoomDuration = viewer.general.doubleTapAnimDuration,
-                        minimumScaleType = viewer.paged.page.imageScaleType.value,
-                        cropBorders = viewer.paged.page.cropBorders,
+                        minimumScaleType = pageSettings.imageScaleType.value,
+                        cropBorders = pageSettings.cropBorders && threshold == null,
+                        cropRegion = crop,
                         zoomStartPosition = viewer.imageZoomType,
-                        landscapeZoom = viewer.paged.page.landscapeZoom,
+                        landscapeZoom = pageSettings.landscapeZoom,
                     ),
                 )
                 if (!isAnimated) {

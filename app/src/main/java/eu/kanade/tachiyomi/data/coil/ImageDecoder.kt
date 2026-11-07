@@ -108,22 +108,25 @@ class ImageDecoder(private val resources: ImageSource, private val options: Opti
         val (frame, isHdr, widths) = resources.source().use {
             ImageDecoder.open(it.inputStream()).use { dec ->
                 val bytesPerPixel = if (dec.isHdr) 8 else 4
-                val viewWidth = options.size.widthPx(options.scale) { dec.width }
+                val crop = options.cropRegion
+                val pageWidth = crop?.width() ?: dec.width
+                val pageHeight = crop?.height() ?: dec.height
+                val viewWidth = options.size.widthPx(options.scale) { pageWidth }
                 val sampleSize = DecodeUtils.calculateInSampleSize(
-                    srcWidth = dec.width,
-                    srcHeight = dec.height,
+                    srcWidth = pageWidth,
+                    srcHeight = pageHeight,
                     dstWidth = viewWidth,
-                    dstHeight = options.size.heightPx(options.scale) { dec.height },
+                    dstHeight = options.size.heightPx(options.scale) { pageHeight },
                     scale = options.scale,
                 )
-                val budgetWidth = sqrt(MAX_PAGE_BYTES.toDouble() / bytesPerPixel * dec.width / dec.height).toInt()
-                val stripWidth = maxOf(viewWidth, min(dec.width / sampleSize, budgetWidth))
+                val budgetWidth = sqrt(MAX_PAGE_BYTES.toDouble() / bytesPerPixel * pageWidth / pageHeight).toInt()
+                val stripWidth = maxOf(viewWidth, min(pageWidth / sampleSize, budgetWidth))
                     // Older GPUs can't draw a texture wider than this
                     .coerceAtMost(MAX_STRIP_WIDTH)
-                    .coerceIn(1, dec.width)
+                    .coerceIn(1, pageWidth)
                 // ceil(width / decodeSample) >= stripWidth: strips only scale down
-                val decodeSample = (dec.width / stripWidth).coerceAtLeast(1)
-                Triple(dec.decode(null, decodeSample), dec.isHdr, Triple(stripWidth, dec.width, dec.height))
+                val decodeSample = (pageWidth / stripWidth).coerceAtLeast(1)
+                Triple(dec.decode(crop, decodeSample), dec.isHdr, Triple(stripWidth, pageWidth, pageHeight))
             }
         }
         val (stripWidth, pageWidth, pageHeight) = widths

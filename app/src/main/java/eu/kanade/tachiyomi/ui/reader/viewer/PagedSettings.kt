@@ -18,6 +18,7 @@ data class PagedSettings(
         val imageScaleType: ReaderPreferences.ScaleType,
         val zoomStart: ReaderPreferences.ZoomStartType,
         val cropBorders: Boolean,
+        val cropBrightnessThreshold: Int? = null,
         val landscapeZoom: Boolean,
     )
 }

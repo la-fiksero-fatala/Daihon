@@ -72,6 +72,7 @@ internal fun GlobalSearchContent(
     fromSourceId: Long? = null,
 ) {
     LazyColumn(
+        hasMoreItems = items.values.any { it is SearchItemResult.Loading },
         alwaysShowNavigation = true,
         modifier = Modifier.fillMaxSize(),
         contentPadding = contentPadding,

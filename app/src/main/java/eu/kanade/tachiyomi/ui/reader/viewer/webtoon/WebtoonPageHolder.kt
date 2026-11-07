@@ -14,6 +14,8 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageErrorView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.reader.viewer.processStripImage
+import eu.kanade.tachiyomi.util.image.ImageDimensions
+import eu.kanade.tachiyomi.util.image.findLightBorderCrop
 import eu.kanade.tachiyomi.util.image.readImageDimensions
 import eu.kanade.tachiyomi.util.system.dpToPx
 import kotlinx.coroutines.Dispatchers
@@ -189,12 +191,15 @@ class WebtoonPageHolder(
             val buffer = withContext(Dispatchers.IO) { streamFn().use { Buffer().readFrom(it) } }
             sourcePage.sourceDimensions.value = withContext(Dispatchers.IO) { readImageDimensions(buffer) }
             // Splitting and merging decode the image, which is CPU work
-            val (source, isAnimated) = withContext(Dispatchers.Default) {
+            val (source, isAnimated, crop) = withContext(Dispatchers.Default) {
                 val source = viewer.simpleLongStrip.page.processStripImage(buffer)
-                // Read before strip sampling; these are image pixels, not decoded bitmap/view pixels.
-                sourcePage.croppedDimensions.value = readImageDimensions(source)
                 val isAnimated = ImageUtil.isAnimatedAndSupported(source)
-                Pair(source, isAnimated)
+                val crop = viewer.longStrip.cropBrightnessThreshold?.takeUnless { isAnimated }
+                    ?.let(source::findLightBorderCrop)
+                // Read before strip sampling; these are image pixels, not decoded bitmap/view pixels.
+                sourcePage.croppedDimensions.value =
+                    crop?.let { ImageDimensions(it.width(), it.height()) } ?: readImageDimensions(source)
+                Triple(source, isAnimated, crop)
             }
             withContext(Dispatchers.Main) {
                 frame.setImage(
@@ -203,7 +208,7 @@ class WebtoonPageHolder(
                     ReaderPageImageView.Config(
                         zoomDuration = viewer.general.doubleTapAnimDuration,
                         minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_FIT_WIDTH,
-                        cropBorders = viewer.longStrip.cropBorders,
+                        cropRegion = crop,
                     ),
                 )
                 removeErrorLayout()

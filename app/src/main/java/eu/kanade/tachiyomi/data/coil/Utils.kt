@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.coil
 
+import android.graphics.Rect
 import coil3.Extras
 import coil3.getExtra
 import coil3.request.ImageRequest
@@ -25,14 +26,14 @@ internal fun Dimension.toPx(scale: Scale): Int = pxOrElse {
     }
 }
 
-fun ImageRequest.Builder.cropBorders(enable: Boolean) = apply {
-    extras[cropBordersKey] = enable
+fun ImageRequest.Builder.cropRegion(region: Rect?) = apply {
+    extras[cropRegionKey] = region
 }
 
-val Options.cropBorders: Boolean
-    get() = getExtra(cropBordersKey)
+val Options.cropRegion: Rect?
+    get() = getExtra(cropRegionKey)
 
-private val cropBordersKey = Extras.Key(default = false)
+private val cropRegionKey = Extras.Key<Rect?>(default = null)
 
 fun ImageRequest.Builder.webtoonStrips(enable: Boolean) = apply {
     extras[webtoonStripsKey] = enable

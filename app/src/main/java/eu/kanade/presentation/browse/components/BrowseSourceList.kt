@@ -23,6 +23,7 @@ fun BrowseSourceList(
     onMangaLongClick: (Manga) -> Unit,
 ) {
     LazyColumn(
+        hasMoreItems = (mangaList.loadState.append as? LoadState.NotLoading)?.endOfPaginationReached != true,
         alwaysShowNavigation = true,
         contentPadding = contentPadding + PaddingValues(vertical = 8.dp),
     ) {

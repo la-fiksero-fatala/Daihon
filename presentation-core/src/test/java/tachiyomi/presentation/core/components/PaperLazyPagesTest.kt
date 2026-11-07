@@ -6,6 +6,24 @@ import org.junit.jupiter.api.Test
 
 class PaperLazyPagesTest {
     @Test
+    fun `bounded measurement reports a total only after seeing the final page`() = runBlocking<Unit> {
+        val pages = PaperLazyPages()
+        var position = PaperAnchor(3)
+        fun next() = PaperAnchor(position.index + 3).takeIf { it.index <= 30 }
+        suspend fun snap(anchor: PaperAnchor) {
+            position = anchor
+        }
+
+        pages.measure({ position }, ::next, ::snap, ::snap)
+        position shouldBe PaperAnchor(3)
+        pages.hasThirdPage shouldBe true
+        pages.count shouldBe null
+        pages.goTo(10, { position }, ::next, ::snap, ::snap)
+        pages.count shouldBe 11
+        pages.indexOf(position) shouldBe 10
+    }
+
+    @Test
     fun `page numbers follow measured boundaries including portions of the same row`() = runBlocking<Unit> {
         val pages = PaperLazyPages()
         val starts = listOf(PaperAnchor(0), PaperAnchor(4), PaperAnchor(4, 500), PaperAnchor(10))

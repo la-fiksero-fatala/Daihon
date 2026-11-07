@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.manga.model.readerOrientation
 import eu.kanade.domain.manga.model.readingMode
+import eu.kanade.presentation.reader.settings.CropBordersSetting
 import eu.kanade.presentation.reader.settings.PagePaddingSetting
 import eu.kanade.presentation.reader.settings.TapZonesItems
 import eu.kanade.presentation.reader.settings.UpscalingAlgorithmSetting
@@ -121,6 +122,7 @@ internal fun WebGpuViewerSettings(viewModel: ReaderSettingsViewModel) {
             )
         }
 
+        CropBordersSetting(viewModel, viewModel.preferences.cropBordersWebtoon)
         CheckboxItem(
             label = stringResource(MR.strings.pref_webtoon_disable_zoom_out),
             pref = viewModel.preferences.webtoonDisableZoomOut,
@@ -200,10 +202,7 @@ internal fun WebGpuViewerSettings(viewModel: ReaderSettingsViewModel) {
             }
         }
 
-        CheckboxItem(
-            label = stringResource(MR.strings.pref_crop_borders),
-            pref = viewModel.preferences.cropBorders,
-        )
+        CropBordersSetting(viewModel, viewModel.preferences.cropBorders)
 
         CheckboxItem(
             label = stringResource(MR.strings.pref_landscape_zoom),

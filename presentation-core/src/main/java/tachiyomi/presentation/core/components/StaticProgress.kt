@@ -48,18 +48,9 @@ fun StaticCircularProgressIndicator(
         val stroke = strokeWidth.toPx()
         drawCircle(color, radius = ((size.minDimension - stroke) / 2f).coerceAtLeast(0f), style = Stroke(stroke))
         if (value.isNaN()) {
-            drawLine(
-                color,
-                Offset(size.width * .35f, size.height * .35f),
-                Offset(size.width * .65f, size.height * .65f),
-                stroke,
-            )
-            drawLine(
-                color,
-                Offset(size.width * .65f, size.height * .35f),
-                Offset(size.width * .35f, size.height * .65f),
-                stroke,
-            )
+            for (position in listOf(.35f, .5f, .65f)) {
+                drawCircle(color, radius = stroke / 2f, center = Offset(size.width * position, size.height / 2f))
+            }
         } else {
             drawArc(color, -90f, 360f * value.coerceIn(0f, 1f), true)
         }

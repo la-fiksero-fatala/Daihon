@@ -1404,15 +1404,15 @@ open class WebGpuViewer(
             }
             val hdrHeadroom = gainmap?.headroomStops ?: dec.hdrHeadroom
 
-            // Only trim when not animated and not in dual page mode
-            val trimColors = if (!animated && cropBorders && !isDualPageMode()) {
-                listOf(
-                    floatArrayOf(1f, 1f, 1f),
-                    floatArrayOf(0f, 0f, 0f),
-                )
+            // Only trim still images in single-page or continuous mode.
+            val threshold = if (isContinuous) longStrip.cropBrightnessThreshold else paged.page.cropBrightnessThreshold
+            val trimColors = if (!animated && cropBorders && !isDualPageMode() && threshold != 0) {
+                val white = floatArrayOf(1f, 1f, 1f)
+                if (threshold == null) listOf(white, floatArrayOf(0f, 0f, 0f)) else listOf(white)
             } else {
                 null
             }
+            val trimThreshold = if (threshold != null && trimColors != null) (255 - threshold) / 255f else 0.15f
 
             // The preview's textures become the image, or frame 0; one since replaced or freed
             // (a settings reset) leaves a fresh image to install instead.
@@ -1422,14 +1422,19 @@ open class WebGpuViewer(
             val firstImage = shown?.image?.also {
                 it.update(firstFrame.image)
                 it.createMipMaps(firstFrame.image)
-                it.measure(firstFrame.image, trimColors, trimThreshold = 0.15f, backgroundColor = backgroundColor)
+                it.measure(
+                    firstFrame.image,
+                    trimColors,
+                    trimThreshold = trimThreshold,
+                    backgroundColor = backgroundColor,
+                )
             } ?: Image(
                 firstFrame.image,
                 firstFrame.width,
                 firstFrame.height,
                 createMipMaps = true,
                 trimColors = trimColors,
-                trimThreshold = 0.15f,
+                trimThreshold = trimThreshold,
                 backgroundColor = backgroundColor,
                 hdr = dec.isHdr,
                 hdrHeadroom = hdrHeadroom,

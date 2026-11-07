@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.ColorFilter
 import android.graphics.Paint
 import android.graphics.PointF
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.BitmapDrawable
@@ -40,7 +41,7 @@ import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.EASE_OUT_QU
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
 import com.github.chrisbanes.photoview.PhotoView
 import eu.kanade.tachiyomi.data.coil.ImageDecoder
-import eu.kanade.tachiyomi.data.coil.cropBorders
+import eu.kanade.tachiyomi.data.coil.cropRegion
 import eu.kanade.tachiyomi.data.coil.webtoonStrips
 import eu.kanade.tachiyomi.ui.reader.setting.LegacyImageRendering
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonStripImageView
@@ -410,7 +411,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 isVisible = true
             }
             is BufferedSource -> {
-                setImage(ImageSource.inputStream(data.inputStream()))
+                val source = ImageSource.inputStream(data.inputStream())
+                setImage(config.cropRegion?.let(source::region) ?: source)
                 isVisible = true
             }
             else -> {
@@ -459,7 +461,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
             )
             .size(ViewSizeResolver(this))
             .precision(Precision.INEXACT)
-            .cropBorders(config.cropBorders)
+            .cropRegion(config.cropRegion)
             .webtoonStrips(true)
             .crossfade(false)
             .build()
@@ -559,6 +561,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
         val zoomDuration: Int,
         val minimumScaleType: Int = SCALE_TYPE_CENTER_INSIDE,
         val cropBorders: Boolean = false,
+        val cropRegion: Rect? = null,
         val zoomStartPosition: ZoomStartPosition = ZoomStartPosition.CENTER,
         val landscapeZoom: Boolean = false,
     )

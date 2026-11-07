@@ -154,7 +154,9 @@ class WebtoonViewer(val activity: ReaderActivity, val isContinuous: Boolean = tr
             }
         }
         settingsViewModel.longStrip.collectChanges(scope) { old, new ->
-            if (old != null && old.cropBorders != new.cropBorders) {
+            val cropChanged = old != null &&
+                (old.cropBorders != new.cropBorders || old.cropBrightnessThreshold != new.cropBrightnessThreshold)
+            if (cropChanged) {
                 refreshAdapter()
             }
             if (old?.zoomOutDisabled != new.zoomOutDisabled) {
