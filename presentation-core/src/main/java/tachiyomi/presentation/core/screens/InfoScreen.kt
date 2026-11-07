@@ -69,7 +69,7 @@ fun InfoScreen(
                     ) {
                         Icon(icon, null, Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
                         Text(headingText, Modifier.weight(1f), style = MaterialTheme.typography.headlineSmall)
-                        LocalPaperPageIndicator.current?.Indicator()
+                        LocalPaperPageIndicator.current?.Indicator(withActionSpacing = false)
                     }
                     Text(
                         subtitleText,

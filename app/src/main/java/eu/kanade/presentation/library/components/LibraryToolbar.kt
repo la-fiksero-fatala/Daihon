@@ -110,11 +110,15 @@ private fun LibraryRegularToolbar(
                         )
                     }
                 }
-                pagination?.let { LibraryPageNumber(it.index, it.count, compact = true, onClick = onClickPageNumber) }
             }
         },
         searchQuery = searchQuery,
         onChangeSearchQuery = onSearchQueryChange,
+        beforeSearchActions = {
+            if (searchQuery == null) {
+                pagination?.let { LibraryPageNumber(it.index, it.count, compact = true, onClick = onClickPageNumber) }
+            }
+        },
         actions = {
             if (searchQuery != null) {
                 categorySelector?.invoke(true)
@@ -158,13 +162,9 @@ private fun LibrarySelectionToolbar(
     onClickInvertSelection: () -> Unit,
 ) {
     AppBar(
-        titleContent = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "$selectedCount")
-                pagination?.let { LibraryPageNumber(it.index, it.count, compact = true, onClick = onClickPageNumber) }
-            }
-        },
+        titleContent = { Text(text = "$selectedCount") },
         actions = {
+            pagination?.let { LibraryPageNumber(it.index, it.count, compact = true, onClick = onClickPageNumber) }
             AppBarActions(
                 listOf(
                     AppBar.Action(

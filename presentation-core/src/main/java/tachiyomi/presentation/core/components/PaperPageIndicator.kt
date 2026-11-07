@@ -67,10 +67,12 @@ class PaperPageIndicatorState(header: Boolean = false, val navigationUi: Boolean
     }
 
     @Composable
-    fun Indicator(modifier: Modifier = Modifier) {
+    fun Indicator(withActionSpacing: Boolean = true) {
         val token = headerToken
         SideEffect { headerComposed(token) }
-        if (token != null) entries[token.owner]?.let { PaperPageNumber(token.label, it.click, modifier) }
+        if (token != null) {
+            entries[token.owner]?.let { PaperPageNumber(token.label, it.click, withActionSpacing = withActionSpacing) }
+        }
     }
 }
 
@@ -82,9 +84,18 @@ internal fun Modifier.paperPopupReady(indicator: PaperPageIndicatorState): Modif
 val LocalPaperPageIndicator = staticCompositionLocalOf<PaperPageIndicatorState?> { null }
 
 @Composable
-fun PaperPageNumber(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun PaperPageNumber(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    withActionSpacing: Boolean = false,
+) {
+    // Match the inset between a toolbar icon and the edge of its touch target.
+    val actionInset = if (withActionSpacing) 12.dp else 0.dp
     Surface(
-        modifier.widthIn(max = 160.dp).clickable(role = Role.Button, onClick = onClick),
+        modifier.padding(
+            horizontal = actionInset,
+        ).widthIn(max = 160.dp).clickable(role = Role.Button, onClick = onClick),
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {

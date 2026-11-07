@@ -327,6 +327,7 @@ internal fun LibraryPageNumber(
             "${page + 1} / $pageCount",
             onClick ?: {},
             modifier.semantics { contentDescription = description },
+            withActionSpacing = true,
         )
     } else {
         Text(

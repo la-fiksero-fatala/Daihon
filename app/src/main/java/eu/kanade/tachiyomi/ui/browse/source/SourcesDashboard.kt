@@ -104,7 +104,6 @@ fun SourcesDashboard() {
         topBar = { scrollBehavior ->
             AppBar(
                 title = stringResource(MR.strings.label_sources),
-                pageIndicatorModifier = Modifier.padding(end = if (updates > 0) 12.dp else 20.dp),
                 actions = {
                     AppBarActions(
                         buildList {

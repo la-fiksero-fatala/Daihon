@@ -131,7 +131,9 @@ class SettingsSearchScreen : Screen() {
                             )
                         },
                         actions = {
-                            LocalPaperPageIndicator.current?.Indicator()
+                            LocalPaperPageIndicator.current?.Indicator(
+                                withActionSpacing = textFieldState.text.isNotEmpty(),
+                            )
                             if (textFieldState.text.isNotEmpty()) {
                                 IconButton(onClick = { textFieldState.clearText() }) {
                                     Icon(

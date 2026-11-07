@@ -145,7 +145,7 @@ fun TrackerSearch(
                         )
                     },
                     actions = {
-                        LocalPaperPageIndicator.current?.Indicator()
+                        LocalPaperPageIndicator.current?.Indicator(withActionSpacing = state.text.isNotEmpty())
                         if (state.text.isNotEmpty()) {
                             IconButton(
                                 onClick = {

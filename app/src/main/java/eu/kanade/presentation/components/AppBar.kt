@@ -84,7 +84,6 @@ fun AppBar(
     actionModeActions: @Composable RowScope.() -> Unit = {},
 
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    pageIndicatorModifier: Modifier = Modifier,
 ) {
     val isActionMode by remember(actionModeCounter) {
         derivedStateOf { actionModeCounter > 0 }
@@ -112,7 +111,6 @@ fun AppBar(
         isActionMode = isActionMode,
         onCancelActionMode = onCancelActionMode,
         scrollBehavior = scrollBehavior,
-        pageIndicatorModifier = pageIndicatorModifier,
     )
 }
 
@@ -133,7 +131,6 @@ fun AppBar(
     onCancelActionMode: () -> Unit = {},
 
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    pageIndicatorModifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
@@ -157,7 +154,7 @@ fun AppBar(
             },
             title = titleContent,
             actions = {
-                LocalPaperPageIndicator.current?.Indicator(pageIndicatorModifier)
+                LocalPaperPageIndicator.current?.Indicator()
                 actions()
             },
             colors = TopAppBarDefaults.topAppBarColors(
@@ -286,6 +283,7 @@ fun SearchToolbar(
     actions: @Composable RowScope.() -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    beforeSearchActions: @Composable RowScope.() -> Unit = {},
 ) {
     val focusRequester = remember { FocusRequester() }
     val searchFieldState = rememberTextFieldState(searchQuery.orEmpty())
@@ -365,6 +363,7 @@ fun SearchToolbar(
         },
         navigateUp = if (searchQuery == null) navigateUp else onClickCloseSearch,
         actions = {
+            beforeSearchActions()
             key("search") {
                 val onClick = { onChangeSearchQuery("") }
 
