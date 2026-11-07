@@ -28,7 +28,6 @@ fun BrowseSourceCompactGrid(
 ) {
     LazyVerticalGrid(
         alwaysShowNavigation = true,
-        hasMoreItems = !mangaList.loadState.append.endOfPaginationReached,
         columns = columns,
         contentPadding = contentPadding + PaddingValues(8.dp),
         verticalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridVerticalSpacer),

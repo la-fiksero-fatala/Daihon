@@ -30,11 +30,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,7 +62,6 @@ fun PaperLazyVerticalGrid(
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
     flingBehavior: FlingBehavior = ScrollableDefaults.flingBehavior(),
     userScrollEnabled: Boolean = true,
-    hasMoreItems: Boolean = false,
     alwaysShowNavigation: Boolean = false,
     content: LazyGridScope.() -> Unit,
 ) {
@@ -77,13 +76,14 @@ fun PaperLazyVerticalGrid(
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val direction = LocalLayoutDirection.current
-    val history = remember { mutableStateListOf<PaperAnchor>() }
     var viewport by remember { mutableIntStateOf(0) }
     var showJump by remember { mutableStateOf(false) }
     val info = state.layoutInfo
     val total = (info.totalItemsCount - 1).coerceAtLeast(0)
     val visible = info.visibleItemsInfo.filter { it.index < total }
-    val first = PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+    fun position() = PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+    suspend fun snap(anchor: PaperAnchor) = state.scrollToItem(anchor.index, anchor.offset)
+    val first = position()
     val end = info.viewportEndOffset - info.afterContentPadding
     fun liveNext(): PaperAnchor? {
         val layout = state.layoutInfo
@@ -112,6 +112,7 @@ fun PaperLazyVerticalGrid(
         return PaperPageProbeKey((layout.totalItemsCount - 1).coerceAtLeast(0), layout.viewportSize)
     }
     val probeKey = liveProbeKey()
+    val pages = remember(state, probeKey.viewport, if (alwaysShowNavigation) 0 else total) { PaperLazyPages() }
     var probeResult by remember(state) { mutableStateOf<PaperPageProbeResult?>(null) }
     val probeMutex = remember(state) { Mutex() }
     val layoutReady = alwaysShowNavigation || total == 0 || probeResult?.key == probeKey
@@ -139,38 +140,41 @@ fun PaperLazyVerticalGrid(
             if (liveProbeKey() == probeKey) probeResult = PaperPageProbeResult(probeKey, third)
         }
     }
+    LaunchedEffect(pages, layoutReady) {
+        if (layoutReady) {
+            snapshotFlow { position() }.collect {
+                probeMutex.withLock { pages.locate(::position, ::liveNext, ::snap, ::snap) }
+            }
+        }
+    }
+    val page = pages.indexOf(first)
+    fun goToPage(index: Int) {
+        scope.launch {
+            probeMutex.withLock { pages.goTo(index, ::position, ::liveNext, ::snap, ::snap) }
+        }
+    }
     val navigate: (Int) -> Unit = { step ->
         PaperNavigation.activate(owner)
         scope.launch {
-            if (step > 0 && next != null) {
-                history.add(first)
-                state.scrollToItem(next.index, next.offset)
-            } else if (step < 0 && hasPrevious) {
-                val target = history.removeLastOrNull()
-                if (target != null && target.index < total) {
-                    state.scrollToItem(target.index, target.offset)
-                } else {
-                    val old = state.firstVisibleItemIndex
-                    state.scrollBy(-end.coerceAtLeast(1).toFloat())
-                    if (state.firstVisibleItemIndex < old) state.scrollToItem(state.firstVisibleItemIndex)
-                }
+            probeMutex.withLock {
+                pages.navigate(step, ::position, ::liveNext, ::snap, ::snap)
             }
         }
     }
     LaunchedEffect(total, viewport) {
-        history.clear()
         if (total > 0 && state.firstVisibleItemIndex >= total) state.scrollToItem(total - 1)
     }
     val fallback = (LocalConfiguration.current.screenHeightDp * .75f).dp
     BoxWithConstraints(modifier) {
         val limit = if (constraints.hasBoundedHeight) maxHeight else fallback
-        val shownLast = visible.lastOrNull { it.offset.y + it.size.height <= end }?.index ?: first.index
         PaperPageFrame(
-            owner, "${first.index + 1}–${shownLast + 1} / $total${if (hasMoreItems) "+" else ""}",
+            owner, (page + 1).toString(),
             paged, hasPrevious, next != null, { navigate(-1) }, { navigate(1) }, { showJump = true },
             Modifier.drawWithContent {
                 val current = liveProbeKey()
-                if (alwaysShowNavigation || current.count == 0 || probeResult?.key == current) drawContent()
+                if (!pages.seeking && (alwaysShowNavigation || current.count == 0 || probeResult?.key == current)) {
+                    drawContent()
+                }
             }.heightIn(max = limit).fillMaxWidth().padding(
                 top = contentPadding.calculateTopPadding(),
                 bottom = contentPadding.calculateBottomPadding(),
@@ -180,13 +184,14 @@ fun PaperLazyVerticalGrid(
             alwaysShowNavigation = alwaysShowNavigation,
             onJumpToTop = {
                 PaperNavigation.activate(owner)
-                history.clear()
-                scope.launch { state.scrollToItem(0) }
+                goToPage(0)
             },
         ) {
             Box(
                 Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }
-                    .then(paperInput(owner, !showJump && layoutReady, navigate, atTop = !hasPrevious)),
+                    .then(
+                        paperInput(owner, !showJump && layoutReady && !pages.seeking, navigate, atTop = !hasPrevious),
+                    ),
             ) {
                 LazyVerticalGrid(
                     columns = columns,
@@ -216,9 +221,6 @@ fun PaperLazyVerticalGrid(
         }
     }
     if (showJump) {
-        PaperJumpDialog(first.index, total, { index ->
-            history.clear()
-            scope.launch { state.scrollToItem(index) }
-        }, onDismissRequest = { showJump = false }, itemNumber = true)
+        PaperJumpDialog(page, null, ::goToPage, onDismissRequest = { showJump = false })
     }
 }

@@ -119,7 +119,7 @@ fun PaperPageControls(
 @Composable
 fun PaperJumpDialog(
     index: Int,
-    count: Int,
+    count: Int?,
     onSelect: (Int) -> Unit,
     onDismissRequest: () -> Unit,
     itemNumber: Boolean = false,
@@ -127,7 +127,7 @@ fun PaperJumpDialog(
     var input by remember {
         mutableStateOf(TextFieldValue((index + 1).toString(), TextRange(0, (index + 1).toString().length)))
     }
-    val selected = paperPageIndex(input.text, count)
+    val selected = paperPageIndex(input.text, count ?: Int.MAX_VALUE)
     val confirm: () -> Unit = {
         selected?.let {
             onSelect(it)
@@ -144,13 +144,15 @@ fun PaperJumpDialog(
                 value = input,
                 onValueChange = { input = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = {
-                    Text(
-                        stringResource(
-                            if (itemNumber) MR.strings.daihon_entry_input else MR.strings.library_page_input,
-                            count,
-                        ),
-                    )
+                label = count?.let { maximum ->
+                    {
+                        Text(
+                            stringResource(
+                                if (itemNumber) MR.strings.daihon_entry_input else MR.strings.library_page_input,
+                                maximum,
+                            ),
+                        )
+                    }
                 },
                 singleLine = true,
                 isError = input.text.isNotEmpty() && selected == null,

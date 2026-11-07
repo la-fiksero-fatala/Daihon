@@ -33,7 +33,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,7 +64,6 @@ fun PaperLazyColumn(
     flingBehavior: FlingBehavior = ScrollableDefaults.flingBehavior(),
     userScrollEnabled: Boolean = true,
     fillRowGaps: Boolean = false,
-    hasMoreItems: Boolean = false,
     alwaysShowNavigation: Boolean = false,
     pageLabel: ((first: Int, last: Int) -> String?)? = null,
     onJump: ((first: Int) -> Unit)? = null,
@@ -76,6 +77,7 @@ fun PaperLazyColumn(
         )
         return
     }
+    val chapterNumbers = LocalPaperNavigationArea.current == PaperNavigationArea.Chapters || pageLabel != null
     val sections by remember(content) { derivedStateOf { PaperListContent().apply(content) } }
     val owner = remember { Any() }
     val scope = rememberCoroutineScope()
@@ -94,6 +96,8 @@ fun PaperLazyColumn(
     val leading = visible.firstOrNull { it.index !in sections.headers && it.offset + it.size > pinnedHeight }
     val first = leading?.let { PaperAnchor(it.index, (pinnedHeight - it.offset).coerceAtLeast(0)) }
         ?: PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+    fun position() = PaperAnchor(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+    suspend fun snap(anchor: PaperAnchor) = state.scrollToItem(anchor.index, anchor.offset)
     val firstItem = sections.itemIndex(first.index)
     val end = info.viewportEndOffset - info.afterContentPadding
     val pageItems = visible.map { PaperItem(it.index, it.offset, it.size) }
@@ -146,6 +150,7 @@ fun PaperLazyColumn(
         return PaperPageProbeKey((layout.totalItemsCount - 1).coerceAtLeast(0), layout.viewportSize)
     }
     val probeKey = liveProbeKey()
+    val pages = remember(state, probeKey.viewport, if (alwaysShowNavigation) 0 else total) { PaperLazyPages() }
     var probeResult by remember(state) { mutableStateOf<PaperPageProbeResult?>(null) }
     val probeMutex = remember(state) { Mutex() }
     val layoutReady = alwaysShowNavigation || total == 0 || probeResult?.key == probeKey
@@ -173,10 +178,30 @@ fun PaperLazyColumn(
             if (liveProbeKey() == probeKey) probeResult = PaperPageProbeResult(probeKey, third)
         }
     }
+    val locatePage by rememberUpdatedState<suspend () -> Unit> {
+        pages.locate(::position, ::liveNext, ::jumpTo, ::snap)
+    }
+    LaunchedEffect(pages, layoutReady, chapterNumbers) {
+        if (layoutReady && !chapterNumbers) {
+            snapshotFlow { position() }.collect {
+                probeMutex.withLock { locatePage() }
+            }
+        }
+    }
+    val page = pages.indexOf(position())
+    fun goToPage(index: Int) {
+        scope.launch {
+            probeMutex.withLock { pages.goTo(index, ::position, ::liveNext, ::jumpTo, ::snap) }
+        }
+    }
     val navigate: (Int) -> Unit = { step ->
         PaperNavigation.activate(owner)
         scope.launch {
-            if (step > 0 && next != null) {
+            if (!chapterNumbers) {
+                probeMutex.withLock {
+                    pages.navigate(step, ::position, ::liveNext, ::jumpTo, ::snap)
+                }
+            } else if (step > 0 && next != null) {
                 history.add(first)
                 jumpTo(next)
             } else if (step < 0 && hasPrevious) {
@@ -201,10 +226,10 @@ fun PaperLazyColumn(
         val shownLast = visible.lastOrNull { it.index !in sections.headers && it.offset + it.size <= end }?.index
             ?: first.index
         val lastItem = sections.itemIndex(shownLast)
-        val label = pageLabel?.invoke(first.index, shownLast) ?: if (itemTotal == 0) {
-            "0 / 0"
+        val label = if (chapterNumbers) {
+            pageLabel?.invoke(first.index, shownLast) ?: "${firstItem + 1}–${lastItem + 1} / $itemTotal"
         } else {
-            "${firstItem + 1}–${lastItem + 1} / $itemTotal${if (hasMoreItems) "+" else ""}"
+            (page + 1).toString()
         }
         PaperPageFrame(
             owner, label, paged, hasPrevious, next != null,
@@ -219,7 +244,9 @@ fun PaperLazyColumn(
             },
             Modifier.drawWithContent {
                 val current = liveProbeKey()
-                if (alwaysShowNavigation || current.count == 0 || probeResult?.key == current) drawContent()
+                if (!pages.seeking && (alwaysShowNavigation || current.count == 0 || probeResult?.key == current)) {
+                    drawContent()
+                }
             }.heightIn(max = limit).fillMaxWidth().padding(
                 top = contentPadding.calculateTopPadding(),
                 bottom = contentPadding.calculateBottomPadding(),
@@ -229,13 +256,19 @@ fun PaperLazyColumn(
             alwaysShowNavigation = alwaysShowNavigation,
             onJumpToTop = {
                 PaperNavigation.activate(owner)
-                history.clear()
-                scope.launch { state.scrollToItem(0) }
+                if (chapterNumbers) {
+                    history.clear()
+                    scope.launch { state.scrollToItem(0) }
+                } else {
+                    goToPage(0)
+                }
             },
         ) {
             Box(
                 Modifier.weight(1f, fill = false).clipToBounds().onSizeChanged { viewport = it.height }
-                    .then(paperInput(owner, !showJump && layoutReady, navigate, atTop = !hasPrevious)),
+                    .then(
+                        paperInput(owner, !showJump && layoutReady && !pages.seeking, navigate, atTop = !hasPrevious),
+                    ),
             ) {
                 LazyColumn(
                     state = state,
@@ -268,9 +301,13 @@ fun PaperLazyColumn(
         }
     }
     if (showJump) {
-        PaperJumpDialog(firstItem, itemTotal, { index ->
-            history.clear()
-            scope.launch { jumpTo(PaperAnchor(sections.listIndex(index))) }
-        }, onDismissRequest = { showJump = false }, itemNumber = true)
+        if (chapterNumbers) {
+            PaperJumpDialog(firstItem, itemTotal, { index ->
+                history.clear()
+                scope.launch { jumpTo(PaperAnchor(sections.listIndex(index))) }
+            }, onDismissRequest = { showJump = false }, itemNumber = true)
+        } else {
+            PaperJumpDialog(page, null, ::goToPage, onDismissRequest = { showJump = false })
+        }
     }
 }

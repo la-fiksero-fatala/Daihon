@@ -24,7 +24,6 @@ fun BrowseSourceList(
 ) {
     LazyColumn(
         alwaysShowNavigation = true,
-        hasMoreItems = !mangaList.loadState.append.endOfPaginationReached,
         contentPadding = contentPadding + PaddingValues(vertical = 8.dp),
     ) {
         items(count = mangaList.itemCount) { index ->
