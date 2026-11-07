@@ -3,25 +3,25 @@ package eu.kanade.presentation.browse
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import android.util.DisplayMetrics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,11 +30,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.extension.interactor.ExtensionSourceItem
@@ -53,11 +54,13 @@ import eu.kanade.tachiyomi.util.system.LocaleHelper
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Eyeglasses2
+import mihon.icons.materialsymbols.rounded.Info
+import mihon.icons.materialsymbols.rounded.Keep
 import mihon.icons.materialsymbols.rounded.Settings
+import mihon.icons.materialsymbols.roundedfilled.Keep
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
-import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.components.material.PaperAlertDialog as AlertDialog
 import tachiyomi.presentation.core.components.material.PaperButton as Button
@@ -83,16 +86,37 @@ fun ExtensionDetailsScreen(
     Scaffold(
         topBar = { scrollBehavior ->
             AppBar(
-                title = stringResource(MR.strings.label_extension_info),
+                title = state.extension.name,
                 navigateUp = navigateUp,
                 actions = {
                     AppBarActions(
-                        actions = listOf(
-                            AppBar.OverflowAction(
-                                title = stringResource(MR.strings.pref_clear_cookies),
-                                onClick = onClickClearCookies,
-                            ),
-                        ),
+                        actions = buildList {
+                            if (state.sources.isNotEmpty()) {
+                                add(
+                                    AppBar.Action(
+                                        title = stringResource(
+                                            if (state.pinned) {
+                                                MR.strings.daihon_unpin_extension
+                                            } else {
+                                                MR.strings.daihon_pin_extension
+                                            },
+                                        ),
+                                        icon = if (state.pinned) {
+                                            MaterialSymbols.RoundedFilled.Keep
+                                        } else {
+                                            MaterialSymbols.Rounded.Keep
+                                        },
+                                        onClick = onClickPin,
+                                    ),
+                                )
+                            }
+                            add(
+                                AppBar.OverflowAction(
+                                    title = stringResource(MR.strings.pref_clear_cookies),
+                                    onClick = onClickClearCookies,
+                                ),
+                            )
+                        },
                     )
                 },
                 scrollBehavior = scrollBehavior,
@@ -108,8 +132,6 @@ fun ExtensionDetailsScreen(
                 ?.takeIf { it.isNotBlank() }
                 ?.let { website -> { uriHandler.openUri(website) } },
             sources = state.sources,
-            pinned = state.pinned,
-            onClickPin = onClickPin,
             onClickToggleAllLanguages = if (state.sources.all { it.enabled }) onClickDisableAll else onClickEnableAll,
             onClickGlobalLanguages = onClickGlobalLanguages,
             incognitoMode = state.isIncognito,
@@ -127,8 +149,6 @@ private fun ExtensionDetails(
     extension: Extension.Loaded,
     onClickStore: (() -> Unit)?,
     sources: List<ExtensionSourceItem>,
-    pinned: Boolean,
-    onClickPin: () -> Unit,
     onClickToggleAllLanguages: () -> Unit,
     onClickGlobalLanguages: () -> Unit,
     incognitoMode: Boolean,
@@ -177,10 +197,6 @@ private fun ExtensionDetails(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Button(onClick = onClickPin) {
-                        val label = if (pinned) MR.strings.daihon_unpin_extension else MR.strings.daihon_pin_extension
-                        Text(stringResource(label))
-                    }
                     Button(onClick = onClickToggleAllLanguages) {
                         Text(
                             stringResource(
@@ -226,7 +242,7 @@ private fun ExtensionDetails(
 
 @Composable
 private fun DetailsHeader(
-    extension: Extension.Installed,
+    extension: Extension.Loaded,
     extIncognitoMode: Boolean,
     onClickStore: (() -> Unit)?,
     onClickContentWarning: () -> Unit,
@@ -236,215 +252,108 @@ private fun DetailsHeader(
 ) {
     val context = LocalContext.current
     val contentWarning = extension.contentWarning.label
+    val incognitoSummary = stringResource(MR.strings.pref_incognito_mode_extension_summary)
 
-    Column {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = MaterialTheme.padding.medium)
-                .padding(
-                    top = MaterialTheme.padding.medium,
-                    bottom = MaterialTheme.padding.small,
-                )
-                .clickable {
-                    val extDebugInfo = buildString {
-                        append(
-                            """
-                            Extension name: ${extension.name} (lang: ${extension.lang}; package: ${extension.pkgName})
-                            Extension version: ${extension.versionName} (lib: ${extension.libVersion}; version code: ${extension.versionCode})
-                            Content warning: ${extension.contentWarning}
-                            """.trimIndent(),
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+        val sideBySide = maxWidth >= 420.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
+        val actionsWidth = if (sideBySide) (maxWidth * 0.5f).coerceAtMost(256.dp) else maxWidth
+        val identityWidth = if (sideBySide) maxWidth - actionsWidth - 12.dp else maxWidth
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                modifier = Modifier.width(identityWidth).clip(MaterialTheme.shapes.small).clickable {
+                    val debugInfo = """
+                        Extension name: ${extension.name} (lang: ${extension.lang}; package: ${extension.pkgName})
+                        Extension version: ${extension.versionName} (lib: ${extension.libVersion}; version code: ${extension.versionCode})
+                        Content warning: ${extension.contentWarning}
+
+                        Update available: ${extension.hasUpdate}
+                        Orphaned: ${extension.isObsolete}
+                        Shared: ${extension.isShared}
+                    """.trimIndent()
+                    val repository = extension.store?.let { "\nRepository: ${it.indexUrl}" }.orEmpty()
+                    context.copyToClipboard("Extension Debug information", debugInfo + repository)
+                }.padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ExtensionIcon(extension, Modifier.size(56.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(extension.versionName, style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        text = extension.pkgName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    extension.store?.let { store ->
+                        Text(
+                            text = store.name,
+                            modifier = Modifier.clickable(enabled = onClickStore != null) { onClickStore?.invoke() },
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
                         )
-
-                        if (extension is Extension.Loaded) {
-                            append("\n\n")
-                            appendLine(
-                                """
-                                Update available: ${extension.hasUpdate}
-                                Orphaned: ${extension.isObsolete}
-                                Shared: ${extension.isShared}
-                                """.trimIndent(),
+                    }
+                    if (!extension.isShared) {
+                        ExtensionPill(text = stringResource(MR.strings.ext_installer_private))
+                    }
+                    if (contentWarning != null) {
+                        Row(
+                            modifier = Modifier.clickable(onClick = onClickContentWarning),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = stringResource(contentWarning.title),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = contentWarning.color,
                             )
-                            val store = extension.store
-                            if (store != null) {
-                                append("Repository: ${store.indexUrl}")
-                            }
+                            Icon(
+                                MaterialSymbols.Rounded.Info,
+                                stringResource(MR.strings.ext_info_warning),
+                                Modifier.size(16.dp),
+                            )
                         }
                     }
-                    context.copyToClipboard("Extension Debug information", extDebugInfo)
-                },
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            ExtensionIcon(
-                modifier = Modifier
-                    .size(112.dp),
-                extension = extension,
-                density = DisplayMetrics.DENSITY_XXXHIGH,
-            )
-
-            Text(
-                text = extension.name,
-                style = MaterialTheme.typography.headlineSmall,
-                textAlign = TextAlign.Center,
-            )
-
-            Text(
-                text = extension.pkgName,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            extension.store?.let { store ->
-                Text(
-                    text = store.name,
-                    modifier = Modifier
-                        .clip(MaterialTheme.shapes.small)
-                        .clickable(enabled = onClickStore != null) { onClickStore?.invoke() }
-                        .padding(
-                            horizontal = MaterialTheme.padding.extraSmall,
-                            vertical = MaterialTheme.padding.extraSmall / 2,
-                        ),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-
-            if ((extension as? Extension.Loaded)?.isShared == false) {
-                ExtensionPill(
-                    text = stringResource(MR.strings.ext_installer_private),
-                    modifier = Modifier.padding(top = MaterialTheme.padding.small),
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = MaterialTheme.padding.medium,
-                    vertical = MaterialTheme.padding.small,
-                ),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            InfoText(
-                modifier = Modifier.weight(1f),
-                primaryText = extension.versionName,
-                secondaryText = stringResource(MR.strings.ext_info_version),
-            )
-
-            InfoDivider()
-
-            InfoText(
-                modifier = Modifier.weight(1f),
-                primaryText = LocaleHelper.getSourceDisplayName(extension.lang, context),
-                secondaryText = stringResource(MR.strings.ext_info_language),
-            )
-
-            if (contentWarning != null) {
-                InfoDivider()
-
-                InfoText(
-                    modifier = Modifier.weight(1f),
-                    primaryText = stringResource(contentWarning.title),
-                    primaryTextColor = contentWarning.color,
-                    secondaryText = stringResource(MR.strings.ext_info_warning),
-                    onClick = onClickContentWarning,
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .padding(horizontal = MaterialTheme.padding.medium)
-                .padding(top = MaterialTheme.padding.small),
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.medium),
-        ) {
-            OutlinedButton(
-                modifier = Modifier.weight(1f),
-                onClick = onClickUninstall,
-            ) {
-                Text(stringResource(MR.strings.ext_uninstall))
-            }
-
-            if (onClickAppInfo != null) {
-                Button(
-                    modifier = Modifier.weight(1f),
-                    onClick = onClickAppInfo,
-                ) {
-                    Text(stringResource(MR.strings.ext_app_info))
                 }
             }
-        }
 
-        TextPreferenceWidget(
-            modifier = Modifier.padding(horizontal = MaterialTheme.padding.small),
-            title = stringResource(MR.strings.pref_incognito_mode),
-            subtitle = stringResource(MR.strings.pref_incognito_mode_extension_summary),
-            icon = MaterialSymbols.Rounded.Eyeglasses2,
-            widget = {
+            Column(
+                modifier = Modifier.width(actionsWidth),
+                horizontalAlignment = if (sideBySide) Alignment.End else Alignment.Start,
+            ) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = onClickUninstall, contentPadding = PaddingValues(horizontal = 12.dp)) {
+                        Text(stringResource(MR.strings.ext_uninstall))
+                    }
+                    if (onClickAppInfo != null) {
+                        Button(onClick = onClickAppInfo, contentPadding = PaddingValues(horizontal = 12.dp)) {
+                            Text(stringResource(MR.strings.ext_app_info))
+                        }
+                    }
+                }
                 Row(
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .clip(MaterialTheme.shapes.small)
+                        .toggleable(extIncognitoMode, role = Role.Switch, onValueChange = onExtIncognitoChange)
+                        .semantics { contentDescription = incognitoSummary },
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Switch(
-                        checked = extIncognitoMode,
-                        onCheckedChange = onExtIncognitoChange,
-                        modifier = Modifier.padding(start = TrailingWidgetBuffer),
+                    Icon(MaterialSymbols.Rounded.Eyeglasses2, null, Modifier.size(20.dp))
+                    Text(
+                        stringResource(MR.strings.pref_incognito_mode),
+                        style = MaterialTheme.typography.bodyMedium,
                     )
+                    Switch(checked = extIncognitoMode, onCheckedChange = null)
                 }
-            },
-        )
-
-        HorizontalDivider()
+            }
+        }
     }
-}
-
-@Composable
-private fun InfoText(
-    primaryText: String,
-    secondaryText: String,
-    modifier: Modifier = Modifier,
-    primaryTextColor: Color = Color.Unspecified,
-    onClick: (() -> Unit)? = null,
-) {
-    val clickableModifier = if (onClick != null) {
-        Modifier.clickable(interactionSource = null, indication = null, onClick = onClick)
-    } else {
-        Modifier
-    }
-
-    Column(
-        modifier = modifier.then(clickableModifier),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = primaryText,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleSmall,
-            color = primaryTextColor,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-
-        Text(
-            text = secondaryText + if (onClick != null) " ⓘ" else "",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-        )
-    }
-}
-
-@Composable
-private fun InfoDivider() {
-    VerticalDivider(
-        modifier = Modifier
-            .padding(horizontal = MaterialTheme.padding.small)
-            .height(24.dp),
-    )
+    HorizontalDivider()
 }
 
 @Composable
