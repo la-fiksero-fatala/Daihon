@@ -29,6 +29,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: Dependency Review
         if: github.event_name == 'pull_request'
@@ -60,17 +62,30 @@ jobs:
           name: test-report-${{ github.sha }}
           path: app/build/reports/tests/testDebugUnitTest
 
-      - name: Build app
-        run: ./gradlew :app:assembleNightly
+      - name: Build production app
+        id: build_app
+        env:
+          DAIHON_KEYSTORE_BASE64: ${{ github.event_name != 'pull_request' && secrets.DAIHON_KEYSTORE_BASE64 || '' }}
+          DAIHON_KEYSTORE_PASSWORD: ${{ github.event_name != 'pull_request' && secrets.DAIHON_KEYSTORE_PASSWORD || '' }}
+        run: |
+          if [ -n "$DAIHON_KEYSTORE_BASE64" ]; then
+            umask 077
+            export DAIHON_KEYSTORE_PATH="$RUNNER_TEMP/daihon-release.p12"
+            trap 'rm -f "$DAIHON_KEYSTORE_PATH"' EXIT
+            printf '%s' "$DAIHON_KEYSTORE_BASE64" | base64 --decode > "$DAIHON_KEYSTORE_PATH"
+          fi
+          ./gradlew :app:assembleRelease
+          daihon_version=$(jq -r '.elements[] | select(.type == "UNIVERSAL") | .versionName' app/build/outputs/apk/release/output-metadata.json)
+          printf 'version=%s\n' "$daihon_version" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: Daihon-preview-${{ github.sha }}
-          path: app/build/outputs/apk/nightly/app-universal-nightly.apk
+          name: Daihon-${{ steps.build_app.outputs.version }}
+          path: app/build/outputs/apk/release/app-universal-release*.apk
 
       - name: Upload mapping
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mapping-${{ github.sha }}
-          path: app/build/outputs/mapping/nightly
+          path: app/build/outputs/mapping/release

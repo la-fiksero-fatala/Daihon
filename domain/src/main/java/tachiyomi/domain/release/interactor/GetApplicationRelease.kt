@@ -30,28 +30,28 @@ class GetApplicationRelease(
         versionName: String,
         versionTag: String,
     ): Boolean {
-        // Removes prefixes like "r" or "v"
-        val newVersion = versionTag.replace("[^\\d.]".toRegex(), "")
-        return if (isNightly) {
-            // Nightly builds: based on releases in "mihonapp/mihon-preview" repo
-            // tagged as something like "r1234"
-            newVersion.toInt() > commitCount
-        } else {
-            // Release builds: based on releases in "mihonapp/mihon" repo
-            // tagged as something like "v0.1.2"
-            val oldVersion = versionName.replace("[^\\d.]".toRegex(), "")
-
-            val newSemVer = newVersion.split(".").map { it.toInt() }
-            val oldSemVer = oldVersion.split(".").map { it.toInt() }
-
-            oldSemVer.mapIndexed { index, i ->
-                if (newSemVer[index] > i) {
-                    return true
-                }
-            }
-
-            false
+        val rollingPattern = Regex("^(.+)-[0-9]{8}-[0-9]{6}-r([0-9]+)$")
+        val currentRolling = rollingPattern.matchEntire(versionName)
+        val newRolling = rollingPattern.matchEntire(versionTag)
+        if (newRolling != null) {
+            val sameBranch = currentRolling == null ||
+                currentRolling.groupValues[1] == newRolling.groupValues[1]
+            val revision = newRolling.groupValues[2].toLongOrNull() ?: return false
+            return sameBranch && revision > commitCount
         }
+        if (currentRolling != null) return false
+
+        // Retain compatibility with the older revision and semantic-version tags.
+        val newVersion = versionTag.removePrefix("v").removePrefix("r")
+        if (isNightly) return (newVersion.toIntOrNull() ?: return false) > commitCount
+
+        val newParts = newVersion.split(".").map { it.toIntOrNull() ?: return false }
+        val oldParts = versionName.removePrefix("v").split(".").map { it.toIntOrNull() ?: return false }
+        for (index in 0 until maxOf(newParts.size, oldParts.size)) {
+            val comparison = (newParts.getOrElse(index) { 0 }).compareTo(oldParts.getOrElse(index) { 0 })
+            if (comparison != 0) return comparison > 0
+        }
+        return false
     }
 
     data class Arguments(

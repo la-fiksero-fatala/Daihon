@@ -196,15 +196,15 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     private fun initializeMigrator() {
         val preference = preferenceStore.getInt(Preference.appStateKey("last_version_code"), 0)
         logcat {
-            "Migration from ${preference.get()} to ${BuildConfig.VERSION_CODE} with ${migrations.size} migration(s)"
+            "Migration from ${preference.get()} to ${BuildConfig.MIGRATION_VERSION} with ${migrations.size} migration(s)"
         }
         Migrator.initialize(
             old = preference.get(),
-            new = BuildConfig.VERSION_CODE,
+            new = BuildConfig.MIGRATION_VERSION,
             migrations = migrations.toList(),
             onMigrationComplete = {
-                logcat { "Updating last version to ${BuildConfig.VERSION_CODE}" }
-                preference.set(BuildConfig.VERSION_CODE)
+                logcat { "Updating last version to ${BuildConfig.MIGRATION_VERSION}" }
+                preference.set(BuildConfig.MIGRATION_VERSION)
             },
         )
     }

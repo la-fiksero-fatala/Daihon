@@ -1,9 +1,9 @@
 import com.android.build.api.variant.ApplicationVariant
 import com.android.build.api.variant.BuildConfigField
-import mihon.gradle.getCurrentTime
 import mihon.gradle.getLatestCommitCount
 import mihon.gradle.getLatestCommitSha
 import mihon.gradle.getLatestCommitTime
+import mihon.gradle.getRollingVersionName
 import mihon.gradle.tasks.ReplaceShortcutsPlaceholderTask
 import java.io.FileInputStream
 import java.util.Properties
@@ -20,7 +20,21 @@ plugins {
     alias(libs.plugins.apollo)
 }
 
+val latestCommitCount = getLatestCommitCount()
+val latestCommitSha = getLatestCommitSha()
+val latestCommitTime = getLatestCommitTime()
+val rollingVersionName = getRollingVersionName()
+
 val keystorePropertiesFile = layout.settingsDirectory.file("keystore.properties").asFile
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        FileInputStream(keystorePropertiesFile).use(::load)
+    }
+}
+val releaseStoreFile = providers.environmentVariable("DAIHON_KEYSTORE_PATH")
+    .orElse(provider { keystoreProperties.getProperty("storeFile") })
+val releaseStorePassword = providers.environmentVariable("DAIHON_KEYSTORE_PASSWORD")
+    .orElse(provider { keystoreProperties.getProperty("storePassword") })
 
 android {
     namespace = "eu.kanade.tachiyomi"
@@ -28,36 +42,28 @@ android {
     defaultConfig {
         applicationId = "app.daihon"
 
-        versionCode = 39
-        versionName = "0.21.3"
+        versionCode = latestCommitCount.get().toInt().coerceAtLeast(1)
+        versionName = rollingVersionName.get()
+
+        // Settings migrations have their own schema version, independent of rolling APK revisions.
+        buildConfigField("int", "MIGRATION_VERSION", "39")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    if (System.getenv("MIHON_GITHUB_RELEASE").toBoolean()) {
+    if (releaseStoreFile.isPresent) {
         signingConfigs {
-            named("debug") {
-                storeFile = file(System.getenv("storeFile"))
-                storePassword = System.getenv("storePassword")
-                keyAlias = System.getenv("keyAlias")
-                keyPassword = System.getenv("keyPassword")
-            }
-        }
-    } else if (keystorePropertiesFile.exists()) {
-        val keystoreProperties = FileInputStream(keystorePropertiesFile).use { Properties().apply { load(it) } }
-
-        signingConfigs {
-            named("debug") {
-                storeFile = file(keystoreProperties.getProperty("storeFile"))
-                storePassword = keystoreProperties.getProperty("storePassword")
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                keyPassword = keystoreProperties.getProperty("keyPassword")
+            create("release") {
+                storeFile = file(releaseStoreFile.get())
+                storePassword = releaseStorePassword.get()
+                keyAlias = keystoreProperties.getProperty("keyAlias", "daihon")
+                keyPassword = keystoreProperties.getProperty("keyPassword", releaseStorePassword.get())
             }
         }
     }
 
     buildTypes {
-        val debug = getByName("debug") {
+        getByName("debug") {
             applicationIdSuffix = ".dev"
             resValue("string", "app_name", "Daihon Debug")
             isPseudoLocalesEnabled = true
@@ -66,7 +72,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
 
-            signingConfig = debug.signingConfig
+            signingConfig = signingConfigs.findByName("release")
 
             isProfileable = true
 
@@ -75,14 +81,6 @@ android {
 
         val commonMatchingFallbacks = listOf(release.name)
 
-        create("nightly") {
-            initWith(release)
-
-            applicationIdSuffix = ".debug"
-            resValue("string", "app_name", "Daihon Preview")
-
-            matchingFallbacks.addAll(commonMatchingFallbacks)
-        }
         create("benchmark") {
             initWith(release)
 
@@ -94,7 +92,6 @@ android {
     }
 
     sourceSets {
-        getByName("nightly").res.directories.add("src/debug/res")
         getByName("benchmark").res.directories.add("src/debug/res")
     }
 
@@ -378,30 +375,15 @@ apollo {
     }
 }
 
-val latestCommitCount = getLatestCommitCount()
-val latestCommitSha = getLatestCommitSha()
-val latestCommitTime = getLatestCommitTime()
-val currentTime = getCurrentTime()
-
 fun ApplicationVariant.buildConfigField(type: String, name: String, value: Provider<String>) {
     buildConfigFields?.put(name, value.map { BuildConfigField(type, it, null) })
 }
 
 androidComponents {
     onVariants { variant ->
-        val isUnstableBuild = variant.buildType == "debug" || variant.buildType == "nightly"
-        val buildTime = if (isUnstableBuild) currentTime else latestCommitTime
-
         variant.buildConfigField("String", "COMMIT_COUNT", latestCommitCount.map { "\"$it\"" })
         variant.buildConfigField("String", "COMMIT_SHA", latestCommitSha.map { "\"$it\"" })
-        variant.buildConfigField("String", "BUILD_TIME", buildTime.map { "\"$it\"" })
-
-        if (isUnstableBuild) {
-            variant.outputs.forEach { output ->
-                val versionName = output.versionName.get()
-                output.versionName.set(latestCommitCount.map { "$versionName-$it" })
-            }
-        }
+        variant.buildConfigField("String", "BUILD_TIME", latestCommitTime.map { "\"$it\"" })
     }
 
     onVariants { variant ->

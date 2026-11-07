@@ -10,12 +10,33 @@ import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.process.ExecOperations
 import java.io.ByteArrayOutputStream
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Instant
 
 private val logger = Logging.getLogger("mihon.gradle.BuildInfo")
+
+fun Project.getRollingVersionName(): Provider<String> {
+    val githubBranch = providers.environmentVariable("GITHUB_HEAD_REF").orElse("")
+        .zip(providers.environmentVariable("GITHUB_REF_NAME").orElse("")) { head, ref -> head.ifBlank { ref } }
+    val branch = git("branch", "--show-current", default = provider { "detached" })
+        .zip(githubBranch) { (local, _), remote ->
+            local.ifBlank { remote.ifBlank { "detached" } }
+                .replace(Regex("[^A-Za-z0-9-]+"), "-")
+                .trim('-')
+                .ifBlank { "detached" }
+        }
+    val timestamp = getLatestCommitTime().map {
+        DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss", Locale.ROOT).withZone(ZoneOffset.UTC)
+            .format(java.time.Instant.parse(it))
+    }
+    return branch.zip(timestamp) { name, time -> "$name-$time" }
+        .zip(getLatestCommitCount()) { name, revision -> "$name-r$revision" }
+}
 
 fun Project.getLatestCommitCount(): Provider<String> {
     return git("rev-list", "--count", "HEAD", default = provider { "0" }).map { it.first }

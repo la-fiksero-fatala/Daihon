@@ -21,7 +21,6 @@ import eu.kanade.presentation.util.rememberIs24HourSystem
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.util.lang.toDateTimestampString
 import eu.kanade.tachiyomi.util.system.copyToClipboard
-import eu.kanade.tachiyomi.util.system.isNightlyBuildType
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import mihon.app.di.appGraph
@@ -97,36 +96,8 @@ object AboutScreen : Screen() {
     }
 
     fun getVersionName(withBuildDate: Boolean): String {
-        return when {
-            BuildConfig.DEBUG -> {
-                "Debug ${BuildConfig.COMMIT_SHA}".let {
-                    if (withBuildDate) {
-                        "$it (${getFormattedBuildTime()})"
-                    } else {
-                        it
-                    }
-                }
-            }
-            isNightlyBuildType -> {
-                "Preview r${BuildConfig.COMMIT_COUNT}".let {
-                    if (withBuildDate) {
-                        "$it (${BuildConfig.COMMIT_SHA}, ${getFormattedBuildTime()})"
-                    } else {
-                        "$it (${BuildConfig.COMMIT_SHA})"
-                    }
-                }
-            }
-            else -> {
-                val channel = "Stable"
-                "$channel v${BuildConfig.VERSION_NAME}".let {
-                    if (withBuildDate) {
-                        "$it (${getFormattedBuildTime()})"
-                    } else {
-                        it
-                    }
-                }
-            }
-        }
+        val version = if (BuildConfig.DEBUG) "Debug ${BuildConfig.VERSION_NAME}" else BuildConfig.VERSION_NAME
+        return if (withBuildDate) "$version (${getFormattedBuildTime()})" else version
     }
 
     internal fun getFormattedBuildTime(): String {
