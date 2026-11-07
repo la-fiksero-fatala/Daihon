@@ -17,10 +17,12 @@ data class SourceLanguageSelection(val languages: Set<String>, val overrides: Se
         else -> followsDefault(language)
     }
 
-    private companion object {
-        val unclassified = setOf("", "all", "multi", "mul", "other", "und")
+    companion object {
+        private val unclassified = setOf("", "all", "multi", "mul", "other", "und")
 
-        fun family(language: String): String =
+        fun isUnclassified(language: String): Boolean = family(language) in unclassified
+
+        private fun family(language: String): String =
             Locale.forLanguageTag(language.replace('_', '-')).language.lowercase(Locale.ROOT)
     }
 }

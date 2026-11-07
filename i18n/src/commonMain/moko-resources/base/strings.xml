@@ -1172,7 +1172,7 @@
     <string name="daihon_source_in_library">In library</string>
     <string name="daihon_no_enabled_languages">No enabled languages. Open Extension Info</string>
     <string name="daihon_content_language">Content language</string>
-    <string name="daihon_content_language_help">Choose the languages that extensions enable by default. Multi-language sources are included by default.</string>
+    <string name="daihon_content_language_help">Choose the languages that extensions enable by default.</string>
     <string name="daihon_source_columns">Maximum source tiles per row</string>
     <string name="daihon_source_explore_default">Open Explore on</string>
     <string name="daihon_source_selected">%1$d selected</string>

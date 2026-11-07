@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import eu.kanade.domain.source.service.SourceLanguageSelection
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.util.system.LocaleHelper
@@ -64,7 +65,7 @@ internal fun ContentLanguageChoices(modifier: Modifier = Modifier) {
                 installed.flatMap { extension -> extension.sources.map { it.lang } } +
                 available.flatMap { extension -> extension.sources.map { it.lang } }
             )
-            .filterNot { it in setOf("", "all", "multi", "mul", "other", "und") }
+            .filterNot { SourceLanguageSelection.isUnclassified(it) }
             .sortedWith(compareBy<String> { it != appLanguage }.then(LocaleHelper.comparator))
     }
 

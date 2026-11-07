@@ -8,7 +8,7 @@ class SourceLanguageSelectionTest {
     @Test
     fun `regional variants and multi sources survive the global filter`() {
         val selection = SourceLanguageSelection(setOf("pt", "zh-Hant"))
-        listOf("pt-BR", "zh-CN", "all", "multi", "mul", "other", "und", "").forEach { language ->
+        listOf("pt-BR", "zh-CN", "all", "Multi", "mul", "other", "und", "").forEach { language ->
             selection.isEnabled(1, language) shouldBe true
         }
         selection.isEnabled(1, "fr") shouldBe false
