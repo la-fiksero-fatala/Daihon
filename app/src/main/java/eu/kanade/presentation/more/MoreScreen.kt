@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.more.settings.widget.SwitchPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
+import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.more.DownloadQueueState
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.Label
@@ -41,6 +42,7 @@ fun MoreScreen(
             item {
                 LogoHeader(
                     iconPadding = PaddingValues(vertical = 32.dp),
+                    iconRes = R.drawable.ic_daihon_more,
                 )
             }
             item {
