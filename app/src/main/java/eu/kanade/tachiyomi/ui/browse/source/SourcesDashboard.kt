@@ -156,19 +156,24 @@ fun SourcesDashboard() {
                 fun columnCount(width: Dp) =
                     ((width - gap) / (minTileWidth + gap)).toInt().coerceIn(1, columns.coerceIn(1, 5))
 
+                fun tileWidth(width: Dp, columns: Int) =
+                    ((width - gap * (columns + 1)) / columns).coerceIn(1.dp, maxTileWidth)
+
                 val fullColumns = columnCount(maxWidth)
-                val fullTileWidth = ((maxWidth - gap * (fullColumns + 1)) / fullColumns).coerceAtMost(maxTileWidth)
                 val rows = (items.size - 1) / fullColumns + 1
-                val needsPaging = (fullTileWidth + gap) * rows + gap > maxHeight
+                val needsPaging = (tileWidth(maxWidth, fullColumns) + gap + 1.dp) * rows + gap > maxHeight
                 val navigation = LocalPaperNavigationSettings.current
                 val railWidth = if (needsPaging && navigation.visible(LocalPaperNavigationArea.current)) {
                     navigation.height
                 } else {
                     0.dp
                 }
-                val fittedColumns = columnCount(maxWidth - railWidth)
+                val gridWidth = maxWidth - railWidth
+                val fittedColumns = columnCount(gridWidth)
+                // Keep row height stable if the smaller tiles fit and the rail disappears.
+                val tileSide = tileWidth(gridWidth, fittedColumns)
 
-                key(fittedColumns) {
+                key(fittedColumns, tileSide, maxHeight) {
                     PaperLazyVerticalGrid(
                         modifier = Modifier.fillMaxSize(),
                         columns = GridCells.Fixed(fittedColumns),
@@ -181,7 +186,7 @@ fun SourcesDashboard() {
                             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                                 SourceTile(
                                     tile = tile,
-                                    modifier = Modifier.widthIn(max = maxTileWidth),
+                                    modifier = Modifier.widthIn(max = tileSide),
                                     onExplore = {
                                         val source = tile.enabledSources.singleOrNull()
                                         if (source != null) explore(source) else exploreKey = tile.key
