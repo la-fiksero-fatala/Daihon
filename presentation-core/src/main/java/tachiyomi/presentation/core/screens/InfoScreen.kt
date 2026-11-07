@@ -7,19 +7,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -30,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Newspaper
+import tachiyomi.presentation.core.components.LocalPaperPageIndicator
 import tachiyomi.presentation.core.components.PaperScrollColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
@@ -47,9 +51,35 @@ fun InfoScreen(
     rejectText: String? = null,
     onRejectClick: (() -> Unit)? = null,
     rejectAction: (@Composable RowScope.() -> Unit)? = null,
+    fillContent: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Scaffold(
+        topBar = {
+            if (fillContent) {
+                Column(
+                    Modifier.fillMaxWidth().statusBarsPadding().padding(
+                        horizontal = MaterialTheme.padding.medium,
+                        vertical = MaterialTheme.padding.small,
+                    ),
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(icon, null, Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+                        Text(headingText, Modifier.weight(1f), style = MaterialTheme.typography.headlineSmall)
+                        LocalPaperPageIndicator.current?.Indicator()
+                    }
+                    Text(
+                        subtitleText,
+                        Modifier.padding(top = MaterialTheme.padding.extraSmall).secondaryItemAlpha(),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        },
+        bottomBarBorder = !fillContent,
         bottomBar = {
             val strokeWidth = Dp.Hairline
             val borderColor = MaterialTheme.colorScheme.outline
@@ -91,6 +121,11 @@ fun InfoScreen(
             }
         },
     ) { paddingValues ->
+        if (fillContent) {
+            Column(Modifier.fillMaxSize().padding(paddingValues).consumeWindowInsets(paddingValues), content = content)
+            return@Scaffold
+        }
+
         // Status bar scrim
         Box(
             modifier = Modifier

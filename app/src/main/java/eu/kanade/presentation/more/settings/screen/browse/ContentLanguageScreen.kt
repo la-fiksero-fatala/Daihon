@@ -1,6 +1,8 @@
 package eu.kanade.presentation.more.settings.screen.browse
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -44,7 +46,7 @@ class ContentLanguageScreen : Screen() {
                     scrollBehavior = scrollBehavior,
                 )
             },
-        ) { padding -> ContentLanguageChoices(Modifier.padding(padding)) }
+        ) { padding -> ContentLanguageChoices(Modifier.padding(padding).consumeWindowInsets(padding)) }
     }
 }
 
@@ -81,7 +83,10 @@ internal fun ContentLanguageChoices(modifier: Modifier = Modifier) {
             label = { Text(stringResource(MR.strings.action_search)) },
             singleLine = true,
         )
-        PaperLazyColumn(modifier = Modifier.weight(1f)) {
+        PaperLazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+        ) {
             items(
                 languages.filter {
                     it.contains(query.trim(), ignoreCase = true) ||

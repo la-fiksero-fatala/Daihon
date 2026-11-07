@@ -1,7 +1,7 @@
 package eu.kanade.presentation.more.onboarding
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,13 +17,13 @@ internal class ContentLanguageStep : OnboardingStep {
 
     @Composable
     override fun Content() {
-        Column {
+        Column(Modifier.fillMaxSize()) {
             Text(
                 stringResource(MR.strings.daihon_content_language),
-                modifier = Modifier.padding(start = 16.dp, top = 12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp).padding(top = 8.dp),
                 style = MaterialTheme.typography.titleLarge,
             )
-            ContentLanguageChoices(Modifier.height(320.dp))
+            ContentLanguageChoices(Modifier.weight(1f))
         }
     }
 }
