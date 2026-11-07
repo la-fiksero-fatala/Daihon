@@ -87,7 +87,7 @@ object PaperNavigation {
 }
 
 @Composable
-internal fun paperInput(
+fun paperInput(
     owner: Any,
     enabled: Boolean = true,
     onNavigate: (Int) -> Unit,

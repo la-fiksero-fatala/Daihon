@@ -107,104 +107,148 @@ fun LibraryPager(
             remember { mutableIntStateOf(0) }
         }
 
-        val onClickManga: (LibraryManga) -> Unit = { onClickManga(category, it) }
-        val onLongClickManga: (LibraryManga) -> Unit = { onLongClickManga(category, it) }
+        LibraryMangaPage(
+            items = items,
+            navigation = navigation,
+            paginated = paginated,
+            active = state.currentPage == page,
+            displayMode = displayMode,
+            columns = columns,
+            pageRows = pageRows,
+            stretchPageSpacing = stretchPageSpacing,
+            onPageRowsChange = onPageRowsChange,
+            pageButtons = pageButtons,
+            pageSlider = pageSlider,
+            contentPadding = contentPadding,
+            hasActiveFilters = hasActiveFilters,
+            selection = selection,
+            searchQuery = searchQuery,
+            onGlobalSearchClicked = onGlobalSearchClicked,
+            onClickManga = { onClickManga(category, it) },
+            onLongClickManga = { onLongClickManga(category, it) },
+            onClickContinueReading = onClickContinueReading,
+        )
+    }
+}
 
-        val listState = rememberLazyListState()
-        val gridState = rememberLazyGridState()
-        if (!paginated) {
-            LibraryScrollNavigation(
-                navigation = navigation,
-                listState = listState,
-                gridState = gridState,
-                isList = displayMode == LibraryDisplayMode.List,
-                active = state.currentPage == page,
-            )
-        }
+@Composable
+internal fun LibraryMangaPage(
+    items: List<LibraryItem>,
+    navigation: LibraryNavigation,
+    paginated: Boolean,
+    active: Boolean,
+    displayMode: LibraryDisplayMode,
+    columns: Int,
+    pageRows: Int,
+    stretchPageSpacing: Boolean,
+    onPageRowsChange: (Int) -> Unit,
+    pageButtons: LibraryPageButtons,
+    pageSlider: Boolean,
+    contentPadding: PaddingValues,
+    hasActiveFilters: Boolean,
+    selection: Set<Long>,
+    searchQuery: String?,
+    onClickManga: (LibraryManga) -> Unit,
+    onLongClickManga: (LibraryManga) -> Unit,
+    onClickContinueReading: ((LibraryManga) -> Unit)?,
+    onGlobalSearchClicked: (() -> Unit)? = null,
+    usePaperInput: Boolean = false,
+) {
+    val listState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
+    if (!paginated) {
+        LibraryScrollNavigation(
+            navigation = navigation,
+            listState = listState,
+            gridState = gridState,
+            isList = displayMode == LibraryDisplayMode.List,
+            active = active,
+        )
+    }
 
-        val content: @Composable (List<LibraryItem>, Dp, Int) -> Unit = {
-                displayedItems,
-                maxItemWidth,
-                stretchRows,
-            ->
-            when (displayMode) {
-                LibraryDisplayMode.List -> {
-                    LibraryList(
-                        stretchRows = stretchRows,
-                        state = listState,
-                        userScrollEnabled = !paginated,
-                        items = displayedItems,
-                        contentPadding = if (paginated) PaddingValues(0.dp) else contentPadding,
-                        selection = selection,
-                        onClick = onClickManga,
-                        onLongClick = onLongClickManga,
-                        onClickContinueReading = onClickContinueReading,
-                        searchQuery = searchQuery.takeUnless { paginated },
-                        onGlobalSearchClicked = onGlobalSearchClicked,
-                    )
-                }
-                LibraryDisplayMode.CompactGrid, LibraryDisplayMode.CoverOnlyGrid -> {
-                    LibraryCompactGrid(
-                        stretchRows = stretchRows,
-                        stretchColumns = stretchRows > 0 && pageRows != 0,
-                        maxItemWidth = maxItemWidth,
-                        state = gridState,
-                        userScrollEnabled = !paginated,
-                        items = displayedItems,
-                        showTitle = displayMode is LibraryDisplayMode.CompactGrid,
-                        columns = columns,
-                        contentPadding = if (paginated) PaddingValues(0.dp) else contentPadding,
-                        selection = selection,
-                        onClick = onClickManga,
-                        onLongClick = onLongClickManga,
-                        onClickContinueReading = onClickContinueReading,
-                        searchQuery = searchQuery.takeUnless { paginated },
-                        onGlobalSearchClicked = onGlobalSearchClicked,
-                    )
-                }
-                LibraryDisplayMode.ComfortableGrid -> {
-                    LibraryComfortableGrid(
-                        stretchRows = stretchRows,
-                        stretchColumns = stretchRows > 0 && pageRows != 0,
-                        maxItemWidth = maxItemWidth,
-                        state = gridState,
-                        userScrollEnabled = !paginated,
-                        items = displayedItems,
-                        columns = columns,
-                        contentPadding = if (paginated) PaddingValues(0.dp) else contentPadding,
-                        selection = selection,
-                        onClick = onClickManga,
-                        onLongClick = onLongClickManga,
-                        onClickContinueReading = onClickContinueReading,
-                        searchQuery = searchQuery.takeUnless { paginated },
-                        onGlobalSearchClicked = onGlobalSearchClicked,
-                    )
-                }
+    val content: @Composable (List<LibraryItem>, Dp, Int) -> Unit = {
+            displayedItems,
+            maxItemWidth,
+            stretchRows,
+        ->
+        when (displayMode) {
+            LibraryDisplayMode.List -> {
+                LibraryList(
+                    stretchRows = stretchRows,
+                    state = listState,
+                    userScrollEnabled = !paginated,
+                    items = displayedItems,
+                    contentPadding = if (paginated) PaddingValues(0.dp) else contentPadding,
+                    selection = selection,
+                    onClick = onClickManga,
+                    onLongClick = onLongClickManga,
+                    onClickContinueReading = onClickContinueReading,
+                    searchQuery = searchQuery.takeUnless { paginated },
+                    onGlobalSearchClicked = onGlobalSearchClicked ?: {},
+                )
+            }
+            LibraryDisplayMode.CompactGrid, LibraryDisplayMode.CoverOnlyGrid -> {
+                LibraryCompactGrid(
+                    stretchRows = stretchRows,
+                    stretchColumns = stretchRows > 0 && pageRows != 0,
+                    maxItemWidth = maxItemWidth,
+                    state = gridState,
+                    userScrollEnabled = !paginated,
+                    items = displayedItems,
+                    showTitle = displayMode is LibraryDisplayMode.CompactGrid,
+                    columns = columns,
+                    contentPadding = if (paginated) PaddingValues(0.dp) else contentPadding,
+                    selection = selection,
+                    onClick = onClickManga,
+                    onLongClick = onLongClickManga,
+                    onClickContinueReading = onClickContinueReading,
+                    searchQuery = searchQuery.takeUnless { paginated },
+                    onGlobalSearchClicked = onGlobalSearchClicked ?: {},
+                )
+            }
+            LibraryDisplayMode.ComfortableGrid -> {
+                LibraryComfortableGrid(
+                    stretchRows = stretchRows,
+                    stretchColumns = stretchRows > 0 && pageRows != 0,
+                    maxItemWidth = maxItemWidth,
+                    state = gridState,
+                    userScrollEnabled = !paginated,
+                    items = displayedItems,
+                    columns = columns,
+                    contentPadding = if (paginated) PaddingValues(0.dp) else contentPadding,
+                    selection = selection,
+                    onClick = onClickManga,
+                    onLongClick = onLongClickManga,
+                    onClickContinueReading = onClickContinueReading,
+                    searchQuery = searchQuery.takeUnless { paginated },
+                    onGlobalSearchClicked = onGlobalSearchClicked ?: {},
+                )
             }
         }
-        if (paginated) {
-            LibraryPaginatedContent(
-                items = items,
-                navigation = navigation,
-                active = state.currentPage == page,
-                listState = listState,
-                gridState = gridState,
-                displayMode = displayMode,
-                columns = columns,
-                requestedRows = pageRows,
-                onPageRowsChange = onPageRowsChange,
-                stretchPageSpacing = stretchPageSpacing,
-                buttons = pageButtons,
-                showSlider = pageSlider,
-                contentPadding = contentPadding,
-                searchQuery = searchQuery,
-                hasActiveFilters = hasActiveFilters,
-                onGlobalSearchClicked = onGlobalSearchClicked,
-                content = content,
-            )
-        } else {
-            content(items, Dp.Infinity, 0)
-        }
+    }
+    if (paginated) {
+        LibraryPaginatedContent(
+            items = items,
+            navigation = navigation,
+            active = active,
+            listState = listState,
+            gridState = gridState,
+            displayMode = displayMode,
+            columns = columns,
+            requestedRows = pageRows,
+            onPageRowsChange = onPageRowsChange,
+            stretchPageSpacing = stretchPageSpacing,
+            buttons = pageButtons,
+            showSlider = pageSlider,
+            contentPadding = contentPadding,
+            searchQuery = searchQuery,
+            hasActiveFilters = hasActiveFilters,
+            onGlobalSearchClicked = onGlobalSearchClicked,
+            usePaperInput = usePaperInput,
+            content = content,
+        )
+    } else {
+        content(items, Dp.Infinity, 0)
     }
 }
 

@@ -65,6 +65,7 @@ import tachiyomi.presentation.core.components.LocalPaperNavigationSettings
 import tachiyomi.presentation.core.components.PaperNavigationArea
 import tachiyomi.presentation.core.components.PaperPageControls
 import tachiyomi.presentation.core.components.PaperPageNumber
+import tachiyomi.presentation.core.components.paperInput
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -88,7 +89,8 @@ internal fun LibraryPaginatedContent(
     contentPadding: PaddingValues,
     searchQuery: String?,
     hasActiveFilters: Boolean,
-    onGlobalSearchClicked: () -> Unit,
+    onGlobalSearchClicked: (() -> Unit)?,
+    usePaperInput: Boolean,
     content: @Composable (List<LibraryItem>, Dp, Int) -> Unit,
 ) {
     val isList = displayMode == LibraryDisplayMode.List
@@ -200,8 +202,27 @@ internal fun LibraryPaginatedContent(
     }
 
     val swipeThreshold = with(density) { 48.dp.toPx() }
+    val pageInput = if (usePaperInput) {
+        paperInput(navigation, enabled = active && pageSize > 0, onNavigate = handler)
+    } else {
+        Modifier.pointerInput(swipeThreshold) {
+            var distance = 0f
+            detectVerticalDragGestures(
+                onDragStart = { distance = 0f },
+                onVerticalDrag = { change, amount ->
+                    change.consume()
+                    distance += amount
+                },
+                onDragEnd = {
+                    if (abs(distance) >= swipeThreshold) {
+                        currentOnPageChange(if (distance < 0) 1 else -1)
+                    }
+                },
+            )
+        }
+    }
     Column(Modifier.fillMaxSize().padding(contentPadding).consumeWindowInsets(contentPadding).navigationBarsPadding()) {
-        if (!searchQuery.isNullOrEmpty()) {
+        if (!searchQuery.isNullOrEmpty() && onGlobalSearchClicked != null) {
             GlobalSearchItem(searchQuery = searchQuery, onClick = onGlobalSearchClicked)
         }
         Row(Modifier.weight(1f)) {
@@ -216,21 +237,7 @@ internal fun LibraryPaginatedContent(
                     Modifier.weight(1f)
                         .onSizeChanged { viewport = it }
                         .alpha(if (pageSize == 0) 0f else 1f)
-                        .pointerInput(swipeThreshold) {
-                            var distance = 0f
-                            detectVerticalDragGestures(
-                                onDragStart = { distance = 0f },
-                                onVerticalDrag = { change, amount ->
-                                    change.consume()
-                                    distance += amount
-                                },
-                                onDragEnd = {
-                                    if (abs(distance) >= swipeThreshold) {
-                                        currentOnPageChange(if (distance < 0) 1 else -1)
-                                    }
-                                },
-                            )
-                        },
+                        .then(pageInput),
                 ) {
                     content(
                         items.subList(start, (start + size).coerceAtMost(items.size)),
