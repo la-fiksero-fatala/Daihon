@@ -5,6 +5,7 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import eu.kanade.domain.source.interactor.SetMigrateSorting
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import kotlinx.coroutines.flow.combine
 import mihon.domain.extension.model.ContentWarning
 import mihon.domain.migration.models.MigrationFlag
 import tachiyomi.core.common.preference.Preference
@@ -33,6 +34,15 @@ class SourcePreferences(
     )
 
     val disabledSources: Preference<Set<String>> = preferenceStore.getStringSet("hidden_catalogues", emptySet())
+
+    val sourceColumns: Preference<Int> = preferenceStore.getInt("daihon_source_columns", 3)
+
+    val exploreLatest: Preference<Boolean> = preferenceStore.getBoolean("daihon_source_explore_latest", false)
+
+    fun languageSelection() = SourceLanguageSelection(enabledLanguages.get(), disabledSources.get())
+
+    fun languageSelectionChanges() =
+        combine(enabledLanguages.changes(), disabledSources.changes(), ::SourceLanguageSelection)
 
     val incognitoExtensions: Preference<Set<String>> = preferenceStore.getStringSet("incognito_extensions", emptySet())
 

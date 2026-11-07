@@ -14,6 +14,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.browse.ExtensionScreen
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.TabContent
+import eu.kanade.presentation.more.settings.screen.browse.ContentLanguageScreen
 import eu.kanade.presentation.more.settings.screen.browse.ExtensionStoresScreen
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.ui.browse.extension.details.ExtensionDetailsScreen
@@ -40,8 +41,8 @@ fun extensionsTab(
         searchEnabled = true,
         actions = listOf(
             AppBar.OverflowAction(
-                title = stringResource(MR.strings.action_filter),
-                onClick = { navigator.push(ExtensionFilterScreen()) },
+                title = stringResource(MR.strings.daihon_content_language),
+                onClick = { navigator.push(ContentLanguageScreen()) },
             ),
             AppBar.OverflowAction(
                 title = stringResource(MR.strings.extensionStores),

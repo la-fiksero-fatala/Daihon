@@ -1168,4 +1168,17 @@
     <string name="daihon_native_pixels">1:1: %1$s</string>
     <string name="daihon_native_yes">Yes</string>
     <string name="daihon_native_no">No</string>
+    <string name="daihon_source_explore">Explore source</string>
+    <string name="daihon_source_in_library">In library</string>
+    <string name="daihon_no_enabled_languages">No enabled languages. Open Extension Info</string>
+    <string name="daihon_content_language">Content language</string>
+    <string name="daihon_content_language_help">Choose the languages that extensions enable by default. Multi-language sources are included by default.</string>
+    <string name="daihon_source_columns">Maximum source tiles per row</string>
+    <string name="daihon_source_explore_default">Open Explore on</string>
+    <string name="daihon_source_selected">%1$d selected</string>
+    <string name="daihon_enable_all_languages">Enable all languages</string>
+    <string name="daihon_disable_all_languages">Disable all languages</string>
+    <string name="daihon_use_global_languages">Enable global languages</string>
+    <string name="daihon_pin_extension">Pin extension</string>
+    <string name="daihon_unpin_extension">Unpin extension</string>
 </resources>

@@ -36,6 +36,7 @@ fun OnboardingScreen(
         listOf(
             StorageStep(),
             PermissionStep(),
+            ContentLanguageStep(),
             GuidesStep(onRestoreBackup = onRestoreBackup),
         )
     }

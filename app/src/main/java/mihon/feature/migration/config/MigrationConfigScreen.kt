@@ -339,15 +339,16 @@ class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
         }
 
         private suspend fun initSources() {
-            val languages = sourcePreferences.enabledLanguages.get()
+            val languages = sourcePreferences.languageSelection()
             val pinnedSources = sourcePreferences.pinnedSources.get().mapNotNull { it.toLongOrNull() }
             val includedSources = sourcePreferences.migrationSources.get()
-            val disabledSources = sourcePreferences.disabledSources.get()
-                .mapNotNull { it.toLongOrNull() }
             val sources = sourceManager.getAll()
                 .asSequence()
                 .filterIsInstance<HttpSource>()
-                .filter { it.lang in languages }
+                .filter {
+                    languages.followsDefault(it.lang) || languages.isEnabled(it.id, it.lang) ||
+                        it.id in includedSources
+                }
                 .map {
                     val source = Source(
                         id = it.id,
@@ -360,8 +361,10 @@ class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
                         source = source,
                         isSelected = when {
                             includedSources.isNotEmpty() -> source.id in includedSources
-                            pinnedSources.isNotEmpty() -> source.id in pinnedSources
-                            else -> source.id !in disabledSources
+                            pinnedSources.isNotEmpty() ->
+                                source.id in pinnedSources &&
+                                    languages.isEnabled(source.id, source.lang)
+                            else -> languages.isEnabled(source.id, source.lang)
                         },
                     )
                 }
@@ -382,18 +385,18 @@ class MigrationConfigScreen(private val mangaIds: Collection<Long>) : Screen() {
 
         fun toggleSelection(config: SelectionConfig) {
             val pinnedSources = sourcePreferences.pinnedSources.get().mapNotNull { it.toLongOrNull() }
-            val disabledSources = sourcePreferences.disabledSources.get().mapNotNull { it.toLongOrNull() }
-            val isSelected: (Long) -> Boolean = {
+            val languages = sourcePreferences.languageSelection()
+            val isSelected: (Source) -> Boolean = {
                 when (config) {
                     SelectionConfig.All -> true
                     SelectionConfig.None -> false
-                    SelectionConfig.Pinned -> it in pinnedSources
-                    SelectionConfig.Enabled -> it !in disabledSources
+                    SelectionConfig.Pinned -> it.id in pinnedSources
+                    SelectionConfig.Enabled -> languages.isEnabled(it.id, it.lang)
                 }
             }
             updateSources { sources ->
                 sources.map { source ->
-                    source.copy(isSelected = isSelected(source.source.id))
+                    source.copy(isSelected = isSelected(source.source))
                 }
             }
         }

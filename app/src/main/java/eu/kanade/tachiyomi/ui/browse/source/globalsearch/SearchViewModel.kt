@@ -30,7 +30,7 @@ import tachiyomi.source.local.isLocal
 
 abstract class SearchViewModel(
     initialState: State = State(),
-    sourcePreferences: SourcePreferences,
+    private val sourcePreferences: SourcePreferences,
     private val sourceManager: SourceManager,
     private val extensionManager: ExtensionManager,
     private val networkToLocalManga: NetworkToLocalManga,
@@ -50,8 +50,6 @@ abstract class SearchViewModel(
     private val coroutineDispatcher = Dispatchers.IO.limitedParallelism(5)
     private var searchJob: Job? = null
 
-    private val enabledLanguages = sourcePreferences.enabledLanguages.get()
-    private val disabledSources = sourcePreferences.disabledSources.get()
     protected val pinnedSources = sourcePreferences.pinnedSources.get()
 
     private var lastQuery: String? = null
@@ -87,8 +85,9 @@ abstract class SearchViewModel(
     }
 
     open suspend fun getEnabledSources(): List<Source> {
+        val languages = sourcePreferences.languageSelection()
         return sourceManager.getAll()
-            .filter { (it.lang in enabledLanguages || it.isLocal()) && "${it.id}" !in disabledSources }
+            .filter { it.isLocal() || languages.isEnabled(it.id, it.lang) }
             .sortedWith(
                 compareBy(
                     { "${it.id}" !in pinnedSources },

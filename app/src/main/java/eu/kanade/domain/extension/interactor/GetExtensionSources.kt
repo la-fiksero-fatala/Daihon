@@ -17,14 +17,14 @@ class GetExtensionSources(
         val isMultiLangSingleSource =
             isMultiSource && extension.sources.map { it.name }.distinct().size == 1
 
-        return preferences.disabledSources.changes().map { disabledSources ->
-            fun Source.isEnabled() = id.toString() !in disabledSources
+        return preferences.languageSelectionChanges().map { languages ->
 
             extension.sources
                 .map { source ->
                     ExtensionSourceItem(
                         source = source,
-                        enabled = source.isEnabled(),
+                        enabled = languages.isEnabled(source.id, source.lang),
+                        enabledByDefault = languages.followsDefault(source.lang),
                         labelAsName = isMultiSource && !isMultiLangSingleSource,
                     )
                 }
@@ -35,5 +35,6 @@ class GetExtensionSources(
 data class ExtensionSourceItem(
     val source: Source,
     val enabled: Boolean,
+    val enabledByDefault: Boolean,
     val labelAsName: Boolean,
 )

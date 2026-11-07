@@ -10,24 +10,23 @@ class ToggleSource(
     private val preferences: SourcePreferences,
 ) {
 
-    fun await(source: Source, enable: Boolean = isEnabled(source.id)) {
+    fun await(source: Source, enable: Boolean = !preferences.languageSelection().isEnabled(source.id, source.lang)) {
         await(source.id, enable)
     }
 
-    fun await(sourceId: Long, enable: Boolean = isEnabled(sourceId)) {
-        preferences.disabledSources.getAndSet { disabled ->
-            if (enable) disabled.minus("$sourceId") else disabled.plus("$sourceId")
-        }
-    }
+    fun await(sourceId: Long, enable: Boolean) = await(listOf(sourceId), enable)
 
-    fun await(sourceIds: List<Long>, enable: Boolean) {
-        val transformedSourceIds = sourceIds.map { it.toString() }
-        preferences.disabledSources.getAndSet { disabled ->
-            if (enable) disabled.minus(transformedSourceIds) else disabled.plus(transformedSourceIds)
+    /** Null restores the global language defaults for these sources. */
+    fun await(sourceIds: List<Long>, enable: Boolean?) {
+        val ids = sourceIds.map(Long::toString)
+        val explicitEnables = ids.map { "+$it" }
+        preferences.disabledSources.getAndSet { overrides ->
+            val cleared = overrides - ids - explicitEnables
+            when (enable) {
+                true -> cleared + explicitEnables
+                false -> cleared + ids
+                null -> cleared
+            }
         }
-    }
-
-    private fun isEnabled(sourceId: Long): Boolean {
-        return sourceId.toString() in preferences.disabledSources.get()
     }
 }

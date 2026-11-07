@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentActivity
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.more.settings.Preference
+import eu.kanade.presentation.more.settings.screen.browse.ContentLanguageScreen
 import eu.kanade.presentation.more.settings.screen.browse.ExtensionStoresScreen
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.authenticate
 import mihon.app.di.appGraph
@@ -23,7 +24,7 @@ object SettingsBrowseScreen : SearchableSettings {
 
     @ReadOnlyComposable
     @Composable
-    override fun getTitleRes() = MR.strings.browse
+    override fun getTitleRes() = MR.strings.label_sources
 
     @Composable
     override fun getPreferences(): List<Preference> {
@@ -39,6 +40,23 @@ object SettingsBrowseScreen : SearchableSettings {
             Preference.PreferenceGroup(
                 title = stringResource(MR.strings.label_sources),
                 preferenceItems = listOf(
+                    Preference.PreferenceItem.TextPreference(
+                        title = stringResource(MR.strings.daihon_content_language),
+                        onClick = { navigator.push(ContentLanguageScreen()) },
+                    ),
+                    Preference.PreferenceItem.ListPreference(
+                        preference = sourcePreferences.sourceColumns,
+                        entries = (1..5).associateWith(Int::toString),
+                        title = stringResource(MR.strings.daihon_source_columns),
+                    ),
+                    Preference.PreferenceItem.ListPreference(
+                        preference = sourcePreferences.exploreLatest,
+                        entries = mapOf(
+                            false to stringResource(MR.strings.popular),
+                            true to stringResource(MR.strings.latest),
+                        ),
+                        title = stringResource(MR.strings.daihon_source_explore_default),
+                    ),
                     Preference.PreferenceItem.SwitchPreference(
                         preference = sourcePreferences.hideInLibraryItems,
                         title = stringResource(MR.strings.pref_hide_in_library_items),

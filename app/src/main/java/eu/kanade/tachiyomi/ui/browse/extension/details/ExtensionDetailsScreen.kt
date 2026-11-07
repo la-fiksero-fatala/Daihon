@@ -43,6 +43,8 @@ data class ExtensionDetailsScreen(
                     onClickSourcePreferences = { navigator.push(SourcePreferencesScreen(it)) },
                     onClickEnableAll = { viewModel.toggleSources(true) },
                     onClickDisableAll = { viewModel.toggleSources(false) },
+                    onClickGlobalLanguages = { viewModel.toggleSources(null) },
+                    onClickPin = viewModel::togglePin,
                     onClickClearCookies = viewModel::clearCookies,
                     onClickUninstall = viewModel::uninstallExtension,
                     onClickSource = viewModel::toggleSource,

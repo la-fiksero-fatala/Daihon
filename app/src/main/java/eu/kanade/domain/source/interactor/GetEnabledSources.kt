@@ -20,14 +20,12 @@ class GetEnabledSources(
     fun subscribe(): Flow<List<Source>> {
         return combine(
             preferences.pinnedSources.changes(),
-            preferences.enabledLanguages.changes(),
-            preferences.disabledSources.changes(),
+            preferences.languageSelectionChanges(),
             preferences.lastUsedSource.changes(),
             repository.getSources(),
-        ) { pinnedSourceIds, enabledLanguages, disabledSources, lastUsedSource, sources ->
+        ) { pinnedSourceIds, languages, lastUsedSource, sources ->
             sources
-                .filter { it.lang in enabledLanguages || it.isLocal() }
-                .filterNot { it.id.toString() in disabledSources }
+                .filter { it.isLocal() || languages.isEnabled(it.id, it.lang) }
                 .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
                 .flatMap {
                     val flag = if ("${it.id}" in pinnedSourceIds) Pins.pinned else Pins.unpinned

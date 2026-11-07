@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.util.system
 
 import android.content.Context
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import eu.kanade.tachiyomi.ui.browse.source.SourcesViewModel
 import tachiyomi.core.common.i18n.stringResource
@@ -33,7 +34,7 @@ object LocaleHelper {
             SourcesViewModel.LAST_USED_KEY -> context.stringResource(MR.strings.last_used_source)
             SourcesViewModel.PINNED_KEY -> context.stringResource(MR.strings.pinned_sources)
             "other" -> context.stringResource(MR.strings.other_source)
-            "all" -> context.stringResource(MR.strings.multi_lang)
+            "all", "multi", "mul", "", "und" -> context.stringResource(MR.strings.multi_lang)
             else -> getLocalizedDisplayName(lang)
         }
     }
@@ -82,6 +83,6 @@ object LocaleHelper {
      * Return the default languages enabled for the sources.
      */
     fun getDefaultEnabledLanguages(): Set<String> {
-        return setOf("all", "en", Locale.getDefault().language)
+        return setOf(AppCompatDelegate.getApplicationLocales()[0]?.language ?: Locale.getDefault().language)
     }
 }

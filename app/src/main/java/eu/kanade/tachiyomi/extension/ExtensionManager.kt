@@ -41,7 +41,6 @@ import mihon.domain.extension.repository.ExtensionStoreRepository
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
-import java.util.Locale
 
 /**
  * The manager of extensions installed as another apk which extend the available sources. It handles
@@ -114,8 +113,6 @@ class ExtensionManager(
             extensionStoreRepository.getAllAsFlow().collect(::assignStores)
         }
     }
-
-    private var subLanguagesEnabledOnFirstRun = preferences.enabledLanguages.isSet()
 
     suspend fun getLoadedExtensions(): List<Extension.Loaded> {
         initialized.await()
@@ -225,41 +222,9 @@ class ExtensionManager(
     }
 
     private fun setAvailableExtensions(extensions: List<Extension.Available>) {
-        enableAdditionalSubLanguages(extensions)
-
         availableExtensionListFlow.value = extensions
         refreshStatuses()
         setupAvailableExtensionsSourcesDataMap(extensions)
-    }
-
-    /**
-     * Enables the additional sub-languages in the app first run. This addresses
-     * the issue where users still need to enable some specific languages even when
-     * the device language is inside that major group. As an example, if a user
-     * has a zh device language, the app will also enable zh-Hans and zh-Hant.
-     *
-     * If the user have already changed the enabledLanguages preference value once,
-     * the new languages will not be added to respect the user enabled choices.
-     */
-    private fun enableAdditionalSubLanguages(extensions: List<Extension.Available>) {
-        if (subLanguagesEnabledOnFirstRun || extensions.isEmpty()) {
-            return
-        }
-
-        // Use the source lang as some aren't present on the extension level.
-        val availableLanguages = extensions
-            .flatMap(Extension.Available::sources)
-            .distinctBy(Extension.Available.Source::lang)
-            .map(Extension.Available.Source::lang)
-
-        val deviceLanguage = Locale.getDefault().language
-        val defaultLanguages = preferences.enabledLanguages.defaultValue()
-        val languagesToEnable = availableLanguages.filter {
-            it != deviceLanguage && it.startsWith(deviceLanguage)
-        }
-
-        preferences.enabledLanguages.set(defaultLanguages + languagesToEnable)
-        subLanguagesEnabledOnFirstRun = true
     }
 
     /**

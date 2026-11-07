@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import logcat.LogPriority
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.core.common.util.system.logcat
 import kotlin.time.Duration.Companion.seconds
 
@@ -64,8 +65,14 @@ class ExtensionDetailsViewModel(
             combine(
                 subscribeToSources(extension),
                 preferences.incognitoExtensions.changes().map { pkgName in it }.distinctUntilChanged(),
-            ) { sources, isIncognito ->
-                State.Success(extension = extension, isIncognito = isIncognito, sources = sources)
+                preferences.pinnedSources.changes(),
+            ) { sources, isIncognito, pins ->
+                State.Success(
+                    extension = extension,
+                    isIncognito = isIncognito,
+                    sources = sources,
+                    pinned = sources.any { it.source.id.toString() in pins },
+                )
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), State.Loading)
@@ -119,13 +126,22 @@ class ExtensionDetailsViewModel(
     }
 
     fun toggleSource(sourceId: Long) {
-        toggleSource.await(sourceId)
+        val source = successState?.extension?.sources?.firstOrNull { it.id == sourceId } ?: return
+        val enabled = preferences.languageSelection().isEnabled(source.id, source.lang)
+        toggleSource.await(sourceId, !enabled)
     }
 
-    fun toggleSources(enable: Boolean) {
+    fun toggleSources(enable: Boolean?) {
         successState?.extension?.sources
             ?.map { it.id }
             ?.let { toggleSource.await(it, enable) }
+    }
+
+    fun togglePin() {
+        val ids = successState?.extension?.sources?.map { it.id.toString() } ?: return
+        preferences.pinnedSources.getAndSet { pinned ->
+            if (ids.any { it in pinned }) pinned - ids else pinned + ids
+        }
     }
 
     fun toggleIncognito(enable: Boolean) {
@@ -145,6 +161,7 @@ class ExtensionDetailsViewModel(
             val extension: Extension.Loaded,
             val isIncognito: Boolean,
             val sources: List<ExtensionSourceItem>,
+            val pinned: Boolean,
         ) : State
     }
 }

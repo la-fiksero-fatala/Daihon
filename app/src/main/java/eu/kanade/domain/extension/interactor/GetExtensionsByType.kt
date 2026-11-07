@@ -2,6 +2,7 @@ package eu.kanade.domain.extension.interactor
 
 import dev.zacsweers.metro.Inject
 import eu.kanade.domain.extension.model.Extensions
+import eu.kanade.domain.source.service.SourceLanguageSelection
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.model.Extension
@@ -23,6 +24,7 @@ class GetExtensionsByType(
             extensionManager.notLoadedExtensionsFlow,
             extensionManager.availableExtensionsFlow,
         ) { enabledLanguages, _loaded, _notLoaded, _available ->
+            val languages = SourceLanguageSelection(enabledLanguages)
             val byName = compareBy<Extension, String>(String.CASE_INSENSITIVE_ORDER) { it.name }
 
             val (loadedUpdates, loaded) = _loaded.partition { it.hasUpdate }
@@ -37,7 +39,7 @@ class GetExtensionsByType(
                         extension.contentWarning in enabledContentWarnings
                 }
                 .flatMap { ext ->
-                    ext.sources.filter { it.lang in enabledLanguages }
+                    ext.sources.filter { languages.followsDefault(it.lang) }
                         .map {
                             ext.copy(
                                 name = it.name,

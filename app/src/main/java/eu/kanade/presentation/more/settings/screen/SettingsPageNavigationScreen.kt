@@ -54,7 +54,7 @@ object SettingsPageNavigationScreen : SearchableSettings {
         ) + listOf(
             PaperNavigationArea.Details to MR.strings.daihon_details,
             PaperNavigationArea.Chapters to MR.strings.chapters,
-            PaperNavigationArea.Browse to MR.strings.browse,
+            PaperNavigationArea.Browse to MR.strings.label_sources,
             PaperNavigationArea.Updates to MR.strings.label_recent_updates,
             PaperNavigationArea.History to MR.strings.label_recent_manga,
             PaperNavigationArea.Settings to MR.strings.label_settings,

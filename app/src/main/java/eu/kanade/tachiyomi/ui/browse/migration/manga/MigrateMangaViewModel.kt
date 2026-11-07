@@ -36,7 +36,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @AssistedInject
 class MigrateMangaViewModel(
-    @Assisted private val sourceId: Long,
+    @Assisted private val sourceIds: List<Long>,
     private val sourceManager: SourceManager,
     private val getFavorites: GetFavorites,
 ) : ViewModel() {
@@ -45,17 +45,19 @@ class MigrateMangaViewModel(
     @ManualViewModelAssistedFactoryKey
     @ContributesIntoMap(AppScope::class)
     interface Factory : ManualViewModelAssistedFactory {
-        fun create(sourceId: Long): MigrateMangaViewModel
+        fun create(sourceIds: List<Long>): MigrateMangaViewModel
     }
 
     private val _events: Channel<MigrationMangaEvent> = Channel()
     val events: Flow<MigrationMangaEvent> = _events.receiveAsFlow()
 
-    private val source = viewModelScope.async { sourceManager.getOrStub(sourceId) }
+    private val source = viewModelScope.async { sourceManager.getOrStub(sourceIds.first()) }
 
     private val selection = MutableStateFlow(emptySet<Long>())
 
-    private val favorites = getFavorites.subscribe(sourceId)
+    private val favorites = combine(sourceIds.distinct().map(getFavorites::subscribe)) { lists ->
+        lists.flatMap { it }
+    }
         .catch {
             logcat(LogPriority.ERROR, it)
             _events.send(MigrationMangaEvent.FailedFetchingFavorites)
@@ -69,7 +71,11 @@ class MigrateMangaViewModel(
         favorites,
         selection,
     ) { titleList, selection ->
-        State(source = source.await(), selection = selection, titleList = titleList)
+        State(
+            source = source.await(),
+            selection = selection.intersect(titleList.map { it.id }.toSet()),
+            titleList = titleList,
+        )
     }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), State())
@@ -80,6 +86,10 @@ class MigrateMangaViewModel(
                 if (!list.remove(item.id)) list.add(item.id)
             }
         }
+    }
+
+    fun selectAll() {
+        selection.value = state.value.titles.mapTo(mutableSetOf(), Manga::id)
     }
 
     fun clearSelection() {

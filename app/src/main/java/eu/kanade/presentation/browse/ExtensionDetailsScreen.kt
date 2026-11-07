@@ -7,6 +7,7 @@ import android.util.DisplayMetrics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -70,6 +71,8 @@ fun ExtensionDetailsScreen(
     onClickSourcePreferences: (sourceId: Long) -> Unit,
     onClickEnableAll: () -> Unit,
     onClickDisableAll: () -> Unit,
+    onClickGlobalLanguages: () -> Unit,
+    onClickPin: () -> Unit,
     onClickClearCookies: () -> Unit,
     onClickUninstall: () -> Unit,
     onClickSource: (sourceId: Long) -> Unit,
@@ -85,14 +88,6 @@ fun ExtensionDetailsScreen(
                 actions = {
                     AppBarActions(
                         actions = listOf(
-                            AppBar.OverflowAction(
-                                title = stringResource(MR.strings.action_enable_all),
-                                onClick = onClickEnableAll,
-                            ),
-                            AppBar.OverflowAction(
-                                title = stringResource(MR.strings.action_disable_all),
-                                onClick = onClickDisableAll,
-                            ),
                             AppBar.OverflowAction(
                                 title = stringResource(MR.strings.pref_clear_cookies),
                                 onClick = onClickClearCookies,
@@ -113,6 +108,10 @@ fun ExtensionDetailsScreen(
                 ?.takeIf { it.isNotBlank() }
                 ?.let { website -> { uriHandler.openUri(website) } },
             sources = state.sources,
+            pinned = state.pinned,
+            onClickPin = onClickPin,
+            onClickToggleAllLanguages = if (state.sources.all { it.enabled }) onClickDisableAll else onClickEnableAll,
+            onClickGlobalLanguages = onClickGlobalLanguages,
             incognitoMode = state.isIncognito,
             onClickSourcePreferences = onClickSourcePreferences,
             onClickUninstall = onClickUninstall,
@@ -128,6 +127,10 @@ private fun ExtensionDetails(
     extension: Extension.Loaded,
     onClickStore: (() -> Unit)?,
     sources: List<ExtensionSourceItem>,
+    pinned: Boolean,
+    onClickPin: () -> Unit,
+    onClickToggleAllLanguages: () -> Unit,
+    onClickGlobalLanguages: () -> Unit,
     incognitoMode: Boolean,
     onClickSourcePreferences: (sourceId: Long) -> Unit,
     onClickUninstall: () -> Unit,
@@ -165,6 +168,37 @@ private fun ExtensionDetails(
                 },
                 onExtIncognitoChange = onClickIncognito,
             )
+        }
+
+        if (sources.isNotEmpty()) {
+            item {
+                FlowRow(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Button(onClick = onClickPin) {
+                        val label = if (pinned) MR.strings.daihon_unpin_extension else MR.strings.daihon_pin_extension
+                        Text(stringResource(label))
+                    }
+                    Button(onClick = onClickToggleAllLanguages) {
+                        Text(
+                            stringResource(
+                                if (sources.all { it.enabled }) {
+                                    MR.strings.daihon_disable_all_languages
+                                } else {
+                                    MR.strings.daihon_enable_all_languages
+                                },
+                            ),
+                        )
+                    }
+                    if (sources.any { it.enabled != it.enabledByDefault }) {
+                        Button(onClick = onClickGlobalLanguages) {
+                            Text(stringResource(MR.strings.daihon_use_global_languages))
+                        }
+                    }
+                }
+            }
         }
 
         items(
