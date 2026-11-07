@@ -1173,7 +1173,10 @@
     <string name="daihon_no_enabled_languages">No enabled languages. Open Extension Info</string>
     <string name="daihon_content_language">Content language</string>
     <string name="daihon_content_language_help">Choose the languages that extensions enable by default.</string>
-    <string name="daihon_source_columns">Maximum source tiles per row</string>
+    <string name="daihon_source_columns">Source tile density</string>
+    <string name="daihon_source_tiles_per_row">Up to %1$d per row</string>
+    <string name="daihon_update_all_extensions">Update all extensions</string>
+    <string name="daihon_confirm_update_all_extensions">Update all extensions?</string>
     <string name="daihon_source_explore_default">Open Explore on</string>
     <string name="daihon_source_selected">%1$d selected</string>
     <string name="daihon_enable_all_languages">Enable all languages</string>

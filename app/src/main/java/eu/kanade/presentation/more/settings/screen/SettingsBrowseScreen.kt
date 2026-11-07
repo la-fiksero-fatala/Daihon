@@ -46,7 +46,7 @@ object SettingsBrowseScreen : SearchableSettings {
                     ),
                     Preference.PreferenceItem.ListPreference(
                         preference = sourcePreferences.sourceColumns,
-                        entries = (1..5).associateWith(Int::toString),
+                        entries = (1..5).associateWith { stringResource(MR.strings.daihon_source_tiles_per_row, it) },
                         title = stringResource(MR.strings.daihon_source_columns),
                     ),
                     Preference.PreferenceItem.ListPreference(

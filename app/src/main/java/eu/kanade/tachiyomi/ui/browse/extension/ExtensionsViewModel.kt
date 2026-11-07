@@ -25,10 +25,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.WhileSubscribed
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -51,7 +54,8 @@ class ExtensionsViewModel(
     private val context: Context,
 ) : ViewModel() {
 
-    private val currentDownloads = MutableStateFlow<Map<String, InstallStep>>(hashMapOf())
+    private val currentDownloads = MutableStateFlow<Map<String, InstallStep>>(emptyMap())
+    val downloadSteps = currentDownloads.asStateFlow()
 
     // Public so BrowseTab's search bar can observe it without subscribing to the whole state.
     val searchQuery: StateFlow<String?>
@@ -167,11 +171,7 @@ class ExtensionsViewModel(
 
     fun updateAllExtensions() {
         viewModelScope.launch(Dispatchers.IO) {
-            state.value.items.values.flatten()
-                .map { it.extension }
-                .filterIsInstance<Extension.Installed>()
-                .filter { it.hasUpdate }
-                .forEach(::updateExtension)
+            getExtensions.subscribe().first().updates.forEach(::updateExtension)
         }
     }
 
@@ -182,6 +182,12 @@ class ExtensionsViewModel(
     }
 
     fun updateExtension(extension: Extension.Installed) {
+        val key = extension.pkgName
+        val previous = currentDownloads.getAndUpdate {
+            if (it[key]?.isCompleted() == false) it else it + (key to InstallStep.Pending)
+        }
+        if (previous[key]?.isCompleted() == false) return
+
         viewModelScope.launch(Dispatchers.IO) {
             extensionManager.updateExtension(extension).collectToInstallUpdate(extension)
         }
