@@ -501,6 +501,7 @@ class ReaderActivity : BaseActivity() {
         val general by settingsViewModel.general.collectAsState()
         val padding by settingsViewModel.pagePadding.collectAsState()
         val dimensions by settingsViewModel.croppedDimensions.collectAsState()
+        val expandedZoom by settingsViewModel.expandedZoom.collectAsState()
         val rendering by settingsViewModel.legacyRendering.collectAsState()
         val paged = viewer != null && ReadingMode.isPagerType(viewModel.getMangaReadingMode())
         val colorFilter = remember(general.grayscale, general.invertedColors) {
@@ -520,14 +521,15 @@ class ReaderActivity : BaseActivity() {
                 } else {
                     ReaderPaddingSettings()
                 }
-                val layout = readerPageLayout(constraints.maxWidth, constraints.maxHeight, policy, dimensions)
-                SideEffect { settingsViewModel.appliedPagePadding.value = layout }
                 val info = ReaderPaddingInfo(
                     policy,
                     constraints.maxWidth,
                     constraints.maxHeight,
-                    layout,
+                    readerPageLayout(constraints.maxWidth, constraints.maxHeight, policy, dimensions),
+                    expandedZoom = policy.dynamic && expandedZoom,
                 )
+                val layout = info.appliedLayout
+                SideEffect { settingsViewModel.appliedPagePadding.value = layout }
                 val density = LocalDensity.current
                 CompositionLocalProvider(LocalReaderPaddingInfo provides if (paged) info else null) {
                     key(viewer) {

@@ -74,6 +74,10 @@ class ReaderSettingsViewModel(
         .flatMapLatest { it?.displayScale ?: flowOf(null) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    val expandedZoom = currentPage
+        .flatMapLatest { it?.expandedZoom ?: flowOf(false) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
     val sourceDimensions = currentPage
         .flatMapLatest { it?.sourceDimensions ?: flowOf(null) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)

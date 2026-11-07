@@ -128,6 +128,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
     var onImageLoadError: ((Throwable?) -> Unit)? = null
     var onScaleChanged: ((newScale: Float) -> Unit)? = null
     var onRenderedScale: ((Float?) -> Unit)? = null
+    var onExpandedZoom: ((Boolean) -> Unit)? = null
     var onViewClicked: (() -> Unit)? = null
 
     /**
@@ -342,6 +343,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
 
         pageView = ReaderSamplingImageView(context).apply {
             onRenderedScale = { this@ReaderPageImageView.onRenderedScale?.invoke(it) }
+            onExpandedZoom = { this@ReaderPageImageView.onExpandedZoom?.invoke(it) }
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER_IMMEDIATE)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
             setMinimumTileDpi(180)

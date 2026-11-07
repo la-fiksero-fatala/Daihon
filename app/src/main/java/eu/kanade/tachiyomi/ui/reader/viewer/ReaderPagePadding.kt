@@ -53,7 +53,16 @@ data class ReaderPaddingInfo(
     val width: Int,
     val height: Int,
     val layout: ReaderPageLayout,
+    val expandedZoom: Boolean = false,
 ) {
+    val appliedLayout get() = if (expandedZoom) ReaderPageLayout(0, 0, 0, 0) else layout
+
+    fun matchesViewport(width: Int, height: Int): Boolean {
+        val applied = appliedLayout
+        return width == this.width - applied.left - applied.right &&
+            height == this.height - applied.top - applied.bottom
+    }
+
     fun layoutFor(
         width: Int,
         height: Int,

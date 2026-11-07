@@ -15,6 +15,7 @@ open class ReaderPage(
     val sourceDimensions = MutableStateFlow<ImageDimensions?>(null)
     val croppedDimensions = MutableStateFlow<ImageDimensions?>(null)
     val displayScale = MutableStateFlow<Float?>(null)
+    val expandedZoom = MutableStateFlow(false)
 
     open lateinit var chapter: ReaderChapter
 

@@ -214,6 +214,8 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
     /**
      * Returns the PagerPageHolder for the provided page
      */
+    internal fun isCurrentPage(page: ReaderPage): Boolean = tracker.currentPage === page
+
     private fun getPageHolder(page: ReaderPage): PagerPageHolder? =
         pager.children
             .filterIsInstance(PagerPageHolder::class.java)

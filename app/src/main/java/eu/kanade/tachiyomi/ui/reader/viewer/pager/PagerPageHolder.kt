@@ -58,6 +58,7 @@ class PagerPageHolder(
     init {
         page.displayScale.value = null
         onRenderedScale = { page.displayScale.value = it }
+        onExpandedZoom = { if (viewer.isCurrentPage(page)) page.expandedZoom.value = it }
         pageColorFilter = viewer.pageColorFilter
         imageRendering = viewer.imageRendering
         paddingInfo = viewer.paddingInfo
@@ -70,6 +71,7 @@ class PagerPageHolder(
     @SuppressLint("ClickableViewAccessibility")
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+        page.expandedZoom.value = false
         page.displayScale.value = null
         loadJob?.cancel()
         loadJob = null
@@ -196,6 +198,7 @@ class PagerPageHolder(
      * Called when the page has an error.
      */
     private fun setError(error: Throwable?) {
+        page.expandedZoom.value = false
         page.displayScale.value = null
         progressIndicator?.hide()
         showErrorLayout(error)

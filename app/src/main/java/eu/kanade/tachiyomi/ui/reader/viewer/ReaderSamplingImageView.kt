@@ -22,36 +22,55 @@ internal class ReaderSamplingImageView(context: Context) : SubsamplingScaleImage
     var paddingInfo: ReaderPaddingInfo? = null
         set(value) {
             if (value == field) return
-            val wasNative = field?.layout?.native == true
+            val previous = field
+            val wasNative = previous?.layout?.native == true
             field = value
-            if (wasNative != (value?.layout?.native == true)) {
+            if (wasNative != (value?.layout?.native == true) || previous?.expandedZoom == true) {
                 val native = value?.layout?.native == true
                 setMinimumScaleType(if (native) SCALE_TYPE_CENTER_INSIDE else configuredScaleType)
-                setMinimumTileDpi(if (native) 0 else 180)
+                if (wasNative != native) setMinimumTileDpi(if (native) 0 else 180)
             }
-            refit = true
+            val keepZoom = value?.expandedZoom == true && homeMinScale > 0f
+            if (keepZoom) {
+                // Keep the padded fit as the zoom-out limit even when the view fills the window.
+                setMinScale(homeMinScale)
+                setMinimumScaleType(SCALE_TYPE_CUSTOM)
+            }
+            refit = !keepZoom
             invalidate()
         }
     var configuredScaleType = SCALE_TYPE_CENTER_INSIDE
         set(value) {
             field = value
-            setMinimumScaleType(if (nativeCandidate) SCALE_TYPE_CENTER_INSIDE else value)
+            if (paddingInfo?.expandedZoom != true) {
+                setMinimumScaleType(if (nativeCandidate) SCALE_TYPE_CENTER_INSIDE else value)
+            }
         }
     private var refit = false
     private var appliedNative = false
+    private var homeMinScale = 0f
+    private var zoomCenter: PointF? = null
     val nativeCandidate get() = paddingInfo?.layoutFor(sWidth, sHeight)?.native == true
     private val sampler = ReaderBitmapSampler(context)
     var onRenderedScale: ((Float?) -> Unit)? = null
+    var onExpandedZoom: ((Boolean) -> Unit)? = null
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        if (paddingInfo?.settings?.dynamic == true || appliedNative) refit = true
+        if (paddingInfo?.expandedZoom == true) {
+            zoomCenter?.let { setScaleAndCenter(scale, it) }
+            zoomCenter = null
+        } else if (paddingInfo?.settings?.dynamic == true || appliedNative) {
+            refit = true
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
-        val native = nativeCandidate
+        val info = paddingInfo
+        val expanded = info?.expandedZoom == true
+        val native = nativeCandidate && !expanded
         val matches = paddingInfo?.matchesNativeViewport(width, height, sWidth, sHeight) == true
-        if (isReady && refit && (!native || matches)) {
+        if (isReady && !expanded && refit && (!native || matches)) {
             if (native || appliedNative || paddingInfo?.settings?.dynamic == true) {
                 setMinimumScaleType(if (native) SCALE_TYPE_CENTER_INSIDE else configuredScaleType)
                 if (native) setScaleAndCenter(1f, PointF(sWidth / 2f, sHeight / 2f)) else resetScaleAndCenter()
@@ -61,14 +80,27 @@ internal class ReaderSamplingImageView(context: Context) : SubsamplingScaleImage
         }
         super.onDraw(
             SamplingCanvas(canvas, sampler, rendering, { scale }, {
-                if (nativeCandidate && paddingInfo?.matchesNativeViewport(width, height, sWidth, sHeight) != true) {
-                    null
-                } else {
-                    nativeCandidate
+                when {
+                    expanded -> false
+                    nativeCandidate && paddingInfo?.matchesNativeViewport(
+                        width,
+                        height,
+                        sWidth,
+                        sHeight,
+                    ) != true -> null
+                    else -> nativeCandidate
                 }
             }),
         )
-        onRenderedScale?.invoke(scale.takeIf { isReady && (!nativeCandidate || matches) })
+        onRenderedScale?.invoke(scale.takeIf { isReady && (expanded || !nativeCandidate || matches) })
+        if (isReady && info?.settings?.dynamic == true && info.matchesViewport(width, height)) {
+            if (!expanded) homeMinScale = minScale
+            val zoomed = homeMinScale > 0f && scale > homeMinScale + 0.0001f
+            if (zoomed && !expanded) zoomCenter = center
+            onExpandedZoom?.invoke(zoomed)
+        } else if (info?.settings?.dynamic != true) {
+            onExpandedZoom?.invoke(false)
+        }
     }
 
     /** Only the Canvas calls used by the pinned tiled view's onDraw are delegated here. */
